@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SRMS.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d8a38e0555eafe452e3bcac56bf4da60a667510")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ba5236f1477f27e89192a06953a164ad6f127093")]
 [assembly: System.Reflection.AssemblyProductAttribute("SRMS.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SRMS.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
