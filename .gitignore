@@ -1,0 +1,48 @@
+# Backend - .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/Debug/
+backend/**/Release/
+backend/**/*.db
+backend/**/*.user
+backend/**/appsettings.Development.json
+
+# Frontend - Node
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Mobile - Flutter
+mobile/.dart_tool/
+mobile/.packages
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/pubspec.lock
+mobile/linux/flutter/ephemeral/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/macos/Pods/
+mobile/macos/Flutter/ephemeral/
+mobile/web/canvaskit/
+mobile/windows/flutter/ephemeral/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / Secrets
+.env
+.env.local
+*.pem
+*.key
