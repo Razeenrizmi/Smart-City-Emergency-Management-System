@@ -99,6 +99,50 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(rj => rj.RouteId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_route_junctions_route_id");
+
+            // Seed data for Routes
+            var routeAId = Guid.Parse("22222222-2222-2222-2222-222222222201");
+            var routeBId = Guid.Parse("22222222-2222-2222-2222-222222222202");
+            var routeCId = Guid.Parse("22222222-2222-2222-2222-222222222203");
+
+            entity.HasData(
+                new TrafficRoute
+                {
+                    RouteId = routeAId,
+                    RouteName = "Route A",
+                    StartLocation = "Peradeniya",
+                    Destination = "Kandy",
+                    DistanceKm = 5.00m,
+                    EstimatedTimeMinutes = 15,
+                    TrafficLevel = "HIGH",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrafficRoute
+                {
+                    RouteId = routeBId,
+                    RouteName = "Route B",
+                    StartLocation = "Peradeniya",
+                    Destination = "Kandy",
+                    DistanceKm = 6.00m,
+                    EstimatedTimeMinutes = 8,
+                    TrafficLevel = "LOW",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrafficRoute
+                {
+                    RouteId = routeCId,
+                    RouteName = "Route C",
+                    StartLocation = "Peradeniya",
+                    Destination = "Kandy",
+                    DistanceKm = 7.00m,
+                    EstimatedTimeMinutes = 11,
+                    TrafficLevel = "MEDIUM",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            );
         });
 
         // Configure RouteJunction
@@ -139,6 +183,111 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(rj => new { rj.RouteId, rj.JunctionId })
                 .IsUnique()
                 .HasDatabaseName("uq_route_junctions_route_junction");
+
+            // Seed data for RouteJunctions
+            var j01Id = Guid.Parse("11111111-1111-1111-1111-111111111101");
+            var j02Id = Guid.Parse("11111111-1111-1111-1111-111111111102");
+            var j03Id = Guid.Parse("11111111-1111-1111-1111-111111111103");
+            var j04Id = Guid.Parse("11111111-1111-1111-1111-111111111104");
+            var j05Id = Guid.Parse("11111111-1111-1111-1111-111111111105");
+
+            var routeAId = Guid.Parse("22222222-2222-2222-2222-222222222201");
+            var routeBId = Guid.Parse("22222222-2222-2222-2222-222222222202");
+            var routeCId = Guid.Parse("22222222-2222-2222-2222-222222222203");
+
+            entity.HasData(
+                // Route A: J01 → J02 → J04 → J05
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333301"),
+                    RouteId = routeAId,
+                    JunctionId = j01Id,
+                    SequenceNumber = 1,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333302"),
+                    RouteId = routeAId,
+                    JunctionId = j02Id,
+                    SequenceNumber = 2,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333303"),
+                    RouteId = routeAId,
+                    JunctionId = j04Id,
+                    SequenceNumber = 3,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333304"),
+                    RouteId = routeAId,
+                    JunctionId = j05Id,
+                    SequenceNumber = 4,
+                    CreatedAt = DateTime.UtcNow
+                },
+                // Route B: J01 → J02 → J03 (REQUIRED)
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333305"),
+                    RouteId = routeBId,
+                    JunctionId = j01Id,
+                    SequenceNumber = 1,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333306"),
+                    RouteId = routeBId,
+                    JunctionId = j02Id,
+                    SequenceNumber = 2,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333307"),
+                    RouteId = routeBId,
+                    JunctionId = j03Id,
+                    SequenceNumber = 3,
+                    CreatedAt = DateTime.UtcNow
+                },
+                // Route C: J01 → J03 → J04 → J05
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333308"),
+                    RouteId = routeCId,
+                    JunctionId = j01Id,
+                    SequenceNumber = 1,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333309"),
+                    RouteId = routeCId,
+                    JunctionId = j03Id,
+                    SequenceNumber = 2,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333310"),
+                    RouteId = routeCId,
+                    JunctionId = j04Id,
+                    SequenceNumber = 3,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new RouteJunction
+                {
+                    RouteJunctionId = Guid.Parse("33333333-3333-3333-3333-333333333311"),
+                    RouteId = routeCId,
+                    JunctionId = j05Id,
+                    SequenceNumber = 4,
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
         });
 
         // Configure RoadJunction
@@ -184,6 +333,60 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(spl => spl.JunctionId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_signal_preemption_logs_junction_id");
+
+            // Seed data for RoadJunctions
+            entity.HasData(
+                new RoadJunction
+                {
+                    JunctionId = Guid.Parse("11111111-1111-1111-1111-111111111101"),
+                    JunctionName = "Peradeniya Junction",
+                    Latitude = 7.2580m,
+                    Longitude = 80.5710m,
+                    CurrentSignalState = "RED",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new RoadJunction
+                {
+                    JunctionId = Guid.Parse("11111111-1111-1111-1111-111111111102"),
+                    JunctionName = "Gatambe Junction",
+                    Latitude = 7.2650m,
+                    Longitude = 80.5780m,
+                    CurrentSignalState = "RED",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new RoadJunction
+                {
+                    JunctionId = Guid.Parse("11111111-1111-1111-1111-111111111103"),
+                    JunctionName = "Hospital Junction",
+                    Latitude = 7.2720m,
+                    Longitude = 80.5850m,
+                    CurrentSignalState = "GREEN",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new RoadJunction
+                {
+                    JunctionId = Guid.Parse("11111111-1111-1111-1111-111111111104"),
+                    JunctionName = "Town Junction",
+                    Latitude = 7.2790m,
+                    Longitude = 80.5920m,
+                    CurrentSignalState = "RED",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new RoadJunction
+                {
+                    JunctionId = Guid.Parse("11111111-1111-1111-1111-111111111105"),
+                    JunctionName = "Lake Junction",
+                    Latitude = 7.2860m,
+                    Longitude = 80.5990m,
+                    CurrentSignalState = "RED",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            );
         });
 
         // Configure SignalPreemptionLog
