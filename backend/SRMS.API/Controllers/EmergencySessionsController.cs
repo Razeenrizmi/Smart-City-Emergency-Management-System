@@ -144,32 +144,96 @@ public class EmergencySessionsController : ControllerBase
 
     // POST /api/emergencies/{id}/complete
     [HttpPost("{id}/complete")]
-    public async Task<ActionResult<EmergencySessionResponse>> CompleteEmergencySession(Guid id)
+    public async Task<ActionResult<EmergencyCompletionResponse>> CompleteEmergencySession(Guid id)
     {
         var session = await _context.EmergencySessions.FindAsync(id);
 
         if (session == null)
         {
-            return NotFound();
+            return NotFound("Emergency session not found.");
         }
 
-        session.Status = "COMPLETED";
-        session.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        var response = new EmergencySessionResponse
+        // Validate session is not already completed or cancelled
+        if (session.Status == "COMPLETED")
         {
-            SessionId = session.SessionId,
-            DriverId = session.DriverId,
-            VehicleType = session.VehicleType,
-            Status = session.Status,
-            SelectedRouteId = session.SelectedRouteId,
-            CreatedAt = session.CreatedAt,
-            UpdatedAt = session.UpdatedAt
-        };
+            return BadRequest("Emergency session is already COMPLETED.");
+        }
 
-        return Ok(response);
+        if (session.Status == "CANCELLED")
+        {
+            return BadRequest("Emergency session is CANCELLED. Cannot complete a cancelled session.");
+        }
+
+        // Use transaction for atomicity
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Find active preemption logs for this session
+            var activeLogs = await _context.SignalPreemptionLogs
+                .Include(spl => spl.RoadJunction)
+                .Where(spl => spl.SessionId == id && spl.IsActive)
+                .ToListAsync();
+
+            var restoredJunctions = new List<RestoredJunctionInfo>();
+            bool greenWaveRestored = false;
+
+            // Restore signal states for each active preemption
+            foreach (var log in activeLogs)
+            {
+                // Validate PreviousSignalState exists
+                if (string.IsNullOrEmpty(log.PreviousSignalState))
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, "Cannot restore signal state: PreviousSignalState is missing in preemption log. Transaction rolled back.");
+                }
+
+                var junction = log.RoadJunction;
+                if (junction != null)
+                {
+                    // Restore to previous state
+                    junction.CurrentSignalState = log.PreviousSignalState;
+                    junction.UpdatedAt = DateTime.UtcNow;
+
+                    // Mark log as inactive
+                    log.IsActive = false;
+                    log.DeactivatedAt = DateTime.UtcNow;
+
+                    restoredJunctions.Add(new RestoredJunctionInfo
+                    {
+                        JunctionId = junction.JunctionId,
+                        JunctionName = junction.JunctionName,
+                        RestoredSignalState = log.PreviousSignalState
+                    });
+                }
+            }
+
+            if (activeLogs.Any())
+            {
+                greenWaveRestored = true;
+            }
+
+            // Mark session as completed
+            session.Status = "COMPLETED";
+            session.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            var response = new EmergencyCompletionResponse
+            {
+                SessionId = session.SessionId,
+                Status = session.Status,
+                GreenWaveRestored = greenWaveRestored,
+                RestoredJunctions = restoredJunctions
+            };
+
+            return Ok(response);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "An error occurred during emergency completion. Changes were rolled back.");
+        }
     }
 
     // POST /api/emergencies/{id}/cancel
