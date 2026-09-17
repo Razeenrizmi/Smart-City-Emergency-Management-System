@@ -28,6 +28,10 @@ public class SignalPreemptionLog
     [Column("deactivated_at")]
     public DateTime? DeactivatedAt { get; set; }
 
+    [Column("previous_signal_state")]
+    [MaxLength(50)]
+    public string? PreviousSignalState { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

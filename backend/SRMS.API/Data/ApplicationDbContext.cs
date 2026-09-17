@@ -412,6 +412,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.DeactivatedAt)
                 .IsRequired(false);
 
+            entity.Property(e => e.PreviousSignalState)
+                .HasMaxLength(50);
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 

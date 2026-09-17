@@ -201,4 +201,111 @@ public class EmergencySessionsController : ControllerBase
 
         return Ok(response);
     }
+
+    // POST /api/emergencies/{id}/activate-green-wave
+    [HttpPost("{id}/activate-green-wave")]
+    public async Task<ActionResult<GreenWaveActivationResponse>> ActivateGreenWave(Guid id)
+    {
+        var session = await _context.EmergencySessions
+            .Include(s => s.SelectedRoute)
+            .ThenInclude(r => r!.RouteJunctions)
+            .ThenInclude(rj => rj.RoadJunction)
+            .FirstOrDefaultAsync(s => s.SessionId == id);
+
+        if (session == null)
+        {
+            return NotFound("Emergency session not found.");
+        }
+
+        // Validate session is ACTIVE
+        if (session.Status != "ACTIVE")
+        {
+            return BadRequest("Emergency session is not ACTIVE. Cannot activate Green Wave.");
+        }
+
+        // Validate session has a selected route
+        if (session.SelectedRouteId == null || session.SelectedRoute == null)
+        {
+            return BadRequest("Emergency session has no selected route. Cannot activate Green Wave.");
+        }
+
+        // Validate route exists
+        var route = session.SelectedRoute;
+        if (route == null)
+        {
+            return NotFound("Selected route not found.");
+        }
+
+        // Validate route has junctions
+        if (route.RouteJunctions == null || !route.RouteJunctions.Any())
+        {
+            return BadRequest("Selected route has no junctions. Cannot activate Green Wave.");
+        }
+
+        // Check for duplicate activation - session already has active preemption logs
+        var hasActiveLogs = await _context.SignalPreemptionLogs
+            .AnyAsync(spl => spl.SessionId == id && spl.IsActive);
+
+        if (hasActiveLogs)
+        {
+            return BadRequest("Green Wave is already active for this emergency session.");
+        }
+
+        // Use transaction for atomicity
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var activatedJunctions = new List<ActivatedJunctionInfo>();
+
+            // Process junctions in sequence order
+            foreach (var routeJunction in route.RouteJunctions.OrderBy(rj => rj.SequenceNumber))
+            {
+                var junction = routeJunction.RoadJunction;
+                var previousState = junction.CurrentSignalState;
+
+                // Save previous state and change to GREEN
+                junction.CurrentSignalState = "GREEN";
+                junction.UpdatedAt = DateTime.UtcNow;
+
+                // Create preemption log
+                var preemptionLog = new SignalPreemptionLog
+                {
+                    SessionId = session.SessionId,
+                    JunctionId = junction.JunctionId,
+                    IsActive = true,
+                    ActivatedAt = DateTime.UtcNow,
+                    PreviousSignalState = previousState
+                };
+
+                _context.SignalPreemptionLogs.Add(preemptionLog);
+
+                activatedJunctions.Add(new ActivatedJunctionInfo
+                {
+                    JunctionId = junction.JunctionId,
+                    JunctionName = junction.JunctionName,
+                    SequenceNumber = routeJunction.SequenceNumber,
+                    SignalState = junction.CurrentSignalState
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            var response = new GreenWaveActivationResponse
+            {
+                SessionId = session.SessionId,
+                RouteId = route.RouteId,
+                RouteName = route.RouteName,
+                Status = "GREEN_WAVE_ACTIVE",
+                Junctions = activatedJunctions
+            };
+
+            return Ok(response);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "An error occurred during Green Wave activation. Changes were rolled back.");
+        }
+    }
 }
