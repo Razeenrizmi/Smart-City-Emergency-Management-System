@@ -1,0 +1,129 @@
+.signal-sim {
+  text-align: left;
+  padding: 32px;
+  flex: 1;
+}
+
+.signal-sim__header h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.signal-sim__header p {
+  color: var(--text);
+  max-width: 680px;
+  margin: 0 0 24px;
+}
+
+.signal-sim__control-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: var(--code-bg);
+  margin-bottom: 12px;
+}
+
+.signal-sim__road-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.signal-sim__road-count select {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.signal-sim__model-status {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.signal-sim__scan-btn {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.signal-sim__scan-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signal-sim__hint {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.signal-sim__decision {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  max-width: 480px;
+}
+
+.signal-sim__decision li {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.signal-sim__decision li.is-active {
+  border-color: #22c55e;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.signal-sim__countdown {
+  float: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.signal-sim__reset-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.signal-sim__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .signal-sim {
+    padding: 20px;
+  }
+}
