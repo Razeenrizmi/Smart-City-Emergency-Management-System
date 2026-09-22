@@ -17,7 +17,7 @@ const STATUS_LABEL = {
 // direction-tracking logic a few genuinely different frames to compare.
 const RECORD_SECONDS = 8;
 
-export default function DirectionUploadCard({ state, phase, onFileSelected, onRename, disabled }) {
+export default function DirectionUploadCard({ state, phase, off, onFileSelected, onRename, disabled }) {
   const inputRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -139,7 +139,7 @@ export default function DirectionUploadCard({ state, phase, onFileSelected, onRe
           disabled={disabled}
           aria-label="Road name"
         />
-        <TrafficLightIndicator phase={phase} />
+        <TrafficLightIndicator phase={phase} off={off} />
       </div>
 
       {cameraActive ? (

@@ -20,8 +20,19 @@ async function request(path, options) {
 }
 
 export const api = {
-  getJunctions: () => request('/api/junctions'),
+  getIntersections: () => request('/api/intersections'),
   getPendingProposals: () => request('/api/proposals?status=pending'),
   approveProposal: (id) => request(`/api/proposals/${id}/approve`, { method: 'POST' }),
   rejectProposal: (id) => request(`/api/proposals/${id}/reject`, { method: 'POST' }),
+  deleteIntersection: (id) => request(`/api/intersections/${id}`, { method: 'DELETE' }),
+  saveSimulationAsIntersection: (name, roads) =>
+    request('/api/intersections/from-simulation', {
+      method: 'POST',
+      body: JSON.stringify({ name, roads }),
+    }),
+  updateSimulationIntersection: (id, roads) =>
+    request(`/api/intersections/${id}/update-from-simulation`, {
+      method: 'POST',
+      body: JSON.stringify({ roads }),
+    }),
 };

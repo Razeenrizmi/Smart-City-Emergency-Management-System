@@ -8,7 +8,7 @@ import { api } from '../lib/api';
 const POLL_MS = 5000;
 
 export function useJunctionPanelData() {
-  const [junctions, setJunctions] = useState([]);
+  const [intersections, setIntersections] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,12 +16,12 @@ export function useJunctionPanelData() {
 
   const refetch = useCallback(async () => {
     try {
-      const [junctionsData, proposalsData] = await Promise.all([
-        api.getJunctions(),
+      const [intersectionsData, proposalsData] = await Promise.all([
+        api.getIntersections(),
         api.getPendingProposals(),
       ]);
       if (!mountedRef.current) return;
-      setJunctions(junctionsData);
+      setIntersections(intersectionsData);
       setProposals(proposalsData);
       setError(null);
     } catch (err) {
@@ -61,5 +61,13 @@ export function useJunctionPanelData() {
     [refetch],
   );
 
-  return { junctions, proposals, loading, error, approveProposal, rejectProposal };
+  const deleteIntersection = useCallback(
+    async (id) => {
+      await api.deleteIntersection(id);
+      await refetch();
+    },
+    [refetch],
+  );
+
+  return { intersections, proposals, loading, error, approveProposal, rejectProposal, deleteIntersection };
 }

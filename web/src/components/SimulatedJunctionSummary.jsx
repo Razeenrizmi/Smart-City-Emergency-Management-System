@@ -16,7 +16,7 @@ const PENDING_LABEL = {
 // TestJunctionContext, not the mock live-telemetry feed the rest of this
 // panel uses.
 export default function SimulatedJunctionSummary() {
-  const { roadIds, directions, activeStep, allScanned, scanning, hasAnyScan } = useTestJunction();
+  const { roadIds, directions, activeStep, allScanned, scanning, hasAnyScan, junctionOff } = useTestJunction();
 
   if (!hasAnyScan) {
     return (
@@ -38,13 +38,15 @@ export default function SimulatedJunctionSummary() {
         <div>
           <h3>Test Junction — Camera Simulator</h3>
           <p>
-            {scanning
-              ? 'Scanning in progress…'
-              : allScanned
-                ? activeStep
-                  ? `Currently green: ${directions[activeStep.direction].name}`
-                  : 'Simulation stopped'
-                : 'Waiting for all roads to be scanned'}
+            {junctionOff
+              ? 'Junction OFF — flashing yellow'
+              : scanning
+                ? 'Scanning in progress…'
+                : allScanned
+                  ? activeStep
+                    ? `Currently green: ${directions[activeStep.direction].name}`
+                    : 'Simulation stopped'
+                  : 'Waiting for all roads to be scanned'}
           </p>
         </div>
         <Link to="/signal-test" className="sim-summary__link">
@@ -60,7 +62,7 @@ export default function SimulatedJunctionSummary() {
             <div key={direction} className="sim-summary__direction">
               <div className="sim-summary__direction-header">
                 <span>{state.name}</span>
-                <TrafficLightIndicator phase={phase} size="sm" />
+                <TrafficLightIndicator phase={phase} size="sm" off={junctionOff} />
               </div>
               {state.status === 'scanned' ? (
                 <div className="sim-summary__stats">

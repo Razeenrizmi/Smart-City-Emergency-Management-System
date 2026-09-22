@@ -3,6 +3,7 @@ import { DEFAULT_ROAD_COUNT, generateRoadIds, roadLabel } from '../lib/direction
 import { deriveCongestionLevel } from '../lib/congestion';
 import { loadDetectionModel, scanVideoForVehicles } from '../lib/vehicleDetection';
 import { decideSignalOrder } from '../lib/signalDecision';
+import { loadPersistedState, savePersistedState } from '../lib/simulatorStorage';
 import { TestJunctionContext } from './testJunctionContextValue';
 
 const emptyRoadState = (roadId) => ({
@@ -20,19 +21,68 @@ const emptyRoadState = (roadId) => ({
 const buildInitialDirections = (roadIds) =>
   roadIds.reduce((acc, roadId) => ({ ...acc, [roadId]: emptyRoadState(roadId) }), {});
 
+// Layers a persisted road's name (and, if it was fully scanned last time,
+// its result) onto a fresh empty state — the underlying File/Blob is gone
+// after a reload, so status can only ever come back as 'empty' or a
+// read-only 'scanned' result, never 'ready'/'scanning'.
+const applyPersistedRoad = (base, persistedRoad) => {
+  if (!persistedRoad) return base;
+  if (persistedRoad.status === 'scanned') {
+    return {
+      ...base,
+      name: persistedRoad.name,
+      status: 'scanned',
+      vehicleCount: persistedRoad.vehicleCount,
+      congestionLevel: persistedRoad.congestionLevel,
+      thumbnail: persistedRoad.thumbnail,
+    };
+  }
+  return { ...base, name: persistedRoad.name };
+};
+
 // Mounted once at the app shell (see App.jsx) rather than inside the Signal
 // Test Simulator page, so the scan results and the automatic light cycle
 // survive navigating away — the Junction Control Panel reads the same
 // state to show a live summary of whichever junction was last tested.
 export function TestJunctionProvider({ children }) {
-  const [roadCount, setRoadCountState] = useState(DEFAULT_ROAD_COUNT);
+  // Read once on mount (a plain lazy-initialized state value, not a ref —
+  // reading a ref during render isn't allowed) — every update after this
+  // point flows through React as normal, with a separate effect below
+  // writing back to storage.
+  const [persisted] = useState(() => loadPersistedState());
+
+  const [roadCount, setRoadCountState] = useState(persisted?.roadCount ?? DEFAULT_ROAD_COUNT);
   const roadIds = useMemo(() => generateRoadIds(roadCount), [roadCount]);
 
-  const [directions, setDirections] = useState(() => buildInitialDirections(roadIds));
+  const [directions, setDirections] = useState(() => {
+    const base = buildInitialDirections(roadIds);
+    const persistedDirections = persisted?.directions;
+    if (!persistedDirections) return base;
+    for (const roadId of roadIds) {
+      base[roadId] = applyPersistedRoad(base[roadId], persistedDirections[roadId]);
+    }
+    return base;
+  });
   const [modelStatus, setModelStatus] = useState('idle');
   const [scanning, setScanning] = useState(false);
   const [decision, setDecision] = useState(null);
   const [activeStep, setActiveStep] = useState(null); // { direction, phase, vehicleCount }
+  // Whole-junction manual "controller disabled" toggle — every road shows
+  // a flashing yellow (real-world fail-safe/caution behavior) and the
+  // cycle pauses entirely until it's turned back on. One switch for the
+  // whole junction, not per-road.
+  const [junctionOff, setJunctionOff] = useState(() => persisted?.junctionOff ?? false);
+  // Whether scanning kicks off on its own (once all roads have footage,
+  // and again after every cycle) or only when "Scan all" is clicked.
+  // Defaults on, matching the behavior this already had before it became
+  // an explicit, user-visible toggle.
+  const [autoScanEnabled, setAutoScanEnabled] = useState(() => persisted?.autoScanEnabled ?? true);
+  // startCycle (below) has stable identity ([] deps) so it can't close
+  // over the latest autoScanEnabled state directly — this ref is what it
+  // actually reads to decide whether to kick off the recurring
+  // re-scan-after-each-round, the other place scanning starts on its own
+  // besides the upload-triggered effect further down.
+  const autoScanEnabledRef = useRef(autoScanEnabled);
 
   const cycleTokenRef = useRef(0);
   const timeoutRef = useRef(null);
@@ -58,6 +108,10 @@ export function TestJunctionProvider({ children }) {
   useEffect(() => {
     directionsRef.current = directions;
   }, [directions]);
+
+  useEffect(() => {
+    autoScanEnabledRef.current = autoScanEnabled;
+  }, [autoScanEnabled]);
 
   useEffect(
     () => () => {
@@ -87,6 +141,18 @@ export function TestJunctionProvider({ children }) {
     const runPhase = (index, phase) => {
       if (cycleTokenRef.current !== token) return;
       const entry = order[index];
+      const isLastRoad = index === order.length - 1;
+
+      // Start re-scanning for the next round as soon as the last road's
+      // turn begins, not after it ends — the scan then runs alongside
+      // that road's own green+amber instead of the cycle sitting idle
+      // waiting for it afterwards. Skipped entirely when auto-scan is
+      // off: the cycle finishes this round on the existing decision and
+      // then simply stops, rather than silently scanning again anyway.
+      if (isLastRoad && phase === 'GREEN' && autoScanEnabledRef.current) {
+        scanAllBackgroundRef.current?.(token);
+      }
+
       const durationMs = (phase === 'GREEN' ? entry.greenSec : entry.amberSec) * 1000;
       // phaseEndsAt lets the UI show a live countdown, so the full
       // duration being honored is directly visible/verifiable rather
@@ -97,18 +163,11 @@ export function TestJunctionProvider({ children }) {
         vehicleCount: entry.vehicleCount,
         phaseEndsAt: Date.now() + durationMs,
       });
-      // Start re-scanning for the next round as soon as the last road's
-      // turn begins, not after it ends — the scan then runs alongside
-      // that road's own green+amber instead of the cycle sitting idle
-      // waiting for it afterwards.
-      if (index === order.length - 1 && phase === 'GREEN') {
-        scanAllBackgroundRef.current?.(token);
-      }
       timeoutRef.current = setTimeout(() => {
         if (cycleTokenRef.current !== token) return;
         if (phase === 'GREEN') {
           runPhase(index, 'AMBER');
-        } else if (index === order.length - 1) {
+        } else if (isLastRoad) {
           // Every road has had a turn. The re-scan kicked off above may
           // have already finished (fast scan / long last phase) — if so
           // its result is sitting in nextOrderReadyRef, so use it right
@@ -120,8 +179,14 @@ export function TestJunctionProvider({ children }) {
             nextOrderReadyRef.current = null;
             setDecision(nextOrder);
             startCycleRef.current?.(nextOrder);
-          } else {
+          } else if (autoScanEnabledRef.current) {
             cycleFinishedRef.current = true;
+          } else {
+            // Auto-scan is off, so no background scan was ever kicked off
+            // for this round — nothing is coming. Stop cleanly (like
+            // "Stop cycle") instead of leaving the last phase frozen with
+            // its countdown stuck at 0.
+            setActiveStep(null);
           }
         } else {
           runPhase(index + 1, 'GREEN');
@@ -149,10 +214,32 @@ export function TestJunctionProvider({ children }) {
         });
         return buildInitialDirections(generateRoadIds(count));
       });
+      setJunctionOff(false);
       setRoadCountState(count);
     },
     [stopSimulation],
   );
+
+  // Turning off pauses the cycle entirely (like Stop cycle) — every road
+  // shows the flashing-yellow caution state until it's turned back on.
+  // Turning back on resumes from the top of the existing decision, if
+  // there is one; otherwise the auto-scan effect below picks it up once
+  // footage is (still) present.
+  const toggleJunctionOff = useCallback(() => {
+    setJunctionOff((prev) => {
+      const next = !prev;
+      if (next) {
+        stopSimulation();
+      } else if (decision) {
+        startCycle(decision);
+      }
+      return next;
+    });
+  }, [stopSimulation, decision, startCycle]);
+
+  const toggleAutoScan = useCallback(() => {
+    setAutoScanEnabled((prev) => !prev);
+  }, []);
 
   const setDirectionFile = useCallback(
     (direction, file) => {
@@ -286,6 +373,7 @@ export function TestJunctionProvider({ children }) {
       });
       return buildInitialDirections(roadIds);
     });
+    setJunctionOff(false);
   }, [roadIds, stopSimulation]);
 
   const allFilesUploaded = roadIds.every((d) => Boolean(directions[d].file));
@@ -296,11 +384,21 @@ export function TestJunctionProvider({ children }) {
   // Scan automatically as soon as every road has footage — no need to
   // click "Scan all" for the common case. Guarded by !decision so a
   // manual "Stop cycle" (which clears activeStep but leaves the last
-  // decision standing) doesn't immediately auto-resume, and by
-  // !anyErrored so a failed scan doesn't retry itself forever; the
-  // button stays available for those cases.
+  // decision standing) doesn't immediately auto-resume, by !anyErrored so
+  // a failed scan doesn't retry itself forever, by !junctionOff so a
+  // paused junction doesn't spring back to life on its own, and by
+  // autoScanEnabled so this can be turned off in favor of manual
+  // "Scan all" clicks only.
   useEffect(() => {
-    if (allFilesUploaded && !scanning && !activeStep && !decision && !anyErrored) {
+    if (
+      autoScanEnabled &&
+      allFilesUploaded &&
+      !scanning &&
+      !activeStep &&
+      !decision &&
+      !anyErrored &&
+      !junctionOff
+    ) {
       // Deferred a tick so this doesn't synchronously setState from
       // within the effect body itself — scanAll's first line is
       // setScanning(true).
@@ -308,7 +406,32 @@ export function TestJunctionProvider({ children }) {
       return () => clearTimeout(id);
     }
     return undefined;
-  }, [directions, allFilesUploaded, scanning, activeStep, decision, anyErrored, scanAll]);
+  }, [directions, allFilesUploaded, scanning, activeStep, decision, anyErrored, junctionOff, autoScanEnabled, scanAll]);
+
+  // Keeps road names, last scan results, and the junction-off/auto-scan
+  // toggles across a refresh — see simulatorStorage.js for exactly what's
+  // (and isn't) saved.
+  useEffect(() => {
+    savePersistedState({
+      roadCount,
+      directions: Object.fromEntries(
+        Object.entries(directions).map(([roadId, d]) => [
+          roadId,
+          d.status === 'scanned'
+            ? {
+                name: d.name,
+                status: 'scanned',
+                vehicleCount: d.vehicleCount,
+                congestionLevel: d.congestionLevel,
+                thumbnail: d.thumbnail,
+              }
+            : { name: d.name },
+        ]),
+      ),
+      junctionOff,
+      autoScanEnabled,
+    });
+  }, [roadCount, directions, junctionOff, autoScanEnabled]);
 
   const value = {
     roadCount,
@@ -322,6 +445,10 @@ export function TestJunctionProvider({ children }) {
     allFilesUploaded,
     allScanned,
     hasAnyScan,
+    junctionOff,
+    toggleJunctionOff,
+    autoScanEnabled,
+    toggleAutoScan,
     setDirectionFile,
     renameRoad,
     scanAll,

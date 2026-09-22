@@ -1,77 +1,142 @@
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Models;
 
 namespace SRMS.API.Data;
 
-public class SrmsDbContext(DbContextOptions<SrmsDbContext> options) : DbContext(options)
+public partial class SrmsDbContext : DbContext
 {
-    public DbSet<RoadJunction> RoadJunctions => Set<RoadJunction>();
-    public DbSet<JunctionCameraTelemetry> JunctionCameraTelemetry => Set<JunctionCameraTelemetry>();
-    public DbSet<AiWorkflowExecution> AiWorkflowExecutions => Set<AiWorkflowExecution>();
-    public DbSet<SignalAdjustmentProposal> SignalAdjustmentProposals => Set<SignalAdjustmentProposal>();
+    public SrmsDbContext(DbContextOptions<SrmsDbContext> options)
+        : base(options)
+    {
+    }
 
-    // Column/table names below match the team's shared ER diagram exactly
-    // (snake_case), since PostgreSQL is the shared database everyone's
-    // backend reads and writes.
+    public virtual DbSet<AgentWorkflowRun> AgentWorkflowRuns { get; set; }
+
+    public virtual DbSet<AgentWorkflowStep> AgentWorkflowSteps { get; set; }
+
+    public virtual DbSet<CameraSensor> CameraSensors { get; set; }
+
+    public virtual DbSet<Intersection> Intersections { get; set; }
+
+    public virtual DbSet<SensorFaultReport> SensorFaultReports { get; set; }
+
+    public virtual DbSet<SignalTimingDecision> SignalTimingDecisions { get; set; }
+
+    public virtual DbSet<SignalTimingProposal> SignalTimingProposals { get; set; }
+
+    public virtual DbSet<TelemetryReading> TelemetryReadings { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RoadJunction>(e =>
+        modelBuilder.Entity<AgentWorkflowRun>(entity =>
         {
-            e.ToTable("road_junctions");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Id).HasColumnName("junction_id");
-            e.Property(x => x.JunctionName).HasColumnName("junction_name").HasMaxLength(200).IsRequired();
-            e.Property(x => x.Latitude).HasColumnName("latitude").HasPrecision(9, 6);
-            e.Property(x => x.Longitude).HasColumnName("longitude").HasPrecision(9, 6);
-            e.Property(x => x.CurrentSignalState).HasColumnName("current_signal_state").HasMaxLength(20);
-            e.Property(x => x.CreatedAt).HasColumnName("created_at");
-            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            entity.HasIndex(e => e.IntersectionId, "IX_AgentWorkflowRuns_IntersectionId");
+
+            entity.HasIndex(e => e.Status, "IX_AgentWorkflowRuns_Status");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Intersection).WithMany(p => p.AgentWorkflowRuns)
+                .HasForeignKey(d => d.IntersectionId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<JunctionCameraTelemetry>(e =>
+        modelBuilder.Entity<AgentWorkflowStep>(entity =>
         {
-            e.ToTable("junction_camera_telemetry");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Id).HasColumnName("telemetry_id");
-            e.Property(x => x.JunctionId).HasColumnName("junction_id");
-            e.Property(x => x.CameraId).HasColumnName("camera_id").HasMaxLength(100).IsRequired();
-            e.Property(x => x.DetectedVehicleCount).HasColumnName("detected_vehicle_count");
-            e.Property(x => x.CongestionLevel).HasColumnName("congestion_level").HasMaxLength(20);
-            e.Property(x => x.RecordedAt).HasColumnName("recorded_at");
-            e.HasOne(x => x.Junction)
-                .WithMany(x => x.TelemetryReadings)
-                .HasForeignKey(x => x.JunctionId)
-                .OnDelete(DeleteBehavior.Cascade);
-            e.HasIndex(x => new { x.JunctionId, x.RecordedAt });
+            entity.HasIndex(e => e.WorkflowRunId, "IX_AgentWorkflowSteps_WorkflowRunId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.WorkflowRun).WithMany(p => p.AgentWorkflowSteps).HasForeignKey(d => d.WorkflowRunId);
         });
 
-        modelBuilder.Entity<AiWorkflowExecution>(e =>
+        modelBuilder.Entity<CameraSensor>(entity =>
         {
-            e.ToTable("ai_workflow_executions");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Id).HasColumnName("workflow_id");
-            e.Property(x => x.DomainObjective).HasColumnName("domain_objective").HasMaxLength(500).IsRequired();
-            e.Property(x => x.ExecutionPlan).HasColumnName("execution_plan").HasColumnType("jsonb");
-            e.Property(x => x.ApprovalStatus).HasColumnName("approval_status").HasMaxLength(20);
-            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.HasIndex(e => new { e.IntersectionId, e.LaneLabel }, "IX_CameraSensors_IntersectionId_LaneLabel").IsUnique();
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Intersection).WithMany(p => p.CameraSensors).HasForeignKey(d => d.IntersectionId);
         });
 
-        modelBuilder.Entity<SignalAdjustmentProposal>(e =>
+        modelBuilder.Entity<Intersection>(entity =>
         {
-            e.ToTable("signal_adjustment_proposals");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Id).HasColumnName("proposal_id");
-            e.Property(x => x.JunctionId).HasColumnName("junction_id");
-            e.Property(x => x.WorkflowId).HasColumnName("workflow_id");
-            e.Property(x => x.ProposedGreenExtensionSec).HasColumnName("proposed_green_extension_sec");
-            e.Property(x => x.IsApprovedByOperator).HasColumnName("is_approved_by_operator");
-            e.Property(x => x.CreatedAt).HasColumnName("created_at");
-            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
-            e.HasOne(x => x.Junction)
-                .WithMany(x => x.Proposals)
-                .HasForeignKey(x => x.JunctionId)
-                .OnDelete(DeleteBehavior.Cascade);
-            e.HasIndex(x => new { x.JunctionId, x.IsApprovedByOperator });
+            entity.Property(e => e.Id).ValueGeneratedNever();
         });
+
+        modelBuilder.Entity<SensorFaultReport>(entity =>
+        {
+            entity.HasIndex(e => e.CameraSensorId, "IX_SensorFaultReports_CameraSensorId");
+
+            entity.HasIndex(e => e.ReportedByUserId, "IX_SensorFaultReports_ReportedByUserId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.CameraSensor).WithMany(p => p.SensorFaultReports).HasForeignKey(d => d.CameraSensorId);
+
+            entity.HasOne(d => d.ReportedByUser).WithMany(p => p.SensorFaultReports)
+                .HasForeignKey(d => d.ReportedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SignalTimingDecision>(entity =>
+        {
+            entity.HasIndex(e => e.DecidedByUserId, "IX_SignalTimingDecisions_DecidedByUserId");
+
+            entity.HasIndex(e => e.ProposalId, "IX_SignalTimingDecisions_ProposalId").IsUnique();
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.DecidedByUser).WithMany(p => p.SignalTimingDecisions)
+                .HasForeignKey(d => d.DecidedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Proposal).WithOne(p => p.SignalTimingDecision).HasForeignKey<SignalTimingDecision>(d => d.ProposalId);
+        });
+
+        modelBuilder.Entity<SignalTimingProposal>(entity =>
+        {
+            entity.HasIndex(e => e.IntersectionId, "IX_SignalTimingProposals_IntersectionId");
+
+            entity.HasIndex(e => e.WorkflowRunId, "IX_SignalTimingProposals_WorkflowRunId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Intersection).WithMany(p => p.SignalTimingProposals)
+                .HasForeignKey(d => d.IntersectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.WorkflowRun).WithMany(p => p.SignalTimingProposals).HasForeignKey(d => d.WorkflowRunId);
+        });
+
+        modelBuilder.Entity<TelemetryReading>(entity =>
+        {
+            entity.HasIndex(e => e.CameraSensorId, "IX_TelemetryReadings_CameraSensorId");
+
+            entity.HasIndex(e => new { e.IntersectionId, e.Timestamp }, "IX_TelemetryReadings_IntersectionId_Timestamp");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.CameraSensor).WithMany(p => p.TelemetryReadings).HasForeignKey(d => d.CameraSensorId);
+
+            entity.HasOne(d => d.Intersection).WithMany(p => p.TelemetryReadings)
+                .HasForeignKey(d => d.IntersectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(e => e.Email, "IX_Users_Email").IsUnique();
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        OnModelCreatingPartial(modelBuilder);
     }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
