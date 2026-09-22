@@ -107,6 +107,27 @@ class EmergencyService {
     }
   }
 
+  // Cancel emergency session
+  Future<EmergencySession> cancelEmergencySession(String sessionId) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/emergencies/$sessionId/cancel'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(ApiConfig.timeout);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+        return EmergencySession.fromJson(jsonData);
+      } else {
+        throw Exception('Failed to cancel emergency session: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error cancelling emergency session: $e');
+    }
+  }
+
   void dispose() {
     _client.close();
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/emergency_session.dart';
 import '../models/green_wave_activation_response.dart';
+import '../models/emergency_completion_response.dart';
 import '../services/emergency_service.dart';
 
 class EmergencySessionScreen extends StatefulWidget {
@@ -21,6 +22,14 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   bool _isActivating = false;
   String? _activationError;
   GreenWaveActivationResponse? _activationResponse;
+  
+  bool _isCompleting = false;
+  String? _completionError;
+  EmergencyCompletionResponse? _completionResponse;
+  
+  bool _isCancelling = false;
+  String? _cancellationError;
+  EmergencySession? _cancelledSession;
 
   @override
   void dispose() {
@@ -48,10 +57,62 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     }
   }
 
+  Future<void> _completeEmergency() async {
+    setState(() {
+      _isCompleting = true;
+      _completionError = null;
+    });
+
+    try {
+      final response = await _emergencyService.completeEmergencySession(widget.session.sessionId);
+      setState(() {
+        _isCompleting = false;
+        _completionResponse = response;
+      });
+    } catch (e) {
+      setState(() {
+        _isCompleting = false;
+        _completionError = e.toString();
+      });
+    }
+  }
+
+  Future<void> _cancelEmergency() async {
+    setState(() {
+      _isCancelling = true;
+      _cancellationError = null;
+    });
+
+    try {
+      final response = await _emergencyService.cancelEmergencySession(widget.session.sessionId);
+      setState(() {
+        _isCancelling = false;
+        _cancelledSession = response;
+      });
+    } catch (e) {
+      setState(() {
+        _isCancelling = false;
+        _cancellationError = e.toString();
+      });
+    }
+  }
+
   bool _canActivateGreenWave() {
     return widget.session.status.toUpperCase() == 'ACTIVE' && 
            widget.session.selectedRouteId != null &&
            _activationResponse == null;
+  }
+
+  bool _canCompleteEmergency() {
+    return widget.session.status.toUpperCase() == 'ACTIVE' && 
+           _completionResponse == null &&
+           _cancelledSession == null;
+  }
+
+  bool _canCancelEmergency() {
+    return widget.session.status.toUpperCase() == 'ACTIVE' && 
+           _completionResponse == null &&
+           _cancelledSession == null;
   }
 
   @override
@@ -71,6 +132,8 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
             _buildSessionDetailsCard(),
             const SizedBox(height: 16),
             _buildGreenWaveSection(),
+            const SizedBox(height: 16),
+            _buildSessionActionsSection(),
             const SizedBox(height: 16),
             _buildInfoCard(),
           ],
@@ -492,5 +555,455 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.toLocal().toIso8601String().split('.')[0]} '
         '${dateTime.toLocal().timeZoneName}';
+  }
+
+  Widget _buildSessionActionsSection() {
+    // Show completion error
+    if (_completionError != null) {
+      return Card(
+        color: Colors.red.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Completion Failed',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _completionError!,
+                style: const TextStyle(fontSize: 14, color: Colors.red.shade900),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _completeEmergency,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show cancellation error
+    if (_cancellationError != null) {
+      return Card(
+        color: Colors.red.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Cancellation Failed',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _cancellationError!,
+                style: const TextStyle(fontSize: 14, color: Colors.red.shade900),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _cancelEmergency,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show completion success
+    if (_completionResponse != null) {
+      return _buildCompletionResultsCard();
+    }
+
+    // Show cancellation success
+    if (_cancelledSession != null) {
+      return _buildCancellationResultsCard();
+    }
+
+    // Show action buttons for ACTIVE sessions
+    if (_canCompleteEmergency() || _canCancelEmergency()) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.settings, color: Colors.blue.shade700),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Session Actions',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_canCompleteEmergency())
+                _buildCompleteButton(),
+              if (_canCompleteEmergency() && _canCancelEmergency())
+                const SizedBox(height: 12),
+              if (_canCancelEmergency())
+                _buildCancelButton(),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Session not ACTIVE or already completed/cancelled
+    if (widget.session.status.toUpperCase() != 'ACTIVE') {
+      return Card(
+        color: Colors.grey.shade100,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.info, color: Colors.grey.shade700),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Session actions are only available for ACTIVE sessions.',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildCompleteButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _isCompleting ? null : _completeEmergency,
+        icon: _isCompleting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.done),
+        label: _isCompleting ? 'Completing...' : 'Complete Emergency',
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCancelButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _isCancelling ? null : _showCancellationConfirmation,
+        icon: _isCancelling
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.cancel),
+        label: _isCancelling ? 'Cancelling...' : 'Cancel Emergency',
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  void _showCancellationConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancel Emergency'),
+          content: const Text(
+            'Are you sure you want to cancel this emergency?\n\n'
+            'WARNING: Cancelling the emergency does NOT restore or deactivate Green Wave signals. '
+            'The signals will remain in their current state according to the backend behavior.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _cancelEmergency();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Yes, Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCompletionResultsCard() {
+    final response = _completionResponse!;
+    return Card(
+      color: Colors.blue.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.done_all, color: Colors.blue.shade700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Emergency Completed',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCompletionDetailRow('Status', response.status),
+            _buildCompletionDetailRow(
+              'Green Wave Restored',
+              response.greenWaveRestored ? 'Yes' : 'No',
+            ),
+            const SizedBox(height: 16),
+            if (!response.greenWaveRestored)
+              const Text(
+                'No active Green Wave junctions needed restoration.',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Restored Junctions',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  if (response.restoredJunctions.isEmpty)
+                    const Text('No junctions restored')
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: response.restoredJunctions.length,
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final junction = response.restoredJunctions[index];
+                        return _buildRestoredJunctionItem(junction);
+                      },
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRestoredJunctionItem(RestoredJunctionInfo junction) {
+    Color signalColor;
+    switch (junction.restoredSignalState.toUpperCase()) {
+      case 'GREEN':
+        signalColor = Colors.green;
+        break;
+      case 'RED':
+        signalColor = Colors.red;
+        break;
+      case 'YELLOW':
+        signalColor = Colors.orange;
+        break;
+      default:
+        signalColor = Colors.grey;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: signalColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                Icons.restore,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  junction.junctionName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Restored to: ${junction.restoredSignalState}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCancellationResultsCard() {
+    return Card(
+      color: Colors.red.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.cancel, color: Colors.red.shade700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Emergency Cancelled',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'The emergency session has been cancelled.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Cancellation does NOT restore Green Wave signals. '
+                      'Signals remain in their current state.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletionDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          Text(value),
+        ],
+      ),
+    );
   }
 }
