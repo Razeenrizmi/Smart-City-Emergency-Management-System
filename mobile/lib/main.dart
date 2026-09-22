@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'config/api_config.dart';
 import 'screens/route_list_screen.dart';
+import 'screens/create_emergency_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,10 +73,29 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateEmergencyScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.emergency),
+              label: const Text('Create Emergency'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Phase 8B: Route selection and details',
+                'Phase 8C: Emergency session creation',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),

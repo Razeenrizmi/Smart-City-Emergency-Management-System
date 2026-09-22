@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/route.dart';
 import '../models/route_junction.dart';
 import '../services/route_service.dart';
+import 'create_emergency_screen.dart';
 
 class RouteDetailScreen extends StatefulWidget {
   final Route route;
@@ -59,6 +60,22 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
       appBar: AppBar(
         title: Text(widget.route.routeName),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emergency),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateEmergencyScreen(
+                    selectedRoute: widget.route,
+                  ),
+                ),
+              );
+            },
+            tooltip: 'Create Emergency',
+          ),
+        ],
       ),
       body: _buildBody(),
     );
@@ -123,6 +140,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
           _buildRouteInfoCard(route),
           const SizedBox(height: 16),
           _buildJunctionsSection(sortedJunctions),
+          const SizedBox(height: 24),
+          _buildCreateEmergencyButton(),
         ],
       ),
     );
@@ -309,6 +328,31 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
           color: Colors.white,
           fontSize: 12,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateEmergencyButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateEmergencyScreen(
+                selectedRoute: widget.route,
+              ),
+            ),
+          );
+        },
+        icon: const Icon(Icons.emergency),
+        label: const Text('Create Emergency Session'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
