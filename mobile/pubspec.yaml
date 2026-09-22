@@ -31,9 +31,23 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+  # Sensor & Hardware
+  sensors_plus: ^6.1.1         # Accelerometer Z-axis spike detection
+  geolocator: ^13.0.0          # GPS coordinates
+
+  # Networking
+  http: ^1.3.0                 # HTTP POST to ASP.NET backend
+
+  # Permissions
+  permission_handler: ^11.4.0  # Runtime location permissions
+
+  # UI
+  google_fonts: ^6.2.1         # Premium typography
+
+  # AI & Image
+  image_picker: ^1.1.2         # Camera/gallery photo picker for AI classification
 
 dev_dependencies:
   flutter_test:
