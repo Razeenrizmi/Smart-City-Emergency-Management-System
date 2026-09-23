@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Dtos;
 using SRMS.API.Models;
+using SRMS.API.Services.Agents;
 
 namespace SRMS.API.Controllers;
 
-public class ProposalsController(SrmsDbContext db) : BaseApiController
+public class ProposalsController(SrmsDbContext db, SignalTimingAgentWorkflow agentWorkflow) : BaseApiController
 {
     // GET /api/proposals?status=pending|decided|all — defaults to pending,
     // which is what the React panel's approve/reject list shows.
@@ -32,6 +33,7 @@ public class ProposalsController(SrmsDbContext db) : BaseApiController
                 p.Id,
                 p.IntersectionId,
                 p.Intersection.Name,
+                p.WorkflowRunId,
                 p.Justification,
                 p.SafetyCheckStatus,
                 p.SafetyCheckNotes,
@@ -43,11 +45,113 @@ public class ProposalsController(SrmsDbContext db) : BaseApiController
         return Ok(ApiResponse<List<ProposalDto>>.Ok(proposals));
     }
 
+    // GET /api/proposals/{id}/steps — the ordered AgentWorkflowSteps behind
+    // a proposal's WorkflowRunId, so the React panel can show an expandable
+    // "View agent details" section instead of just the final justification.
+    [HttpGet("{id:guid}/steps")]
+    public async Task<ActionResult<ApiResponse<List<AgentWorkflowStepDto>>>> GetSteps(Guid id)
+    {
+        var proposal = await db.SignalTimingProposals.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        if (proposal is null)
+        {
+            return NotFound(ApiResponse<List<AgentWorkflowStepDto>>.Fail("Proposal not found."));
+        }
+
+        var steps = await db.AgentWorkflowSteps
+            .AsNoTracking()
+            .Where(s => s.WorkflowRunId == proposal.WorkflowRunId)
+            .OrderBy(s => s.StepIndex)
+            .Select(s => new AgentWorkflowStepDto(
+                s.AgentName,
+                s.StepIndex,
+                s.InputJson ?? "",
+                s.OutputJson ?? "",
+                s.ToolCallsJson,
+                s.ValidationResult,
+                s.DurationMs,
+                s.Timestamp))
+            .ToListAsync();
+
+        return Ok(ApiResponse<List<AgentWorkflowStepDto>>.Ok(steps));
+    }
+
     [HttpPost("{id:guid}/approve")]
     public Task<ActionResult<ApiResponse<ProposalDto>>> Approve(Guid id) => Decide(id, "APPROVED");
 
     [HttpPost("{id:guid}/reject")]
     public Task<ActionResult<ApiResponse<ProposalDto>>> Reject(Guid id) => Decide(id, "REJECTED");
+
+    // POST /api/proposals/{id}/revise — the operator isn't happy with this
+    // proposal but it's not a flat reject either: marks it REVISION_REQUESTED
+    // (a decision, so it drops out of the pending list) and immediately
+    // kicks off a fresh agent run for the same intersection, carrying the
+    // operator's note into the Proposer's prompt. Satisfies the spec's
+    // "approve, reject, or request revision" requirement for the
+    // high-impact human-approval step.
+    public record ReviseRequest(string? Note);
+
+    [HttpPost("{id:guid}/revise")]
+    public async Task<ActionResult<ApiResponse<ProposalDto>>> Revise(Guid id, [FromBody] ReviseRequest request)
+    {
+        var proposal = await db.SignalTimingProposals
+            .Include(p => p.Intersection)
+            .Include(p => p.SignalTimingDecision)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (proposal is null)
+        {
+            return NotFound(ApiResponse<ProposalDto>.Fail("Proposal not found."));
+        }
+
+        if (proposal.SignalTimingDecision is not null)
+        {
+            return BadRequest(ApiResponse<ProposalDto>.Fail("This proposal already has a decision."));
+        }
+
+        var operatorUser = await db.Users.FirstOrDefaultAsync(u => u.Role == "TrafficControlStaff");
+        if (operatorUser is null)
+        {
+            return StatusCode(500, ApiResponse<ProposalDto>.Fail("No TrafficControlStaff user found to record the decision."));
+        }
+
+        var now = DateTime.UtcNow;
+        var signalTimingDecision = new SignalTimingDecision
+        {
+            Id = Guid.NewGuid(),
+            ProposalId = proposal.Id,
+            DecidedByUserId = operatorUser.Id,
+            Decision = "REVISION_REQUESTED",
+            DecidedAt = now,
+        };
+        db.SignalTimingDecisions.Add(signalTimingDecision);
+
+        var workflowRun = await db.AgentWorkflowRuns.FirstOrDefaultAsync(r => r.Id == proposal.WorkflowRunId);
+        if (workflowRun is not null)
+        {
+            workflowRun.Status = "REVISION_REQUESTED";
+            workflowRun.FinalOutcome = "REVISION_REQUESTED";
+            workflowRun.CompletedAt = now;
+        }
+
+        await db.SaveChangesAsync();
+
+        var note = string.IsNullOrWhiteSpace(request.Note) ? "Operator requested a different proposal." : request.Note.Trim();
+        await agentWorkflow.RunAsync(proposal.Intersection, revisionNote: note);
+
+        var dto = new ProposalDto(
+            proposal.Id,
+            proposal.IntersectionId,
+            proposal.Intersection.Name,
+            proposal.WorkflowRunId,
+            proposal.Justification,
+            proposal.SafetyCheckStatus,
+            proposal.SafetyCheckNotes,
+            proposal.CreatedAt,
+            signalTimingDecision.Decision,
+            signalTimingDecision.DecidedAt);
+
+        return Ok(ApiResponse<ProposalDto>.Ok(dto, "Revision requested — the agent is generating a new proposal."));
+    }
 
     // Real JWT auth isn't built yet, so there's no logged-in user to record
     // as the decider. Falls back to the seeded TrafficControlStaff account
@@ -101,6 +205,7 @@ public class ProposalsController(SrmsDbContext db) : BaseApiController
             proposal.Id,
             proposal.IntersectionId,
             proposal.Intersection.Name,
+            proposal.WorkflowRunId,
             proposal.Justification,
             proposal.SafetyCheckStatus,
             proposal.SafetyCheckNotes,

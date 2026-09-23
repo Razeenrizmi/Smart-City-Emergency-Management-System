@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Services;
+using SRMS.API.Services.Agents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,12 @@ builder.Services.AddCors(options =>
     options.AddPolicy(WebDevCorsPolicy, policy =>
         policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod());
 });
+
+// Your Agentic AI contribution's model client — Ollama runs locally on
+// this machine (no API key, no cost), so this is just a plain named
+// HttpClient pointed at its local port.
+builder.Services.AddHttpClient<OllamaClient>();
+builder.Services.AddScoped<SignalTimingAgentWorkflow>();
 
 builder.Services.AddHostedService<CameraTelemetrySimulatorService>();
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Models;
+using SRMS.API.Services.Agents;
 using SRMS.API.Support;
 
 namespace SRMS.API.Services;
@@ -13,18 +14,16 @@ namespace SRMS.API.Services;
 // BackgroundService implements IHostedService — the standard ASP.NET Core
 // base class for a long-running background loop.
 //
-// It also raises a SignalTimingProposal (plus a placeholder AgentWorkflowRun
-// to satisfy the required WorkflowRunId FK) when an intersection's average
-// lane density goes HIGH/SEVERE and it doesn't already have one awaiting a
-// decision. This is a simple rule-based stand-in for the real Agentic AI
-// subsystem, which is separate, not-yet-built work — clearly not a real
-// planning/tool-use/validation workflow.
+// When an intersection's average lane density goes HIGH/SEVERE and it
+// doesn't already have a proposal awaiting a decision, this runs your
+// actual Agentic AI contribution (SignalTimingAgentWorkflow) — a real
+// 4-agent plan → analyze → propose → validate pipeline, not the earlier
+// rule-based placeholder.
 public class CameraTelemetrySimulatorService(
     IServiceScopeFactory scopeFactory,
     ILogger<CameraTelemetrySimulatorService> logger) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
-    private const double ProposalDensityThreshold = 65; // HIGH and above
     private readonly Random _random = new();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -48,6 +47,11 @@ public class CameraTelemetrySimulatorService(
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
+        // Resolved from the same scope as `db` — the agent workflow shares
+        // this exact DbContext instance, so the telemetry rows it reads
+        // back for its analysis are the ones just written below, not a
+        // stale snapshot from a different connection.
+        var agentWorkflow = scope.ServiceProvider.GetRequiredService<SignalTimingAgentWorkflow>();
 
         var intersections = await db.Intersections
             .Include(i => i.CameraSensors)
@@ -85,6 +89,12 @@ public class CameraTelemetrySimulatorService(
             var averageDensity = readingsThisTick.Average(r => r.LaneDensityPercent);
             var congestionLevel = CongestionLevelCalculator.FromLaneDensityPercent(averageDensity);
 
+            // Commit this intersection's readings now — the agent
+            // workflow below queries TelemetryReadings fresh, so it needs
+            // to actually see what was just recorded, not a snapshot from
+            // before this tick started.
+            await db.SaveChangesAsync(ct);
+
             if (congestionLevel is "HIGH" or "SEVERE")
             {
                 var hasPendingProposal = await db.SignalTimingProposals
@@ -93,33 +103,11 @@ public class CameraTelemetrySimulatorService(
 
                 if (!hasPendingProposal)
                 {
-                    var run = new AgentWorkflowRun
-                    {
-                        Id = Guid.NewGuid(),
-                        IntersectionId = intersection.Id,
-                        Objective = $"Reduce congestion at {intersection.Name}",
-                        Status = "AWAITING_APPROVAL",
-                        StartedAt = now,
-                    };
-                    db.AgentWorkflowRuns.Add(run);
-
-                    db.SignalTimingProposals.Add(new SignalTimingProposal
-                    {
-                        Id = Guid.NewGuid(),
-                        WorkflowRunId = run.Id,
-                        IntersectionId = intersection.Id,
-                        ProposedPlanJson = """{"greenExtensionSeconds":10}""",
-                        Justification =
-                            $"Average lane density {averageDensity:F0}% across {readingsThisTick.Count} camera(s) is at or above the {ProposalDensityThreshold:F0}% threshold.",
-                        SafetyCheckStatus = "PASSED",
-                        SafetyCheckNotes = "Rule-based placeholder check — not yet validated by the real Agentic AI subsystem.",
-                        CreatedAt = now,
-                    });
+                    await agentWorkflow.RunAsync(intersection, ct: ct);
                 }
             }
         }
 
-        await db.SaveChangesAsync(ct);
         logger.LogInformation(
             "Recorded telemetry for {Count} intersection(s) at {Time}", intersections.Count, now);
     }

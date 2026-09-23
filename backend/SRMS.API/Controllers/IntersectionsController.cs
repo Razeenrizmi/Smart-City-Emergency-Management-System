@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Dtos;
 using SRMS.API.Models;
+using SRMS.API.Services.Agents;
 using SRMS.API.Support;
 
 namespace SRMS.API.Controllers;
 
-public class IntersectionsController(SrmsDbContext db) : BaseApiController
+public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow agentWorkflow) : BaseApiController
 {
     // GET /api/intersections — every intersection plus an aggregate of its
     // cameras' most recent readings, for the React Junction Control Panel's
@@ -259,5 +260,45 @@ public class IntersectionsController(SrmsDbContext db) : BaseApiController
             now);
 
         return Ok(ApiResponse<IntersectionSummaryDto>.Ok(dto, "Junction updated from simulation."));
+    }
+
+    // POST /api/intersections/{id}/analyze — manually runs your Agentic AI
+    // workflow for this junction right now, regardless of current
+    // congestion. The background telemetry service only ever triggers the
+    // same workflow when congestion randomly rolls HIGH/SEVERE, which
+    // isn't something you can reliably demonstrate live — this endpoint
+    // exists purely so the workflow can be run on demand for the viva.
+    [HttpPost("{id:guid}/analyze")]
+    public async Task<ActionResult<ApiResponse<object>>> Analyze(Guid id)
+    {
+        var intersection = await db.Intersections
+            .Include(i => i.CameraSensors)
+            .FirstOrDefaultAsync(i => i.Id == id);
+
+        if (intersection is null)
+        {
+            return NotFound(ApiResponse<object>.Fail("Intersection not found."));
+        }
+        if (intersection.CameraSensors.Count == 0)
+        {
+            return BadRequest(ApiResponse<object>.Fail("This junction has no camera sensors yet — nothing for the agent to analyze."));
+        }
+
+        var succeeded = await agentWorkflow.RunAsync(intersection);
+
+        var run = await db.AgentWorkflowRuns
+            .Where(r => r.IntersectionId == id)
+            .OrderByDescending(r => r.StartedAt)
+            .FirstAsync();
+
+        var steps = await db.AgentWorkflowSteps
+            .Where(s => s.WorkflowRunId == run.Id)
+            .OrderBy(s => s.StepIndex)
+            .Select(s => new { s.AgentName, s.StepIndex, s.ValidationResult, s.DurationMs })
+            .ToListAsync();
+
+        return Ok(ApiResponse<object>.Ok(
+            new { run.Id, run.Status, run.ErrorMessage, steps },
+            succeeded ? "Agent workflow completed — a proposal is awaiting approval." : "Agent workflow finished without producing a proposal."));
     }
 }

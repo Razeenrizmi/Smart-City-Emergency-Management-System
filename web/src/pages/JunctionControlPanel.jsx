@@ -2,12 +2,23 @@ import { useState } from 'react';
 import { useJunctionPanelData } from '../hooks/useJunctionPanelData';
 import CongestionBadge from '../components/CongestionBadge';
 import SimulatedJunctionSummary from '../components/SimulatedJunctionSummary';
+import AgentStepsDetail from '../components/AgentStepsDetail';
 import './JunctionControlPanel.css';
 
 export default function JunctionControlPanel() {
-  const { intersections, proposals, loading, error, approveProposal, rejectProposal, deleteIntersection } =
-    useJunctionPanelData();
+  const {
+    intersections,
+    proposals,
+    loading,
+    error,
+    approveProposal,
+    rejectProposal,
+    reviseProposal,
+    deleteIntersection,
+    runAgentAnalysis,
+  } = useJunctionPanelData();
   const [actioningId, setActioningId] = useState(null);
+  const [agentStatus, setAgentStatus] = useState({}); // { [intersectionId]: 'running' | 'done' | 'no-proposal' | 'error' }
 
   async function handleApprove(id) {
     setActioningId(id);
@@ -27,6 +38,17 @@ export default function JunctionControlPanel() {
     }
   }
 
+  async function handleRevise(id) {
+    const note = window.prompt('What should the agent change about this proposal?');
+    if (note === null) return; // cancelled
+    setActioningId(id);
+    try {
+      await reviseProposal(id, note);
+    } finally {
+      setActioningId(null);
+    }
+  }
+
   async function handleDelete(id, name) {
     if (!window.confirm(`Delete "${name}"? This also removes its cameras, telemetry, and proposal history.`)) {
       return;
@@ -36,6 +58,19 @@ export default function JunctionControlPanel() {
       await deleteIntersection(id);
     } finally {
       setActioningId(null);
+    }
+  }
+
+  async function handleRunAgent(id) {
+    setAgentStatus((prev) => ({ ...prev, [id]: 'running' }));
+    try {
+      const result = await runAgentAnalysis(id);
+      setAgentStatus((prev) => ({
+        ...prev,
+        [id]: result.status === 'AWAITING_APPROVAL' ? 'done' : 'no-proposal',
+      }));
+    } catch {
+      setAgentStatus((prev) => ({ ...prev, [id]: 'error' }));
     }
   }
 
@@ -78,14 +113,35 @@ export default function JunctionControlPanel() {
                 <span className="junction-card__name">{i.name}</span>
                 <span className="junction-card__lanes">{i.laneCount} lanes</span>
               </div>
-              <button
-                type="button"
-                className="junction-card__delete"
-                disabled={actioningId === i.id}
-                onClick={() => handleDelete(i.id, i.name)}
-              >
-                Delete road
-              </button>
+              <div className="junction-card__actions">
+                <button
+                  type="button"
+                  className="junction-card__delete"
+                  disabled={actioningId === i.id}
+                  onClick={() => handleDelete(i.id, i.name)}
+                >
+                  Delete road
+                </button>
+                <button
+                  type="button"
+                  className="junction-card__run-agent"
+                  disabled={agentStatus[i.id] === 'running'}
+                  onClick={() => handleRunAgent(i.id)}
+                >
+                  {agentStatus[i.id] === 'running' ? 'Running agent…' : 'Run agent now'}
+                </button>
+              </div>
+              {agentStatus[i.id] === 'done' && (
+                <p className="junction-card__agent-status is-success">
+                  Agent produced a new proposal — see below.
+                </p>
+              )}
+              {agentStatus[i.id] === 'no-proposal' && (
+                <p className="junction-card__agent-status">Agent ran but didn't produce a proposal this time.</p>
+              )}
+              {agentStatus[i.id] === 'error' && (
+                <p className="junction-card__agent-status is-error">Agent run failed — check the backend log.</p>
+              )}
               {i.congestionLevel ? (
                 <div className="junction-card__telemetry">
                   <span className="junction-card__count">{i.totalVehicleCount} vehicles</span>
@@ -115,6 +171,7 @@ export default function JunctionControlPanel() {
                   <strong>{p.intersectionName}</strong>
                   <p className="proposal-list__detail">{p.justification}</p>
                   <span className="proposal-list__safety">Safety check: {p.safetyCheckStatus}</span>
+                  <AgentStepsDetail proposalId={p.id} />
                 </div>
                 <div className="proposal-list__actions">
                   <button
@@ -124,6 +181,14 @@ export default function JunctionControlPanel() {
                     onClick={() => handleApprove(p.id)}
                   >
                     Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="proposal-list__revise"
+                    disabled={actioningId === p.id}
+                    onClick={() => handleRevise(p.id)}
+                  >
+                    Request Revision
                   </button>
                   <button
                     type="button"

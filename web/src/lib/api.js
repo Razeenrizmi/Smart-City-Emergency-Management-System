@@ -24,6 +24,9 @@ export const api = {
   getPendingProposals: () => request('/api/proposals?status=pending'),
   approveProposal: (id) => request(`/api/proposals/${id}/approve`, { method: 'POST' }),
   rejectProposal: (id) => request(`/api/proposals/${id}/reject`, { method: 'POST' }),
+  reviseProposal: (id, note) =>
+    request(`/api/proposals/${id}/revise`, { method: 'POST', body: JSON.stringify({ note }) }),
+  getProposalSteps: (id) => request(`/api/proposals/${id}/steps`),
   deleteIntersection: (id) => request(`/api/intersections/${id}`, { method: 'DELETE' }),
   saveSimulationAsIntersection: (name, roads) =>
     request('/api/intersections/from-simulation', {
@@ -35,4 +38,5 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ roads }),
     }),
+  runAgentAnalysis: (id) => request(`/api/intersections/${id}/analyze`, { method: 'POST' }),
 };
