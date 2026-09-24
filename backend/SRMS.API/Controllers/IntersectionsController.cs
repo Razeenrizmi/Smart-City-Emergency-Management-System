@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
@@ -49,6 +48,41 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
             .ToList();
 
         return Ok(ApiResponse<List<IntersectionSummaryDto>>.Ok(result));
+    }
+
+    // GET /api/intersections/{id}/cameras — one row per camera sensor
+    // (road) at this junction with its latest reading, for a per-road
+    // breakdown view (e.g. the Flutter mobile app's live preview) instead
+    // of just the junction-wide aggregate GetAll() returns.
+    [HttpGet("{id:guid}/cameras")]
+    public async Task<ActionResult<ApiResponse<List<CameraStatusDto>>>> GetCameras(Guid id)
+    {
+        var exists = await db.Intersections.AnyAsync(i => i.Id == id);
+        if (!exists)
+        {
+            return NotFound(ApiResponse<List<CameraStatusDto>>.Fail("Intersection not found."));
+        }
+
+        var sensors = await db.CameraSensors.AsNoTracking().Where(c => c.IntersectionId == id).ToListAsync();
+
+        var latestPerSensor = await db.TelemetryReadings
+            .AsNoTracking()
+            .Where(t => t.IntersectionId == id)
+            .GroupBy(t => t.CameraSensorId)
+            .Select(g => g.OrderByDescending(t => t.Timestamp).First())
+            .ToListAsync();
+
+        var latestBySensor = latestPerSensor.ToDictionary(r => r.CameraSensorId);
+
+        var result = sensors
+            .Select(s => latestBySensor.TryGetValue(s.Id, out var reading)
+                ? new CameraStatusDto(
+                    s.Id, s.LaneLabel, reading.VehicleCount, reading.LaneDensityPercent,
+                    CongestionLevelCalculator.FromLaneDensityPercent(reading.LaneDensityPercent), reading.Timestamp)
+                : new CameraStatusDto(s.Id, s.LaneLabel, null, null, null, null))
+            .ToList();
+
+        return Ok(ApiResponse<List<CameraStatusDto>>.Ok(result));
     }
 
     // DELETE /api/intersections/{id} — removes a junction and everything
@@ -162,15 +196,13 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         return Ok(ApiResponse<IntersectionSummaryDto>.Ok(dto, "Simulation saved as a junction."));
     }
 
-    // POST /api/intersections/{id}/update-from-simulation — called
-    // automatically every time the Signal Test Simulator finishes a
-    // re-scan round, once the operator has linked it to a saved junction.
-    // Adds a fresh TelemetryReading per road (matched to its CameraSensor
-    // by name — a rename creates a new sensor rather than relabeling the
-    // old one, a deliberate simplification) and raises a new
-    // SignalTimingProposal carrying the simulator's computed green-time
-    // plan, so it shows up as a real, approvable proposal — not just
-    // numbers updating silently.
+    // POST /api/intersections/{id}/update-from-simulation — refreshes an
+    // existing junction's telemetry (e.g. new manually-entered vehicle
+    // counts). Adds a fresh TelemetryReading per road (matched to its
+    // CameraSensor by name — a rename creates a new sensor rather than
+    // relabeling the old one, a deliberate simplification). Does NOT
+    // create a proposal itself — call POST /{id}/analyze afterward to get
+    // a real, per-road AI-generated proposal instead of a rule-based one.
     [HttpPost("{id:guid}/update-from-simulation")]
     public async Task<ActionResult<ApiResponse<IntersectionSummaryDto>>> UpdateFromSimulation(Guid id, UpdateSimulationRequest request)
     {
@@ -189,7 +221,6 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         var sensorByLabel = existingSensors.ToDictionary(s => s.LaneLabel, s => s);
 
         var readings = new List<TelemetryReading>();
-        var planEntries = new List<object>();
         foreach (var road in request.Roads)
         {
             var label = string.IsNullOrWhiteSpace(road.Name) ? "Unnamed road" : road.Name.Trim();
@@ -218,32 +249,9 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
                 QueueLength = 0,
                 LaneDensityPercent = laneDensityPercent,
             });
-            planEntries.Add(new { road = label, vehicleCount = road.VehicleCount, greenSec = road.GreenSec });
         }
 
         db.TelemetryReadings.AddRange(readings);
-
-        var run = new AgentWorkflowRun
-        {
-            Id = Guid.NewGuid(),
-            IntersectionId = id,
-            Objective = "Recompute signal timing from a Signal Test Simulator scan",
-            Status = "AWAITING_APPROVAL",
-            StartedAt = now,
-        };
-        db.AgentWorkflowRuns.Add(run);
-
-        db.SignalTimingProposals.Add(new SignalTimingProposal
-        {
-            Id = Guid.NewGuid(),
-            WorkflowRunId = run.Id,
-            IntersectionId = id,
-            ProposedPlanJson = JsonSerializer.Serialize(new { order = planEntries }),
-            Justification = "Computed by the Signal Test Simulator's priority-by-vehicle-count rule, ordered busiest road first — not the real Agentic AI subsystem.",
-            SafetyCheckStatus = "PASSED",
-            CreatedAt = now,
-        });
-
         intersection.UpdatedAt = now;
         await db.SaveChangesAsync();
 
@@ -262,12 +270,12 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         return Ok(ApiResponse<IntersectionSummaryDto>.Ok(dto, "Junction updated from simulation."));
     }
 
-    // POST /api/intersections/{id}/analyze — manually runs your Agentic AI
-    // workflow for this junction right now, regardless of current
-    // congestion. The background telemetry service only ever triggers the
-    // same workflow when congestion randomly rolls HIGH/SEVERE, which
-    // isn't something you can reliably demonstrate live — this endpoint
-    // exists purely so the workflow can be run on demand for the viva.
+    // POST /api/intersections/{id}/analyze — runs your Agentic AI workflow
+    // for this junction right now. This is the ONLY way a proposal gets
+    // created — the background telemetry service just records readings,
+    // it never triggers the agent on its own — so every proposal in the
+    // system traces back to an explicit operator action (the web app's
+    // "Get AI signal timing plan" button calls this endpoint).
     [HttpPost("{id:guid}/analyze")]
     public async Task<ActionResult<ApiResponse<object>>> Analyze(Guid id)
     {

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
 
-// Polls the real backend for junction density + pending proposals. Polling
-// (rather than SignalR/WebSockets) was chosen since the underlying data
-// only changes every 30s (the telemetry simulator's own interval) — a
-// lighter-weight fit for that cadence, worth a line in the ADR.
+// Polls the real backend for junction telemetry + pending proposals.
+// Polling (rather than SignalR/WebSockets) was chosen since the
+// underlying data only changes every 30s (the telemetry simulator's own
+// interval) — a lighter-weight fit for that cadence, worth a line in the
+// ADR.
 const POLL_MS = 5000;
 
 export function useJunctionPanelData() {
@@ -61,44 +62,13 @@ export function useJunctionPanelData() {
     [refetch],
   );
 
-  const reviseProposal = useCallback(
-    async (id, note) => {
-      await api.reviseProposal(id, note);
-      await refetch();
-    },
-    [refetch],
-  );
-
-  const deleteIntersection = useCallback(
-    async (id) => {
-      await api.deleteIntersection(id);
-      await refetch();
-    },
-    [refetch],
-  );
-
-  // Runs the real Agentic AI workflow for one junction right now,
-  // regardless of its current congestion — the background telemetry
-  // service only triggers it on a random HIGH/SEVERE reading, which isn't
-  // something you can reliably demonstrate live.
-  const runAgentAnalysis = useCallback(
-    async (id) => {
-      const result = await api.runAgentAnalysis(id);
-      await refetch();
-      return result;
-    },
-    [refetch],
-  );
-
   return {
     intersections,
     proposals,
     loading,
     error,
+    refetch,
     approveProposal,
     rejectProposal,
-    reviseProposal,
-    deleteIntersection,
-    runAgentAnalysis,
   };
 }

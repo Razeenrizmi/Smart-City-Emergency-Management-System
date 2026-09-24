@@ -6,6 +6,7 @@ public record ProposalDto(
     string IntersectionName,
     Guid WorkflowRunId,
     string Justification,
+    string ProposedPlanJson,
     string SafetyCheckStatus,
     string? SafetyCheckNotes,
     DateTime CreatedAt,

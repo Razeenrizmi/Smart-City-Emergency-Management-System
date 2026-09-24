@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Models;
-using SRMS.API.Services.Agents;
-using SRMS.API.Support;
 
 namespace SRMS.API.Services;
 
@@ -14,11 +12,11 @@ namespace SRMS.API.Services;
 // BackgroundService implements IHostedService — the standard ASP.NET Core
 // base class for a long-running background loop.
 //
-// When an intersection's average lane density goes HIGH/SEVERE and it
-// doesn't already have a proposal awaiting a decision, this runs your
-// actual Agentic AI contribution (SignalTimingAgentWorkflow) — a real
-// 4-agent plan → analyze → propose → validate pipeline, not the earlier
-// rule-based placeholder.
+// Telemetry only — the Agentic AI workflow (SignalTimingAgentWorkflow) is
+// deliberately NOT triggered from here. It only ever runs when an operator
+// explicitly asks for it (the "Get AI signal timing plan" button), so
+// every proposal in the system traces back to a real, demonstrable human
+// action instead of appearing on its own from a random congestion roll.
 public class CameraTelemetrySimulatorService(
     IServiceScopeFactory scopeFactory,
     ILogger<CameraTelemetrySimulatorService> logger) : BackgroundService
@@ -47,11 +45,6 @@ public class CameraTelemetrySimulatorService(
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
-        // Resolved from the same scope as `db` — the agent workflow shares
-        // this exact DbContext instance, so the telemetry rows it reads
-        // back for its analysis are the ones just written below, not a
-        // stale snapshot from a different connection.
-        var agentWorkflow = scope.ServiceProvider.GetRequiredService<SignalTimingAgentWorkflow>();
 
         var intersections = await db.Intersections
             .Include(i => i.CameraSensors)
@@ -63,7 +56,6 @@ public class CameraTelemetrySimulatorService(
         {
             if (intersection.CameraSensors.Count == 0) continue;
 
-            var readingsThisTick = new List<TelemetryReading>();
             foreach (var sensor in intersection.CameraSensors)
             {
                 var vehicleCount = _random.Next(0, 30);
@@ -72,7 +64,7 @@ public class CameraTelemetrySimulatorService(
                 // reads as busy across both fields.
                 var laneDensityPercent = Math.Clamp(vehicleCount * 3.2 + _random.Next(-10, 10), 0, 100);
 
-                var reading = new TelemetryReading
+                db.TelemetryReadings.Add(new TelemetryReading
                 {
                     Id = Guid.NewGuid(),
                     CameraSensorId = sensor.Id,
@@ -81,31 +73,10 @@ public class CameraTelemetrySimulatorService(
                     VehicleCount = vehicleCount,
                     QueueLength = Math.Min(vehicleCount, _random.Next(0, 12)),
                     LaneDensityPercent = laneDensityPercent,
-                };
-                readingsThisTick.Add(reading);
-                db.TelemetryReadings.Add(reading);
+                });
             }
 
-            var averageDensity = readingsThisTick.Average(r => r.LaneDensityPercent);
-            var congestionLevel = CongestionLevelCalculator.FromLaneDensityPercent(averageDensity);
-
-            // Commit this intersection's readings now — the agent
-            // workflow below queries TelemetryReadings fresh, so it needs
-            // to actually see what was just recorded, not a snapshot from
-            // before this tick started.
             await db.SaveChangesAsync(ct);
-
-            if (congestionLevel is "HIGH" or "SEVERE")
-            {
-                var hasPendingProposal = await db.SignalTimingProposals
-                    .Where(p => p.IntersectionId == intersection.Id)
-                    .AnyAsync(p => p.SignalTimingDecision == null, ct);
-
-                if (!hasPendingProposal)
-                {
-                    await agentWorkflow.RunAsync(intersection, ct: ct);
-                }
-            }
         }
 
         logger.LogInformation(

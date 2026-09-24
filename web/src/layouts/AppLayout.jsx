@@ -13,6 +13,9 @@ export default function AppLayout() {
           <NavLink to="/signal-test" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Signal Test Simulator
           </NavLink>
+          <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Report
+          </NavLink>
         </nav>
       </header>
       <main className="app-shell__main">

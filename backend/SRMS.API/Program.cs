@@ -16,11 +16,12 @@ builder.Services.AddDbContext<SrmsDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    // Vite's default dev server origin — React and Flutter are required to
-    // talk only to this API, never directly to the database, so this is
-    // scoped to just the browser dev origin rather than AllowAnyOrigin.
+    // Vite's default dev server origin plus the Flutter web dev origin —
+    // React and Flutter are required to talk only to this API, never
+    // directly to the database, so this is scoped to just these dev
+    // origins rather than AllowAnyOrigin.
     options.AddPolicy(WebDevCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod());
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5080").AllowAnyHeader().AllowAnyMethod());
 });
 
 // Your Agentic AI contribution's model client — Ollama runs locally on

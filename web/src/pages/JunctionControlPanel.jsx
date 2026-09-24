@@ -1,24 +1,45 @@
 import { useState } from 'react';
 import { useJunctionPanelData } from '../hooks/useJunctionPanelData';
-import CongestionBadge from '../components/CongestionBadge';
-import SimulatedJunctionSummary from '../components/SimulatedJunctionSummary';
 import AgentStepsDetail from '../components/AgentStepsDetail';
+import ManualSignalPlanForm from '../components/ManualSignalPlanForm';
+import JunctionTelemetryCard from '../components/JunctionTelemetryCard';
 import './JunctionControlPanel.css';
 
+function ProposedPlanTable({ proposedPlanJson }) {
+  let plan;
+  try {
+    plan = JSON.parse(proposedPlanJson);
+  } catch {
+    return null;
+  }
+  if (!plan?.roads?.length) return null;
+
+  return (
+    <table className="proposal-list__plan">
+      <thead>
+        <tr>
+          <th>Road</th>
+          <th>Vehicles</th>
+          <th>Green</th>
+        </tr>
+      </thead>
+      <tbody>
+        {plan.roads.map((r) => (
+          <tr key={r.laneLabel}>
+            <td>{r.laneLabel}</td>
+            <td>{r.vehicleCount}</td>
+            <td>{r.greenSeconds}s</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export default function JunctionControlPanel() {
-  const {
-    intersections,
-    proposals,
-    loading,
-    error,
-    approveProposal,
-    rejectProposal,
-    reviseProposal,
-    deleteIntersection,
-    runAgentAnalysis,
-  } = useJunctionPanelData();
+  const { intersections, proposals, loading, error, refetch, approveProposal, rejectProposal } =
+    useJunctionPanelData();
   const [actioningId, setActioningId] = useState(null);
-  const [agentStatus, setAgentStatus] = useState({}); // { [intersectionId]: 'running' | 'done' | 'no-proposal' | 'error' }
 
   async function handleApprove(id) {
     setActioningId(id);
@@ -38,42 +59,6 @@ export default function JunctionControlPanel() {
     }
   }
 
-  async function handleRevise(id) {
-    const note = window.prompt('What should the agent change about this proposal?');
-    if (note === null) return; // cancelled
-    setActioningId(id);
-    try {
-      await reviseProposal(id, note);
-    } finally {
-      setActioningId(null);
-    }
-  }
-
-  async function handleDelete(id, name) {
-    if (!window.confirm(`Delete "${name}"? This also removes its cameras, telemetry, and proposal history.`)) {
-      return;
-    }
-    setActioningId(id);
-    try {
-      await deleteIntersection(id);
-    } finally {
-      setActioningId(null);
-    }
-  }
-
-  async function handleRunAgent(id) {
-    setAgentStatus((prev) => ({ ...prev, [id]: 'running' }));
-    try {
-      const result = await runAgentAnalysis(id);
-      setAgentStatus((prev) => ({
-        ...prev,
-        [id]: result.status === 'AWAITING_APPROVAL' ? 'done' : 'no-proposal',
-      }));
-    } catch {
-      setAgentStatus((prev) => ({ ...prev, [id]: 'error' }));
-    }
-  }
-
   return (
     <section className="junction-panel">
       <header className="junction-panel__header">
@@ -81,18 +66,11 @@ export default function JunctionControlPanel() {
         <p>Real-time camera density and signal-timing proposals, read live from the backend database.</p>
       </header>
 
-      <section className="junction-panel__live-sim">
-        <h2>Signal Test Simulator — live preview</h2>
-        <p className="junction-panel__section-hint">
-          Whatever's currently running in the Signal Test Simulator, shown here directly from the browser — use
-          "Save to Junction Control Panel" there once you're happy with it to persist it below.
-        </p>
-        <SimulatedJunctionSummary />
-      </section>
+      <ManualSignalPlanForm intersections={intersections} />
 
-      <h2 className="junction-panel__section-title">Saved junctions (from the database)</h2>
-
-      {loading && intersections.length === 0 && <p className="junction-panel__status">Loading intersections…</p>}
+      {loading && intersections.length === 0 && proposals.length === 0 && (
+        <p className="junction-panel__status">Loading junction data…</p>
+      )}
 
       {error && (
         <p className="junction-panel__error">
@@ -101,63 +79,21 @@ export default function JunctionControlPanel() {
         </p>
       )}
 
-      {!loading && !error && intersections.length === 0 && (
-        <p className="junction-panel__status">No intersections in the database yet.</p>
-      )}
-
-      {intersections.length > 0 && (
-        <div className="junction-panel__grid">
-          {intersections.map((i) => (
-            <div key={i.id} className="junction-card">
-              <div className="junction-card__header">
-                <span className="junction-card__name">{i.name}</span>
-                <span className="junction-card__lanes">{i.laneCount} lanes</span>
-              </div>
-              <div className="junction-card__actions">
-                <button
-                  type="button"
-                  className="junction-card__delete"
-                  disabled={actioningId === i.id}
-                  onClick={() => handleDelete(i.id, i.name)}
-                >
-                  Delete road
-                </button>
-                <button
-                  type="button"
-                  className="junction-card__run-agent"
-                  disabled={agentStatus[i.id] === 'running'}
-                  onClick={() => handleRunAgent(i.id)}
-                >
-                  {agentStatus[i.id] === 'running' ? 'Running agent…' : 'Run agent now'}
-                </button>
-              </div>
-              {agentStatus[i.id] === 'done' && (
-                <p className="junction-card__agent-status is-success">
-                  Agent produced a new proposal — see below.
-                </p>
-              )}
-              {agentStatus[i.id] === 'no-proposal' && (
-                <p className="junction-card__agent-status">Agent ran but didn't produce a proposal this time.</p>
-              )}
-              {agentStatus[i.id] === 'error' && (
-                <p className="junction-card__agent-status is-error">Agent run failed — check the backend log.</p>
-              )}
-              {i.congestionLevel ? (
-                <div className="junction-card__telemetry">
-                  <span className="junction-card__count">{i.totalVehicleCount} vehicles</span>
-                  <CongestionBadge level={i.congestionLevel} />
-                  <span className="junction-card__timestamp">
-                    Updated {new Date(i.lastUpdated).toLocaleTimeString()} — avg lane density{' '}
-                    {i.averageLaneDensityPercent.toFixed(0)}%
-                  </span>
-                </div>
-              ) : (
-                <p className="junction-card__pending">Waiting for first camera reading…</p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <section className="junction-panel__telemetry">
+        <h2>Camera status</h2>
+        <p className="junction-panel__section-hint">
+          Live camera density per junction, same as the mobile app — click a junction to see its per-road breakdown.
+        </p>
+        {intersections.length === 0 ? (
+          <p className="junction-panel__status">No junctions in the database yet.</p>
+        ) : (
+          <div className="junction-panel__telemetry-grid">
+            {intersections.map((i) => (
+              <JunctionTelemetryCard key={i.id} intersection={i} onDeleted={refetch} />
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="junction-panel__proposals">
         <h2>Pending signal-timing proposals</h2>
@@ -171,6 +107,7 @@ export default function JunctionControlPanel() {
                   <strong>{p.intersectionName}</strong>
                   <p className="proposal-list__detail">{p.justification}</p>
                   <span className="proposal-list__safety">Safety check: {p.safetyCheckStatus}</span>
+                  <ProposedPlanTable proposedPlanJson={p.proposedPlanJson} />
                   <AgentStepsDetail proposalId={p.id} />
                 </div>
                 <div className="proposal-list__actions">
@@ -181,14 +118,6 @@ export default function JunctionControlPanel() {
                     onClick={() => handleApprove(p.id)}
                   >
                     Approve
-                  </button>
-                  <button
-                    type="button"
-                    className="proposal-list__revise"
-                    disabled={actioningId === p.id}
-                    onClick={() => handleRevise(p.id)}
-                  >
-                    Request Revision
                   </button>
                   <button
                     type="button"

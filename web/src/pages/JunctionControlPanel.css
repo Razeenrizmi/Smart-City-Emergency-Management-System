@@ -15,30 +15,6 @@
   margin: 0 0 24px;
 }
 
-.junction-panel__live-sim {
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  background: var(--code-bg);
-  margin-bottom: 28px;
-}
-
-.junction-panel__live-sim h2 {
-  font-size: 16px;
-  margin: 0 0 6px;
-}
-
-.junction-panel__section-hint {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: var(--text);
-}
-
-.junction-panel__section-title {
-  font-size: 18px;
-  margin: 0 0 14px;
-}
-
 .junction-panel__status {
   color: var(--text);
   font-size: 14px;
@@ -53,138 +29,25 @@
   padding: 10px 14px;
 }
 
-.junction-panel__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
-  margin-bottom: 32px;
-}
-
-.junction-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.junction-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.junction-card__name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.junction-card__signal {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #fff;
-}
-
-.junction-card__signal--green {
-  background: #22c55e;
-}
-
-.junction-card__signal--red {
-  background: #ef4444;
-}
-
-.junction-card__signal--amber,
-.junction-card__signal--yellow {
-  background: #eab308;
-}
-
-.junction-card__lanes {
-  font-size: 11px;
-  color: var(--text);
-}
-
-.junction-card__actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.junction-card__delete {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid #ef4444;
-  background: transparent;
-  color: #ef4444;
-  cursor: pointer;
-}
-
-.junction-card__delete:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.junction-card__run-agent {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--accent);
-  cursor: pointer;
-}
-
-.junction-card__run-agent:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.junction-card__agent-status {
-  margin: 0;
-  font-size: 11px;
-  color: var(--text);
-}
-
-.junction-card__agent-status.is-success {
-  color: #22c55e;
-}
-
-.junction-card__agent-status.is-error {
-  color: #ef4444;
-}
-
-.junction-card__telemetry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.junction-card__count {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-h);
-}
-
-.junction-card__timestamp {
-  font-size: 11px;
-  color: var(--text);
-  width: 100%;
-}
-
-.junction-card__pending {
+.junction-panel__section-hint {
+  margin: 0 0 12px;
   font-size: 12px;
   color: var(--text);
-  margin: 0;
+}
+
+.junction-panel__telemetry {
+  margin-bottom: 28px;
+}
+
+.junction-panel__telemetry h2 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+
+.junction-panel__telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
 }
 
 .junction-panel__proposals h2 {
@@ -219,6 +82,24 @@
   margin: 4px 0;
 }
 
+.proposal-list__plan {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.proposal-list__plan th,
+.proposal-list__plan td {
+  text-align: left;
+  padding: 3px 12px 3px 0;
+  color: var(--text);
+}
+
+.proposal-list__plan th {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
 .proposal-list__safety {
   font-size: 11px;
   color: var(--text);
@@ -230,8 +111,7 @@
 }
 
 .proposal-list__approve,
-.proposal-list__reject,
-.proposal-list__revise {
+.proposal-list__reject {
   font-size: 13px;
   font-weight: 600;
   padding: 6px 12px;
@@ -245,12 +125,6 @@
   color: #22c55e;
 }
 
-.proposal-list__revise {
-  border: 1px solid #eab308;
-  background: transparent;
-  color: #eab308;
-}
-
 .proposal-list__reject {
   border: 1px solid #ef4444;
   background: transparent;
@@ -258,8 +132,7 @@
 }
 
 .proposal-list__approve:disabled,
-.proposal-list__reject:disabled,
-.proposal-list__revise:disabled {
+.proposal-list__reject:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

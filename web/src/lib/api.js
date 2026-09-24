@@ -21,6 +21,7 @@ async function request(path, options) {
 
 export const api = {
   getIntersections: () => request('/api/intersections'),
+  getIntersectionCameras: (id) => request(`/api/intersections/${id}/cameras`),
   getPendingProposals: () => request('/api/proposals?status=pending'),
   approveProposal: (id) => request(`/api/proposals/${id}/approve`, { method: 'POST' }),
   rejectProposal: (id) => request(`/api/proposals/${id}/reject`, { method: 'POST' }),
@@ -39,4 +40,6 @@ export const api = {
       body: JSON.stringify({ roads }),
     }),
   runAgentAnalysis: (id) => request(`/api/intersections/${id}/analyze`, { method: 'POST' }),
+  getFaultReports: (status = 'open') => request(`/api/cameras/fault-reports?status=${status}`),
+  resolveFaultReport: (id) => request(`/api/cameras/fault-reports/${id}/resolve`, { method: 'POST' }),
 };
