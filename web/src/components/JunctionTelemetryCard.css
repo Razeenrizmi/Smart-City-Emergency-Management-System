@@ -1,0 +1,150 @@
+.junction-telemetry-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--bg);
+}
+
+.junction-telemetry-card__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.junction-telemetry-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+  flex: 1;
+}
+
+.junction-telemetry-card__lanes {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.junction-telemetry-card__delete {
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.junction-telemetry-card__chevron {
+  font-size: 10px;
+  color: var(--text);
+}
+
+.junction-telemetry-card__confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.junction-telemetry-card__confirm-yes,
+.junction-telemetry-card__confirm-no {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.junction-telemetry-card__confirm-yes {
+  border: 1px solid #ef4444;
+  background: #ef4444;
+  color: #fff;
+}
+
+.junction-telemetry-card__confirm-yes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.junction-telemetry-card__confirm-no {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.junction-telemetry-card__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.junction-telemetry-card__count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.junction-telemetry-card__timestamp {
+  font-size: 11px;
+  color: var(--text);
+  width: 100%;
+}
+
+.junction-telemetry-card__pending {
+  font-size: 12px;
+  color: var(--text);
+  margin: 10px 0 0;
+}
+
+.junction-telemetry-card__breakdown {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.junction-telemetry-card__status {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.junction-telemetry-card__status--error {
+  color: #ef4444;
+}
+
+.junction-telemetry-card__roads {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.junction-telemetry-card__roads li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.junction-telemetry-card__road-reading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}

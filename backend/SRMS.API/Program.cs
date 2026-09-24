@@ -1,13 +1,39 @@
+using Microsoft.EntityFrameworkCore;
+using SRMS.API.Data;
+using SRMS.API.Services;
+using SRMS.API.Services.Agents;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+const string WebDevCorsPolicy = "WebDevCorsPolicy";
+
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<SrmsDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SrmsDb")));
+
+builder.Services.AddCors(options =>
+{
+    // Vite's default dev server origin plus the Flutter web dev origin —
+    // React and Flutter are required to talk only to this API, never
+    // directly to the database, so this is scoped to just these dev
+    // origins rather than AllowAnyOrigin.
+    options.AddPolicy(WebDevCorsPolicy, policy =>
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5080").AllowAnyHeader().AllowAnyMethod());
+});
+
+// Your Agentic AI contribution's model client — Ollama runs locally on
+// this machine (no API key, no cost), so this is just a plain named
+// HttpClient pointed at its local port.
+builder.Services.AddHttpClient<OllamaClient>();
+builder.Services.AddScoped<SignalTimingAgentWorkflow>();
+
+builder.Services.AddHostedService<CameraTelemetrySimulatorService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -15,30 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.UseCors(WebDevCorsPolicy);
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
