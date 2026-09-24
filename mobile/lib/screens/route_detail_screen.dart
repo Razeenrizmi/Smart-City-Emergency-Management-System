@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/route.dart';
+import '../models/route.dart' as route_model;
 import '../models/route_junction.dart';
 import '../services/route_service.dart';
 import 'create_emergency_screen.dart';
 
 class RouteDetailScreen extends StatefulWidget {
-  final Route route;
+  final route_model.Route route;
 
   const RouteDetailScreen({
     super.key,
@@ -18,7 +18,7 @@ class RouteDetailScreen extends StatefulWidget {
 
 class _RouteDetailScreenState extends State<RouteDetailScreen> {
   final RouteService _routeService = RouteService();
-  Route? _detailedRoute;
+  route_model.Route? _detailedRoute;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -147,7 +147,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
     );
   }
 
-  Widget _buildRouteInfoCard(Route route) {
+  Widget _buildRouteInfoCard(route_model.Route route) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/route.dart';
+import '../models/route.dart' as route_model;
 import '../services/route_service.dart';
 import 'route_detail_screen.dart';
 
@@ -12,7 +12,7 @@ class RouteListScreen extends StatefulWidget {
 
 class _RouteListScreenState extends State<RouteListScreen> {
   final RouteService _routeService = RouteService();
-  List<Route> _routes = [];
+  List<route_model.Route> _routes = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -48,7 +48,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
     }
   }
 
-  void _navigateToRouteDetail(Route route) {
+  void _navigateToRouteDetail(route_model.Route route) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -155,7 +155,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
 }
 
 class RouteListItem extends StatelessWidget {
-  final Route route;
+  final route_model.Route route;
   final VoidCallback onTap;
 
   const RouteListItem({

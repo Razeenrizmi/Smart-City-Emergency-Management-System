@@ -285,7 +285,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
                           ),
                         )
                       : const Icon(Icons.play_arrow),
-                  label: _isActivating ? 'Activating...' : 'Activate Green Wave',
+                  label: Text(_isActivating ? 'Activating...' : 'Activate Green Wave'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -323,7 +323,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               const SizedBox(height: 12),
               Text(
                 _activationError!,
-                style: const TextStyle(fontSize: 14, color: Colors.red.shade900),
+                style: TextStyle(fontSize: 14, color: Colors.red.shade900),
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
@@ -359,7 +359,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               Expanded(
                 child: Text(
                   'Green Wave activation is only available for ACTIVE sessions.',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                 ),
               ),
             ],
@@ -582,7 +582,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               const SizedBox(height: 12),
               Text(
                 _completionError!,
-                style: const TextStyle(fontSize: 14, color: Colors.red.shade900),
+                style: TextStyle(fontSize: 14, color: Colors.red.shade900),
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
@@ -624,7 +624,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               const SizedBox(height: 12),
               Text(
                 _cancellationError!,
-                style: const TextStyle(fontSize: 14, color: Colors.red.shade900),
+                style: TextStyle(fontSize: 14, color: Colors.red.shade900),
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
@@ -696,7 +696,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               Expanded(
                 child: Text(
                   'Session actions are only available for ACTIVE sessions.',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                 ),
               ),
             ],
@@ -723,7 +723,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
                 ),
               )
             : const Icon(Icons.done),
-        label: _isCompleting ? 'Completing...' : 'Complete Emergency',
+        label: Text(_isCompleting ? 'Completing...' : 'Complete Emergency'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
@@ -748,7 +748,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
                 ),
               )
             : const Icon(Icons.cancel),
-        label: _isCancelling ? 'Cancelling...' : 'Cancel Emergency',
+        label: Text(_isCancelling ? 'Cancelling...' : 'Cancel Emergency'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           foregroundColor: Colors.white,
