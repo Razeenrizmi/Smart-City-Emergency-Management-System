@@ -1,3 +1,5 @@
+import asyncio
+import concurrent.futures
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -10,28 +12,56 @@ from app.models.schemas import (
     ProposalStatus,
     SignalActionProposalResponse,
     SignalActionType,
+    WorkflowStatus,
 )
 from app.services.gemini_service import GeminiService
-from app.tools.route_tools import (
-    ReadOnlyCorridorToolClient,
-)
+from app.tools.route_tools import ReadOnlyCorridorToolClient
 from app.tools.validator import validate_signal_action_proposal
 
 logger = logging.getLogger(__name__)
 
 
-async def input_context_node(state: AgentState) -> AgentState:
-    """Stage 1: Context Preparation.
+def run_coroutine_sync(coro: Any) -> Any:
+    """Run an async coroutine synchronously, regardless of current event loop context.
+
+    If an event loop is already running in the current thread (e.g. pytest or FastAPI),
+    executes the coroutine in a dedicated thread pool to avoid loop conflict.
+    Otherwise, invokes asyncio.run directly.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            return executor.submit(asyncio.run, coro).result()
+    else:
+        return asyncio.run(coro)
+
+
+def input_context_node(state: AgentState) -> AgentState:
+    """Stage 1: Context Preparation & Input Normalization.
 
     Validates presence of input payload and prepares normalized junction and vehicle context.
     """
+    now_iso = datetime.now(timezone.utc).isoformat()
     request = state.get("request")
+    thread_id = state.get("thread_id") or (
+        f"thread_{request.emergency_session_id}" if request else f"thread_{uuid.uuid4().hex[:12]}"
+    )
+
     if not request:
         return {
             **state,
+            "thread_id": thread_id,
+            "current_stage": "input_context",
+            "workflow_status": WorkflowStatus.REJECTED.value,
             "error": "Missing SignalActionAgentRequest in state.",
             "is_valid": False,
             "proposal_status": ProposalStatus.REJECTED,
+            "signal_execution_performed": False,
+            "updated_at": now_iso,
         }
 
     # Normalize junctions sorted by sequence order
@@ -49,12 +79,23 @@ async def input_context_node(state: AgentState) -> AgentState:
 
     return {
         **state,
+        "thread_id": thread_id,
+        "current_stage": "input_context",
+        "workflow_status": WorkflowStatus.RUNNING.value,
+        "emergency_session_id": request.emergency_session_id,
+        "route_id": request.route_id,
+        "route_name": request.route_name,
+        "vehicle_id": request.vehicle_id,
+        "vehicle_type": request.vehicle_type,
         "context": context,
         "error": None,
+        "signal_execution_performed": False,
+        "created_at": state.get("created_at") or now_iso,
+        "updated_at": now_iso,
     }
 
 
-async def tool_retrieval_node(state: AgentState) -> AgentState:
+def tool_retrieval_node(state: AgentState) -> AgentState:
     """Stage 2: Controlled Read-Only Tool Data Retrieval.
 
     Demonstrates controlled tool usage under the least-privilege boundary:
@@ -62,22 +103,27 @@ async def tool_retrieval_node(state: AgentState) -> AgentState:
     2. Populates or enriches junction telemetry without any write or execution operations.
     3. If route context or junctions are missing or cannot be retrieved, records audit notes.
     """
+    now_iso = datetime.now(timezone.utc).isoformat()
     if state.get("error"):
-        return state
+        return {
+            **state,
+            "current_stage": "tool_retrieval",
+            "updated_at": now_iso,
+        }
 
     request = state["request"]
-    tool_notes: List[str] = []
+    tool_notes: List[str] = list(state.get("tool_retrieval_notes") or [])
     tool_client = ReadOnlyCorridorToolClient()
 
     try:
         # Tool 1: Retrieve selected route context
-        route_ctx = await tool_client.get_selected_route_context(request.route_id)
+        route_ctx = run_coroutine_sync(tool_client.get_selected_route_context(request.route_id))
 
         # Tool 2: Retrieve ordered junctions along the route
-        tool_junctions = await tool_client.get_ordered_route_junctions(request.route_id)
+        tool_junctions = run_coroutine_sync(tool_client.get_ordered_route_junctions(request.route_id))
 
         # Tool 3: Retrieve current signal states along the corridor
-        signal_states = await tool_client.get_junction_signal_states(request.route_id)
+        signal_states = run_coroutine_sync(tool_client.get_junction_signal_states(request.route_id))
 
         retrieved_route_data = route_ctx.model_dump() if route_ctx else None
         retrieved_junctions_data = [j.model_dump() for j in tool_junctions]
@@ -136,54 +182,85 @@ async def tool_retrieval_node(state: AgentState) -> AgentState:
 
         return {
             **state,
+            "current_stage": "tool_retrieval",
+            "workflow_status": WorkflowStatus.RUNNING.value,
             "request": effective_request,
             "context": context,
             "retrieved_route": retrieved_route_data,
             "retrieved_junctions": retrieved_junctions_data,
             "retrieved_signal_states": signal_states,
             "tool_retrieval_notes": tool_notes,
+            "updated_at": now_iso,
         }
     except Exception as e:
         logger.error("Error during tool retrieval stage: %s", e)
         return {
             **state,
+            "current_stage": "tool_retrieval",
+            "workflow_status": WorkflowStatus.FAILED.value,
             "error": f"Tool retrieval stage failed: {e}",
-            "tool_retrieval_notes": [f"ERROR: Tool retrieval failed: {e}"],
+            "tool_retrieval_notes": tool_notes + [f"ERROR: Tool retrieval failed: {e}"],
+            "updated_at": now_iso,
         }
 
 
-async def reasoning_node(state: AgentState) -> AgentState:
-    """Stage 2: LLM / Deterministic Reasoning.
+def reasoning_node(state: AgentState) -> AgentState:
+    """Stage 3: LLM / Deterministic Reasoning.
 
     Invokes Gemini (or deterministic engine in mock/offline mode) to formulate
     a coordinated signal clearance strategy for the vehicle corridor.
     """
+    now_iso = datetime.now(timezone.utc).isoformat()
     if state.get("error"):
-        return state
+        return {
+            **state,
+            "current_stage": "reasoning",
+            "updated_at": now_iso,
+        }
 
     request = state["request"]
     mock_mode = state.get("mock_mode", False)
 
-    gemini_service = GeminiService()
-    reasoning_result = await gemini_service.generate_signal_actions(
-        request=request,
-        mock_mode=mock_mode,
-    )
+    try:
+        gemini_service = GeminiService()
+        reasoning_result = run_coroutine_sync(
+            gemini_service.generate_signal_actions(
+                request=request,
+                mock_mode=mock_mode,
+            )
+        )
 
-    return {
-        **state,
-        "raw_reasoning": reasoning_result.get("reasoning", ""),
-        "raw_actions_data": reasoning_result.get("actions", []),
-    }
+        return {
+            **state,
+            "current_stage": "reasoning",
+            "workflow_status": WorkflowStatus.RUNNING.value,
+            "raw_reasoning": reasoning_result.get("reasoning", ""),
+            "raw_actions_data": reasoning_result.get("actions", []),
+            "updated_at": now_iso,
+        }
+    except Exception as e:
+        logger.error("Error during reasoning stage: %s", e)
+        return {
+            **state,
+            "current_stage": "reasoning",
+            "workflow_status": WorkflowStatus.FAILED.value,
+            "error": f"Reasoning stage failed: {e}",
+            "updated_at": now_iso,
+        }
 
 
-async def structured_proposal_node(state: AgentState) -> AgentState:
-    """Stage 3: Proposal Structuring.
+def structured_proposal_node(state: AgentState) -> AgentState:
+    """Stage 4: Proposal Structuring.
 
     Converts raw model reasoning into structured JunctionAction domain objects.
     """
+    now_iso = datetime.now(timezone.utc).isoformat()
     if state.get("error"):
-        return state
+        return {
+            **state,
+            "current_stage": "structured_proposal",
+            "updated_at": now_iso,
+        }
 
     raw_actions = state.get("raw_actions_data", [])
     proposed_actions: List[JunctionAction] = []
@@ -210,24 +287,34 @@ async def structured_proposal_node(state: AgentState) -> AgentState:
 
     return {
         **state,
+        "current_stage": "structured_proposal",
+        "workflow_status": WorkflowStatus.RUNNING.value,
         "proposed_actions": proposed_actions,
         "overall_reason": state.get("raw_reasoning", "Coordinated green corridor recommended."),
         "validation_notes": parsing_notes,
+        "updated_at": now_iso,
     }
 
 
-async def validation_node(state: AgentState) -> AgentState:
-    """Stage 4: Deterministic Validation.
+def validation_node(state: AgentState) -> AgentState:
+    """Stage 5: Deterministic Validation.
 
     Enforces that all proposed actions belong to the route, follow sequence order,
     use allowed action types, and are marked strictly as PROPOSED.
     """
+    now_iso = datetime.now(timezone.utc).isoformat()
     request = state.get("request")
     proposal_id = f"prop_{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc)
+    thread_id = state.get("thread_id") or "unknown_thread"
 
     if not request or state.get("error"):
         error_msg = state.get("error") or "Unknown error before validation stage."
+        status_enum = (
+            WorkflowStatus.FAILED.value
+            if "failed" in error_msg.lower()
+            else WorkflowStatus.REJECTED.value
+        )
         rejected_response = SignalActionProposalResponse(
             proposal_id=proposal_id,
             emergency_session_id=request.emergency_session_id if request else "unknown",
@@ -236,6 +323,8 @@ async def validation_node(state: AgentState) -> AgentState:
             vehicle_id=request.vehicle_id if request else "unknown",
             vehicle_type=request.vehicle_type if request else "unknown",
             proposal_status=ProposalStatus.REJECTED,
+            workflow_status=WorkflowStatus(status_enum),
+            thread_id=thread_id,
             proposed_junction_actions=[],
             reason="Proposal generation aborted due to state error.",
             validation_notes=[f"ERROR: {error_msg}"],
@@ -243,9 +332,13 @@ async def validation_node(state: AgentState) -> AgentState:
         )
         return {
             **state,
+            "current_stage": "validation",
             "is_valid": False,
             "proposal_status": ProposalStatus.REJECTED,
+            "workflow_status": status_enum,
+            "signal_execution_performed": False,
             "final_response": rejected_response,
+            "updated_at": now_iso,
         }
 
     # Run deterministic safety validator
@@ -259,6 +352,10 @@ async def validation_node(state: AgentState) -> AgentState:
     tool_notes = list(state.get("tool_retrieval_notes", []))
     combined_notes = tool_notes + list(state.get("validation_notes", [])) + report.notes
 
+    workflow_status_val = (
+        WorkflowStatus.COMPLETED.value if report.is_valid else WorkflowStatus.REJECTED.value
+    )
+
     final_response = SignalActionProposalResponse(
         proposal_id=proposal_id,
         emergency_session_id=request.emergency_session_id,
@@ -267,6 +364,8 @@ async def validation_node(state: AgentState) -> AgentState:
         vehicle_id=request.vehicle_id,
         vehicle_type=request.vehicle_type,
         proposal_status=report.status,
+        workflow_status=WorkflowStatus(workflow_status_val),
+        thread_id=thread_id,
         proposed_junction_actions=report.validated_actions,
         reason=state.get("overall_reason", "Corridor clearing action plan."),
         validation_notes=combined_notes,
@@ -275,8 +374,12 @@ async def validation_node(state: AgentState) -> AgentState:
 
     return {
         **state,
+        "current_stage": "validation",
         "is_valid": report.is_valid,
         "proposal_status": report.status,
+        "workflow_status": workflow_status_val,
+        "signal_execution_performed": False,
         "validation_notes": combined_notes,
         "final_response": final_response,
+        "updated_at": now_iso,
     }

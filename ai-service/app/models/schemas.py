@@ -38,7 +38,17 @@ class ProposalStatus(str, Enum):
     REJECTED = "REJECTED"
 
 
+class WorkflowStatus(str, Enum):
+    """Execution status of the LangGraph Signal Action Agent workflow."""
+
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    REJECTED = "REJECTED"
+    FAILED = "FAILED"
+
+
 class JunctionInput(BaseModel):
+
     """Input telemetry for a junction along an emergency route."""
 
     junction_id: str = Field(..., description="Unique junction identifier (e.g., GUID or string ID)")
@@ -75,6 +85,11 @@ class SignalActionAgentRequest(BaseModel):
         default=None,
         description="Optional map of junction_id -> current signal state",
     )
+    thread_id: Optional[str] = Field(
+        default=None,
+        description="Optional stable execution thread ID for checkpointing and state tracking",
+    )
+
 
 
 class JunctionAction(BaseModel):
@@ -120,6 +135,14 @@ class SignalActionProposalResponse(BaseModel):
         default=ProposalStatus.PROPOSED,
         description="Status of the proposal (PROPOSED or REJECTED). Never executed.",
     )
+    workflow_status: Optional[WorkflowStatus] = Field(
+        default=None,
+        description="Workflow execution status (RUNNING, COMPLETED, REJECTED, FAILED)",
+    )
+    thread_id: Optional[str] = Field(
+        default=None,
+        description="LangGraph checkpoint thread identifier",
+    )
     proposed_junction_actions: List[JunctionAction] = Field(
         default_factory=list,
         description="Ordered list of proposed junction clearing actions",
@@ -135,3 +158,33 @@ class SignalActionProposalResponse(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp when the proposal was generated",
     )
+
+
+class CheckpointStateResponse(BaseModel):
+    """Schema for retrieved LangGraph checkpointed state."""
+
+    thread_id: str = Field(..., description="Stable execution thread identifier")
+    checkpoint_id: Optional[str] = Field(default=None, description="Unique checkpoint version ID")
+    workflow_status: str = Field(..., description="Workflow status: RUNNING, COMPLETED, REJECTED, FAILED")
+    current_stage: Optional[str] = Field(default=None, description="Last recorded workflow stage")
+    emergency_session_id: Optional[str] = Field(default=None, description="Associated emergency session ID")
+    route_id: Optional[str] = Field(default=None, description="Route identifier")
+    route_name: Optional[str] = Field(default=None, description="Route name")
+    vehicle_id: Optional[str] = Field(default=None, description="Emergency vehicle identifier")
+    vehicle_type: Optional[str] = Field(default=None, description="Emergency vehicle type")
+    retrieved_route: Optional[Dict[str, Any]] = Field(default=None, description="Retrieved route context telemetry")
+    retrieved_junctions: Optional[List[Dict[str, Any]]] = Field(default=None, description="Retrieved ordered junctions")
+    retrieved_signal_states: Optional[Dict[str, str]] = Field(default=None, description="Retrieved approach signal states")
+    proposed_actions: Optional[List[Dict[str, Any]]] = Field(default=None, description="Proposed non-destructive actions")
+    validation_notes: List[str] = Field(default_factory=list, description="Validation and audit trail notes")
+    is_valid: Optional[bool] = Field(default=None, description="Validation result boolean")
+    proposal_status: Optional[str] = Field(default=None, description="PROPOSED or REJECTED")
+    error: Optional[str] = Field(default=None, description="Workflow execution error if any")
+    raw_reasoning: Optional[str] = Field(default=None, description="Reasoning narrative summary")
+    created_at: Optional[str] = Field(default=None, description="ISO timestamp of initial creation")
+    updated_at: Optional[str] = Field(default=None, description="ISO timestamp of last update")
+    signal_execution_performed: bool = Field(
+        default=False,
+        description="Safety invariant: AI agent NEVER performs signal execution or DB writes",
+    )
+

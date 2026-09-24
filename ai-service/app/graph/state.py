@@ -6,11 +6,38 @@ from app.models.schemas import (
     ProposalStatus,
     SignalActionAgentRequest,
     SignalActionProposalResponse,
+    WorkflowStatus,
 )
 
 
 class AgentState(TypedDict, total=False):
-    """Execution state passed through the Signal Action Agent graph stages."""
+    """Execution state passed through the Signal Action Agent graph stages.
+
+    Preserves useful workflow state across all stages:
+    - Execution tracking (thread_id, workflow_status, current_stage)
+    - Route and vehicle telemetry (emergency_session_id, route_id, vehicle_id)
+    - Retrieved tool context (route context, ordered junctions, signal states)
+    - Reasoning and proposed actions
+    - Validation results and notes
+    - Final advisory proposal response
+
+    NEVER stores secrets, credentials, API keys, or driver PII.
+    """
+
+    # Execution tracking & checkpoint identity (Phase 4)
+    thread_id: str
+    workflow_status: str  # RUNNING, COMPLETED, REJECTED, FAILED
+    current_stage: str
+    created_at: str
+    updated_at: str
+    signal_execution_performed: bool
+
+    # Identifiers extracted from request
+    emergency_session_id: str
+    route_id: str
+    route_name: Optional[str]
+    vehicle_id: str
+    vehicle_type: str
 
     # 1. Input payload
     request: SignalActionAgentRequest
@@ -32,12 +59,12 @@ class AgentState(TypedDict, total=False):
     raw_reasoning: str
     raw_actions_data: List[Dict[str, Any]]
 
-    # 4. Structured proposal stage outputs
+    # 5. Structured proposal stage outputs
     proposed_actions: List[JunctionAction]
     overall_reason: str
     proposal_status: ProposalStatus
 
-    # 5. Validation stage outputs
+    # 6. Validation stage outputs
     is_valid: bool
     validation_notes: List[str]
     final_response: SignalActionProposalResponse

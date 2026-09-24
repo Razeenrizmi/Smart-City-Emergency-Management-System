@@ -1,7 +1,9 @@
-"""Application configuration management using Pydantic Settings."""
-
+import os
+from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -28,5 +30,9 @@ class Settings(BaseSettings):
     # Backend Integration (Simulation ASP.NET Core API)
     BACKEND_BASE_URL: str = "http://localhost:5017/api"
 
+    # Persistent Checkpoint Storage (SQLite)
+    CHECKPOINT_DB_PATH: str = str(BASE_DIR / "checkpoints" / "signal_action_checkpoints.sqlite")
+
 
 settings = Settings()
+
