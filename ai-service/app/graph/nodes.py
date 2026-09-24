@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 
 from app.graph.state import AgentState
 from app.models.schemas import (
+    ApprovalStatus,
     JunctionAction,
     JunctionInput,
     ProposalStatus,
@@ -60,6 +61,8 @@ def input_context_node(state: AgentState) -> AgentState:
             "error": "Missing SignalActionAgentRequest in state.",
             "is_valid": False,
             "proposal_status": ProposalStatus.REJECTED,
+            "approval_status": ApprovalStatus.REJECTED.value,
+            "handoff_ready": False,
             "signal_execution_performed": False,
             "updated_at": now_iso,
         }
@@ -323,6 +326,8 @@ def validation_node(state: AgentState) -> AgentState:
             vehicle_id=request.vehicle_id if request else "unknown",
             vehicle_type=request.vehicle_type if request else "unknown",
             proposal_status=ProposalStatus.REJECTED,
+            approval_status=ApprovalStatus.REJECTED,
+            handoff_ready=False,
             workflow_status=WorkflowStatus(status_enum),
             thread_id=thread_id,
             proposed_junction_actions=[],
@@ -335,6 +340,8 @@ def validation_node(state: AgentState) -> AgentState:
             "current_stage": "validation",
             "is_valid": False,
             "proposal_status": ProposalStatus.REJECTED,
+            "approval_status": ApprovalStatus.REJECTED.value,
+            "handoff_ready": False,
             "workflow_status": status_enum,
             "signal_execution_performed": False,
             "final_response": rejected_response,
@@ -355,6 +362,9 @@ def validation_node(state: AgentState) -> AgentState:
     workflow_status_val = (
         WorkflowStatus.COMPLETED.value if report.is_valid else WorkflowStatus.REJECTED.value
     )
+    approval_status_val = (
+        ApprovalStatus.PENDING_APPROVAL.value if report.is_valid else ApprovalStatus.REJECTED.value
+    )
 
     final_response = SignalActionProposalResponse(
         proposal_id=proposal_id,
@@ -364,6 +374,8 @@ def validation_node(state: AgentState) -> AgentState:
         vehicle_id=request.vehicle_id,
         vehicle_type=request.vehicle_type,
         proposal_status=report.status,
+        approval_status=ApprovalStatus(approval_status_val),
+        handoff_ready=False,
         workflow_status=WorkflowStatus(workflow_status_val),
         thread_id=thread_id,
         proposed_junction_actions=report.validated_actions,
@@ -377,6 +389,8 @@ def validation_node(state: AgentState) -> AgentState:
         "current_stage": "validation",
         "is_valid": report.is_valid,
         "proposal_status": report.status,
+        "approval_status": approval_status_val,
+        "handoff_ready": False,
         "workflow_status": workflow_status_val,
         "signal_execution_performed": False,
         "validation_notes": combined_notes,

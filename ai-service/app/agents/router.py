@@ -5,6 +5,8 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from app.agents.signal_action_agent import SignalActionAgent
 from app.models.schemas import (
+    ApprovalActionResponse,
+    ApprovalRequest,
     CheckpointStateResponse,
     SignalActionAgentRequest,
     SignalActionProposalResponse,
@@ -83,6 +85,11 @@ async def get_checkpoint_state(thread_id: str) -> CheckpointStateResponse:
         validation_notes=state.get("validation_notes", []),
         is_valid=state.get("is_valid"),
         proposal_status=str(state.get("proposal_status")) if state.get("proposal_status") else None,
+        approval_status=str(state.get("approval_status")) if state.get("approval_status") else None,
+        handoff_ready=bool(state.get("handoff_ready", False)),
+        approved_at=state.get("approved_at"),
+        approved_by=state.get("approved_by"),
+        approval_notes=state.get("approval_notes"),
         error=state.get("error"),
         raw_reasoning=state.get("raw_reasoning"),
         created_at=state.get("created_at"),
@@ -115,5 +122,74 @@ async def get_checkpoint_history(thread_id: str) -> List[Dict[str, Any]]:
             "workflow_status": snap.get("workflow_status"),
             "updated_at": snap.get("updated_at"),
             "is_valid": snap.get("is_valid"),
+            "approval_status": snap.get("approval_status"),
+            "handoff_ready": snap.get("handoff_ready"),
         })
     return summary
+
+
+@router.post(
+    "/approve/{thread_id}",
+    response_model=ApprovalActionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Approve a validated Signal Action proposal by thread ID",
+    description=(
+        "Human approval gate: transitions a validated proposal from PENDING_APPROVAL to APPROVED. "
+        "Generates a safe handoff payload for the ASP.NET Green Wave execution layer. "
+        "SAFETY INVARIANT: AI agent NEVER modifies or executes signals directly."
+    ),
+)
+async def approve_proposal(
+    thread_id: str,
+    request: Optional[ApprovalRequest] = None,
+) -> ApprovalActionResponse:
+    """Approve a signal action proposal by thread ID."""
+    agent = SignalActionAgent()
+    try:
+        operator_id = request.operator_id if request else None
+        notes = request.notes if request else None
+        return agent.approve(thread_id=thread_id, operator_id=operator_id, notes=notes)
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "no checkpoint" in err_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=err_msg,
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=err_msg,
+        )
+
+
+@router.post(
+    "/reject/{thread_id}",
+    response_model=ApprovalActionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reject a Signal Action proposal by thread ID",
+    description=(
+        "Human rejection gate: marks proposal as REJECTED in SQLite checkpoint. "
+        "Rejected proposals cannot be approved or handed off for execution."
+    ),
+)
+async def reject_proposal(
+    thread_id: str,
+    request: Optional[ApprovalRequest] = None,
+) -> ApprovalActionResponse:
+    """Reject a signal action proposal by thread ID."""
+    agent = SignalActionAgent()
+    try:
+        operator_id = request.operator_id if request else None
+        notes = request.notes if request else None
+        return agent.reject(thread_id=thread_id, operator_id=operator_id, notes=notes)
+    except ValueError as e:
+        err_msg = str(e)
+        if "not found" in err_msg.lower() or "no checkpoint" in err_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=err_msg,
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=err_msg,
+        )

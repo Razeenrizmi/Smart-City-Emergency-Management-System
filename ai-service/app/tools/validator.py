@@ -10,6 +10,7 @@ Enforces critical safety invariants:
 
 from typing import List, NamedTuple, Set
 from app.models.schemas import (
+    ApprovalStatus,
     JunctionAction,
     JunctionInput,
     ProposalStatus,
@@ -27,6 +28,7 @@ class ValidationReport(NamedTuple):
     status: ProposalStatus
     notes: List[str]
     validated_actions: List[JunctionAction]
+    approval_status: ApprovalStatus = ApprovalStatus.PENDING_APPROVAL
 
 
 def validate_signal_action_proposal(
@@ -45,6 +47,7 @@ def validate_signal_action_proposal(
             status=ProposalStatus.REJECTED,
             notes=notes,
             validated_actions=[],
+            approval_status=ApprovalStatus.REJECTED,
         )
 
     # 2. Reject empty proposed action list
@@ -55,6 +58,7 @@ def validate_signal_action_proposal(
             status=ProposalStatus.REJECTED,
             notes=notes,
             validated_actions=[],
+            approval_status=ApprovalStatus.REJECTED,
         )
 
     # 3. Verify all proposed junctions belong to the supplied route
@@ -70,6 +74,7 @@ def validate_signal_action_proposal(
                 status=ProposalStatus.REJECTED,
                 notes=notes,
                 validated_actions=[],
+                approval_status=ApprovalStatus.REJECTED,
             )
 
     # 4. Verify junction sequence order follows the route traversal order
@@ -88,6 +93,7 @@ def validate_signal_action_proposal(
             status=ProposalStatus.REJECTED,
             notes=notes,
             validated_actions=[],
+            approval_status=ApprovalStatus.REJECTED,
         )
 
     # Verify sequence_order numbers are strictly non-decreasing and sequential
@@ -103,6 +109,7 @@ def validate_signal_action_proposal(
                 status=ProposalStatus.REJECTED,
                 notes=notes,
                 validated_actions=[],
+                approval_status=ApprovalStatus.REJECTED,
             )
 
     # 5. Verify allowed signal action types
@@ -118,6 +125,7 @@ def validate_signal_action_proposal(
                 status=ProposalStatus.REJECTED,
                 notes=notes,
                 validated_actions=[],
+                approval_status=ApprovalStatus.REJECTED,
             )
 
     # 6. Safety check: Verify hold duration bounds (5 to 300 seconds)
@@ -132,6 +140,7 @@ def validate_signal_action_proposal(
                 status=ProposalStatus.REJECTED,
                 notes=notes,
                 validated_actions=[],
+                approval_status=ApprovalStatus.REJECTED,
             )
 
     # All checks passed
@@ -145,4 +154,5 @@ def validate_signal_action_proposal(
         status=ProposalStatus.PROPOSED,
         notes=notes,
         validated_actions=proposed_actions,
+        approval_status=ApprovalStatus.PENDING_APPROVAL,
     )

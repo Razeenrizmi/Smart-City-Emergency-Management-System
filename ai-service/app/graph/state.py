@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, List, Optional, TypedDict
 from app.models.schemas import (
+    ApprovalStatus,
     JunctionAction,
     ProposalStatus,
     SignalActionAgentRequest,
@@ -19,6 +20,7 @@ class AgentState(TypedDict, total=False):
     - Retrieved tool context (route context, ordered junctions, signal states)
     - Reasoning and proposed actions
     - Validation results and notes
+    - Human approval and safe execution boundary tracking (Phase 5)
     - Final advisory proposal response
 
     NEVER stores secrets, credentials, API keys, or driver PII.
@@ -31,6 +33,13 @@ class AgentState(TypedDict, total=False):
     created_at: str
     updated_at: str
     signal_execution_performed: bool
+
+    # Human approval & safe execution boundary tracking (Phase 5)
+    approval_status: str  # PENDING_APPROVAL, APPROVED, REJECTED
+    handoff_ready: bool
+    approved_at: Optional[str]
+    approved_by: Optional[str]
+    approval_notes: Optional[str]
 
     # Identifiers extracted from request
     emergency_session_id: str

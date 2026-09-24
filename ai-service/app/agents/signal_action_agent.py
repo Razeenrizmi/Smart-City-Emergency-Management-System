@@ -5,6 +5,8 @@ then produces a validated, non-destructive signal action proposal.
 State is persistently checkpointed to SQLite across all workflow stages.
 """
 
+import asyncio
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from app.config import settings
 from app.graph.state import AgentState
@@ -14,6 +16,11 @@ from app.graph.workflow import (
     signal_action_workflow,
 )
 from app.models.schemas import (
+    ApprovalActionResponse,
+    ApprovalStatus,
+    GreenWaveHandoffPayload,
+    JunctionAction,
+    ProposalStatus,
     SignalActionAgentRequest,
     SignalActionProposalResponse,
     WorkflowStatus,
@@ -106,3 +113,209 @@ class SignalActionAgent:
         config = {"configurable": {"thread_id": thread_id}}
         history = self.workflow.get_state_history(config)
         return [h.values for h in history if h and h.values]
+
+    def approve(
+        self,
+        thread_id: str,
+        operator_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> ApprovalActionResponse:
+        """Approve a validated Signal Action proposal by thread ID.
+
+        Enforces safety invariants:
+        - Checkpoint state must exist for thread_id
+        - Deterministic validation must have passed (is_valid is True)
+        - Proposal must NOT already be rejected
+        - AI Agent NEVER executes signal changes (signal_execution_performed remains False)
+        - Exposes a safe handoff payload for ASP.NET execution layer
+        """
+        state = self.get_state(thread_id)
+        if not state:
+            raise ValueError(f"No checkpoint state found for thread_id '{thread_id}'.")
+
+        # Invariant 1: Proposal must exist and validation must have passed
+        if not state.get("is_valid"):
+            raise ValueError(
+                "Cannot approve proposal: proposal has not passed deterministic validation or is invalid."
+            )
+
+        # Invariant 2: Rejected proposal cannot be approved
+        current_approval = str(state.get("approval_status", "")).upper()
+        current_proposal_status = str(state.get("proposal_status", "")).upper()
+        if (
+            current_approval == ApprovalStatus.REJECTED.value
+            or current_proposal_status == ProposalStatus.REJECTED.value
+        ):
+            raise ValueError("Cannot approve proposal: proposal was already rejected.")
+
+        now = datetime.now(timezone.utc)
+        now_iso = now.isoformat()
+        approver = operator_id or "traffic_operator"
+        audit_notes = notes or "Proposal approved by human traffic operator."
+
+        # Update final_response if stored in state
+        updated_final_response = None
+        existing_resp = state.get("final_response")
+        if existing_resp is not None and hasattr(existing_resp, "model_copy"):
+            updated_final_response = existing_resp.model_copy(
+                update={
+                    "proposal_status": ProposalStatus.APPROVED,
+                    "approval_status": ApprovalStatus.APPROVED,
+                    "handoff_ready": True,
+                    "approved_at": now,
+                    "approved_by": approver,
+                    "approval_notes": audit_notes,
+                }
+            )
+
+        # Invariant 3: signal_execution_performed is strictly False
+        state_updates: Dict[str, Any] = {
+            "approval_status": ApprovalStatus.APPROVED.value,
+            "proposal_status": ProposalStatus.APPROVED.value,
+            "handoff_ready": True,
+            "approved_at": now_iso,
+            "approved_by": approver,
+            "approval_notes": audit_notes,
+            "signal_execution_performed": False,
+            "updated_at": now_iso,
+        }
+        if updated_final_response is not None:
+            state_updates["final_response"] = updated_final_response
+
+        # Persist through SQLite checkpointer
+        config = {"configurable": {"thread_id": thread_id}}
+        self.workflow.update_state(config, state_updates)
+
+        # Extract actions for safe handoff payload
+        raw_actions = state.get("proposed_actions", [])
+        typed_actions: List[JunctionAction] = []
+        for a in raw_actions:
+            if isinstance(a, JunctionAction):
+                typed_actions.append(a)
+            elif isinstance(a, dict):
+                try:
+                    typed_actions.append(JunctionAction(**a))
+                except Exception:
+                    pass
+
+        handoff_payload = GreenWaveHandoffPayload(
+            emergency_session_id=str(state.get("emergency_session_id") or ""),
+            route_id=str(state.get("route_id") or ""),
+            route_name=str(state.get("route_name") or ""),
+            vehicle_id=str(state.get("vehicle_id") or ""),
+            vehicle_type=str(state.get("vehicle_type") or ""),
+            thread_id=thread_id,
+            approval_status=ApprovalStatus.APPROVED,
+            handoff_ready=True,
+            approved_at=now,
+            approved_by=approver,
+            junction_actions=typed_actions,
+            reasoning_summary=str(
+                state.get("overall_reason")
+                or state.get("raw_reasoning")
+                or "Emergency corridor clearance approved."
+            ),
+            signal_execution_performed=False,
+        )
+
+        return ApprovalActionResponse(
+            thread_id=thread_id,
+            approval_status=ApprovalStatus.APPROVED,
+            proposal_status=ProposalStatus.APPROVED,
+            is_valid=True,
+            handoff_ready=True,
+            signal_execution_performed=False,
+            approved_at=now,
+            approved_by=approver,
+            approval_notes=audit_notes,
+            proposal=updated_final_response,
+            handoff_payload=handoff_payload,
+            message="Proposal successfully approved. Ready for safe handoff to ASP.NET Green Wave execution.",
+        )
+
+    def reject(
+        self,
+        thread_id: str,
+        operator_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> ApprovalActionResponse:
+        """Reject a Signal Action proposal by thread ID.
+
+        Enforces safety invariants:
+        - Checkpoint state must exist for thread_id
+        - Marks proposal and approval as REJECTED in SQLite checkpoint
+        - handoff_ready is False and no handoff payload is generated
+        - AI Agent NEVER executes signal changes
+        """
+        state = self.get_state(thread_id)
+        if not state:
+            raise ValueError(f"No checkpoint state found for thread_id '{thread_id}'.")
+
+        now = datetime.now(timezone.utc)
+        now_iso = now.isoformat()
+        operator = operator_id or "traffic_operator"
+        audit_notes = notes or "Proposal rejected by traffic operator."
+
+        updated_final_response = None
+        existing_resp = state.get("final_response")
+        if existing_resp is not None and hasattr(existing_resp, "model_copy"):
+            updated_final_response = existing_resp.model_copy(
+                update={
+                    "proposal_status": ProposalStatus.REJECTED,
+                    "approval_status": ApprovalStatus.REJECTED,
+                    "handoff_ready": False,
+                    "approved_at": None,
+                    "approved_by": operator,
+                    "approval_notes": audit_notes,
+                }
+            )
+
+        state_updates: Dict[str, Any] = {
+            "approval_status": ApprovalStatus.REJECTED.value,
+            "proposal_status": ProposalStatus.REJECTED.value,
+            "handoff_ready": False,
+            "approved_at": None,
+            "approved_by": operator,
+            "approval_notes": audit_notes,
+            "signal_execution_performed": False,
+            "updated_at": now_iso,
+        }
+        if updated_final_response is not None:
+            state_updates["final_response"] = updated_final_response
+
+        # Persist through SQLite checkpointer
+        config = {"configurable": {"thread_id": thread_id}}
+        self.workflow.update_state(config, state_updates)
+
+        return ApprovalActionResponse(
+            thread_id=thread_id,
+            approval_status=ApprovalStatus.REJECTED,
+            proposal_status=ProposalStatus.REJECTED,
+            is_valid=bool(state.get("is_valid", False)),
+            handoff_ready=False,
+            signal_execution_performed=False,
+            approved_at=None,
+            approved_by=operator,
+            approval_notes=audit_notes,
+            proposal=updated_final_response,
+            handoff_payload=None,
+            message="Proposal rejected. Cannot be handed off for execution.",
+        )
+
+    async def aapprove(
+        self,
+        thread_id: str,
+        operator_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> ApprovalActionResponse:
+        """Approve a proposal asynchronously."""
+        return await asyncio.to_thread(self.approve, thread_id, operator_id, notes)
+
+    async def areject(
+        self,
+        thread_id: str,
+        operator_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> ApprovalActionResponse:
+        """Reject a proposal asynchronously."""
+        return await asyncio.to_thread(self.reject, thread_id, operator_id, notes)

@@ -172,6 +172,29 @@ class CompiledSignalActionWorkflow:
             graph = self.graph_builder.compile(checkpointer=checkpointer)
             return list(graph.get_state_history(config))
 
+    def update_state(
+        self,
+        config: Dict[str, Any],
+        values: Dict[str, Any],
+        as_node: Optional[str] = None,
+    ):
+        """Update checkpointed state for a thread with new values."""
+        os.makedirs(self.db_dir, exist_ok=True)
+        with SqliteSaver.from_conn_string(self.checkpoint_db_path) as checkpointer:
+            if hasattr(checkpointer, "serde") and hasattr(checkpointer.serde, "with_msgpack_allowlist"):
+                checkpointer.serde = checkpointer.serde.with_msgpack_allowlist([("app.models.schemas",)])
+            graph = self.graph_builder.compile(checkpointer=checkpointer)
+            return graph.update_state(config, values, as_node=as_node)
+
+    async def aupdate_state(
+        self,
+        config: Dict[str, Any],
+        values: Dict[str, Any],
+        as_node: Optional[str] = None,
+    ):
+        """Update checkpointed state asynchronously."""
+        return await asyncio.to_thread(self.update_state, config, values, as_node=as_node)
+
 
 def build_signal_action_workflow(
     checkpoint_db_path: Optional[str] = None,
