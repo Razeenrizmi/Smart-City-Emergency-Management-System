@@ -6,6 +6,7 @@ State is persistently checkpointed to SQLite across all workflow stages.
 """
 
 import asyncio
+from app.security.prompt_protection import inspect_untrusted_request_inputs
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from app.config import settings
@@ -64,6 +65,15 @@ class SignalActionAgent:
             SignalActionProposalResponse: Validated proposal marked as PROPOSED (or REJECTED),
             annotated with the stable thread_id and workflow_status.
         """
+                  
+        security_violations = inspect_untrusted_request_inputs(request)
+
+        if security_violations:
+            raise ValueError(
+                "Request rejected by prompt-injection protection: "
+                + "; ".join(security_violations)
+            )
+
         effective_mock = self.default_mock_mode if mock_mode is None else mock_mode
         stable_thread_id = (
             thread_id
