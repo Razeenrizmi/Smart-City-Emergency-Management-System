@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'config/api_config.dart';
 import 'screens/route_list_screen.dart';
 import 'screens/create_emergency_screen.dart';
+import 'screens/emergency_list_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -87,6 +88,23 @@ class HomePage extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EmergencyListScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.list_alt),
+              label: const Text('View Created Emergencies'),
+              style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 textStyle: const TextStyle(fontSize: 18),
               ),

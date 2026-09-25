@@ -22,9 +22,11 @@ class EmergencySessionScreen extends StatefulWidget {
 class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   late final EmergencyService _emergencyService;
   late final bool _ownsEmergencyService;
+  late EmergencySession _currentSession;
   AiWorkflow? _workflow;
   bool _isLoadingWorkflow = true;
   String? _workflowError;
+  String? _sessionRefreshError;
   
   bool _isActivating = false;
   String? _activationError;
@@ -43,7 +45,8 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     super.initState();
     _emergencyService = widget.emergencyService ?? EmergencyService();
     _ownsEmergencyService = widget.emergencyService == null;
-    _loadWorkflow();
+    _currentSession = widget.session;
+    _refreshSessionData();
   }
 
   @override
@@ -54,16 +57,28 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     super.dispose();
   }
 
-  Future<void> _loadWorkflow() async {
+  Future<void> _refreshSessionData() async {
     setState(() {
       _isLoadingWorkflow = true;
       _workflowError = null;
+      _sessionRefreshError = null;
     });
 
     try {
-      final workflow = await _emergencyService.getAiWorkflow(widget.session.sessionId);
+      EmergencySession latestSession = _currentSession;
+      try {
+        latestSession = await _emergencyService
+            .getEmergencySessionById(widget.session.sessionId);
+      } catch (e) {
+        if (mounted) {
+          _sessionRefreshError = e.toString();
+        }
+      }
+      final workflow = await _emergencyService
+          .getAiWorkflow(latestSession.sessionId);
       if (!mounted) return;
       setState(() {
+        _currentSession = latestSession;
         _workflow = workflow;
         _isLoadingWorkflow = false;
       });
@@ -76,6 +91,8 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     }
   }
 
+  Future<void> _loadWorkflow() => _refreshSessionData();
+
   Future<void> _activateGreenWave() async {
     setState(() {
       _isActivating = true;
@@ -83,7 +100,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     });
 
     try {
-      final response = await _emergencyService.activateGreenWave(widget.session.sessionId);
+      final response = await _emergencyService.activateGreenWave(_currentSession.sessionId);
       setState(() {
         _isActivating = false;
         _activationResponse = response;
@@ -103,7 +120,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     });
 
     try {
-      final response = await _emergencyService.completeEmergencySession(widget.session.sessionId);
+      final response = await _emergencyService.completeEmergencySession(_currentSession.sessionId);
       setState(() {
         _isCompleting = false;
         _completionResponse = response;
@@ -123,7 +140,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     });
 
     try {
-      final response = await _emergencyService.cancelEmergencySession(widget.session.sessionId);
+      final response = await _emergencyService.cancelEmergencySession(_currentSession.sessionId);
       setState(() {
         _isCancelling = false;
         _cancelledSession = response;
@@ -137,22 +154,22 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   }
 
   bool _canActivateGreenWave() {
-    return widget.session.status.toUpperCase() == 'ACTIVE' && 
-           widget.session.selectedRouteId != null &&
+    return _currentSession.status.toUpperCase() == 'ACTIVE' && 
+           _currentSession.selectedRouteId != null &&
            _workflow?.approvalStatus.toUpperCase() == 'APPROVED' &&
            _workflow?.handoffReady == true &&
            _activationResponse == null;
   }
 
   bool _canCompleteEmergency() {
-    return widget.session.status.toUpperCase() == 'ACTIVE' && 
+    return _currentSession.status.toUpperCase() == 'ACTIVE' && 
            _activationResponse != null &&
            _completionResponse == null &&
            _cancelledSession == null;
   }
 
   bool _canCancelEmergency() {
-    return widget.session.status.toUpperCase() == 'ACTIVE' && 
+    return _currentSession.status.toUpperCase() == 'ACTIVE' && 
            _completionResponse == null &&
            _cancelledSession == null;
   }
@@ -163,6 +180,13 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
       appBar: AppBar(
         title: const Text('Emergency Session'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _isLoadingWorkflow ? null : _refreshSessionData,
+            tooltip: 'Refresh session',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -229,12 +253,29 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     }
 
     final workflow = _workflow!;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Column(
+      children: [
+        if (_sessionRefreshError != null)
+          Card(
+            color: Colors.orange.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Latest session status unavailable: $_sessionRefreshError')),
+                  TextButton(onPressed: _refreshSessionData, child: const Text('Retry')),
+                ],
+              ),
+            ),
+          ),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Text('AI Workflow Status', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             _buildInfoRow('Workflow', workflow.workflowStatus),
@@ -247,9 +288,11 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               const SizedBox(height: 8),
               Text(workflow.errorSummary!, style: TextStyle(color: Colors.red.shade700)),
             ],
-          ],
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -257,7 +300,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     Color statusColor;
     IconData statusIcon;
 
-    switch (widget.session.status.toUpperCase()) {
+    switch (_currentSession.status.toUpperCase()) {
       case 'ACTIVE':
         statusColor = Colors.green;
         statusIcon = Icons.check_circle;
@@ -293,7 +336,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    widget.session.status,
+                    _currentSession.status,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -321,11 +364,11 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('Session ID', widget.session.sessionId),
-            _buildDetailRow('Driver ID', widget.session.driverId),
-            _buildDetailRow('Vehicle Type', widget.session.vehicleType),
-            if (widget.session.selectedRouteId != null)
-              _buildDetailRow('Selected Route ID', widget.session.selectedRouteId!),
+            _buildDetailRow('Session ID', _currentSession.sessionId),
+            _buildDetailRow('Driver ID', _currentSession.driverId),
+            _buildDetailRow('Vehicle Type', _currentSession.vehicleType),
+            if (_currentSession.selectedRouteId != null)
+              _buildDetailRow('Selected Route ID', _currentSession.selectedRouteId!),
           ],
         ),
       ),
@@ -334,7 +377,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
 
   Widget _buildGreenWaveSection() {
     // Show route requirement message if no route selected
-    if (widget.session.selectedRouteId == null) {
+    if (_currentSession.selectedRouteId == null) {
       return Card(
         color: Colors.orange.shade50,
         child: Padding(
@@ -410,7 +453,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
       );
     }
 
-    if (widget.session.status.toUpperCase() == 'ACTIVE' && _activationResponse == null) {
+    if (_currentSession.status.toUpperCase() == 'ACTIVE' && _activationResponse == null) {
       return Card(
         color: Colors.orange.shade50,
         child: Padding(
@@ -472,7 +515,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     }
 
     // Session not ACTIVE or already activated
-    if (widget.session.status.toUpperCase() != 'ACTIVE') {
+    if (_currentSession.status.toUpperCase() != 'ACTIVE') {
       return Card(
         color: Colors.grey.shade100,
         child: Padding(
@@ -673,8 +716,8 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('Created At', _formatDateTime(widget.session.createdAt)),
-            _buildInfoRow('Updated At', _formatDateTime(widget.session.updatedAt)),
+            _buildInfoRow('Created At', _formatDateTime(_currentSession.createdAt)),
+            _buildInfoRow('Updated At', _formatDateTime(_currentSession.updatedAt)),
           ],
         ),
       ),
@@ -813,7 +856,7 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     }
 
     // Session not ACTIVE or already completed/cancelled
-    if (widget.session.status.toUpperCase() != 'ACTIVE') {
+    if (_currentSession.status.toUpperCase() != 'ACTIVE') {
       return Card(
         color: Colors.grey.shade100,
         child: Padding(

@@ -67,6 +67,26 @@ class EmergencyService {
     }
   }
 
+  // Get all created emergency sessions
+  Future<List<EmergencySession>> getEmergencySessions() async {
+    try {
+      final response = await _client
+          .get(Uri.parse('$baseUrl/emergencies'))
+          .timeout(ApiConfig.timeout);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body) as List<dynamic>;
+        return jsonData
+            .map((item) => EmergencySession.fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Failed to load emergency sessions: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching emergency sessions: $e');
+    }
+  }
+
   Future<AiWorkflow?> getAiWorkflow(String sessionId) async {
     try {
       final response = await _client
