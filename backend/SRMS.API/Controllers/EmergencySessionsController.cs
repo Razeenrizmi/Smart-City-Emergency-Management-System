@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.DTOs;
 using SRMS.API.Models;
+using SRMS.API.Services;
 
 namespace SRMS.API.Controllers;
 
@@ -11,10 +12,17 @@ namespace SRMS.API.Controllers;
 public class EmergencySessionsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly SignalActionProposalService _signalActionProposalService;
+    private readonly ILogger<EmergencySessionsController> _logger;
 
-    public EmergencySessionsController(ApplicationDbContext context)
+    public EmergencySessionsController(
+        ApplicationDbContext context,
+        SignalActionProposalService signalActionProposalService,
+        ILogger<EmergencySessionsController> logger)
     {
         _context = context;
+        _signalActionProposalService = signalActionProposalService;
+        _logger = logger;
     }
 
     // POST /api/emergencies
@@ -315,6 +323,16 @@ public class EmergencySessionsController : ControllerBase
             return BadRequest("Green Wave is already active for this emergency session.");
         }
 
+        var activationBlock = await _signalActionProposalService.GetGreenWaveActivationBlockReasonAsync(
+            id,
+            route.RouteJunctions.Select(rj => rj.JunctionId),
+            HttpContext.RequestAborted);
+
+        if (activationBlock != null)
+        {
+            return BadRequest(activationBlock);
+        }
+
         // Use transaction for atomicity
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
@@ -371,5 +389,110 @@ public class EmergencySessionsController : ControllerBase
             await transaction.RollbackAsync();
             return StatusCode(500, "An error occurred during Green Wave activation. Changes were rolled back.");
         }
+    }
+
+    // POST /api/emergencies/{id}/propose-signals
+    [HttpPost("{id}/propose-signals")]
+    public async Task<ActionResult<SignalActionProposalResponse>> ProposeSignals(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var outcome = await _signalActionProposalService.ProposeAndPersistAsync(id, cancellationToken);
+
+            if (outcome.Proposal != null)
+            {
+                return Ok(outcome.Proposal);
+            }
+
+            return StatusCode(outcome.StatusCode, outcome.Error);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error requesting Signal Action proposal for session {SessionId}", id);
+
+            return StatusCode(StatusCodes.Status502BadGateway, new AiIntegrationErrorResponse
+            {
+                Error = "AI_SERVICE_ERROR",
+                Message = "The AI service could not produce a signal proposal. No traffic signals were changed."
+            });
+        }
+    }
+
+    // GET /api/emergencies/{id}/ai-workflow
+    [HttpGet("{id}/ai-workflow")]
+    public async Task<ActionResult<AiWorkflowResponse>> GetAiWorkflow(Guid id, CancellationToken cancellationToken)
+    {
+        var outcome = await _signalActionProposalService.GetWorkflowAsync(id, cancellationToken);
+        if (outcome.Workflow != null)
+        {
+            return Ok(outcome.Workflow);
+        }
+
+        return StatusCode(outcome.StatusCode, outcome.Error);
+    }
+
+    // POST /api/emergencies/{id}/ai-workflow/approve
+    [HttpPost("{id}/ai-workflow/approve")]
+    public async Task<ActionResult<AiWorkflowResponse>> ApproveAiWorkflow(
+        Guid id,
+        [FromBody] ApprovalDecisionRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var outcome = await _signalActionProposalService.DecideAsync(
+            id,
+            approve: true,
+            request ?? new ApprovalDecisionRequest(),
+            cancellationToken);
+
+        if (outcome.Workflow != null)
+        {
+            return Ok(outcome.Workflow);
+        }
+
+        return StatusCode(outcome.StatusCode, outcome.Error);
+    }
+
+    // POST /api/emergencies/{id}/ai-workflow/reject
+    [HttpPost("{id}/ai-workflow/reject")]
+    public async Task<ActionResult<AiWorkflowResponse>> RejectAiWorkflow(
+        Guid id,
+        [FromBody] ApprovalDecisionRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var outcome = await _signalActionProposalService.DecideAsync(
+            id,
+            approve: false,
+            request ?? new ApprovalDecisionRequest(),
+            cancellationToken);
+
+        if (outcome.Workflow != null)
+        {
+            return Ok(outcome.Workflow);
+        }
+
+        return StatusCode(outcome.StatusCode, outcome.Error);
+    }
+
+    // GET /api/emergencies/{id}/ai-report
+    [HttpGet("{id}/ai-report")]
+    public async Task<ActionResult<AiDecisionReportResponse>> GetAiReport(Guid id, CancellationToken cancellationToken)
+    {
+        var report = await _signalActionProposalService.GetReportAsync(id, cancellationToken);
+        if (report == null)
+        {
+            return NotFound(new AiIntegrationErrorResponse
+            {
+                Error = "SESSION_NOT_FOUND",
+                Message = "Emergency session not found."
+            });
+        }
+
+        return Ok(report);
     }
 }

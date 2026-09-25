@@ -1,22 +1,52 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using SRMS.API.Configuration;
 using SRMS.API.Data;
 using SRMS.API.Models;
+using SRMS.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure CORS for React dashboard
+builder.Services.Configure<AiServiceOptions>(
+    builder.Configuration.GetSection(AiServiceOptions.SectionName));
+
+builder.Services.AddHttpClient<SignalActionAgentClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<AiServiceOptions>>().Value;
+    var baseUrl = string.IsNullOrWhiteSpace(options.BaseUrl)
+        ? "http://localhost:8000"
+        : options.BaseUrl.Trim();
+
+    if (!baseUrl.EndsWith('/'))
+    {
+        baseUrl += "/";
+    }
+
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds > 0 ? options.TimeoutSeconds : 30);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+});
+
+builder.Services.AddScoped<SignalActionProposalService>();
+
+// Configure CORS  
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        builder => builder
-            .WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy => policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                    return false;
+
+                return uri.Host is "localhost" or "127.0.0.1";
+            })
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
-
 // Configure PostgreSQL Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SRMS.API.Data;
@@ -11,9 +12,11 @@ using SRMS.API.Data;
 namespace SRMS.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924162901_AddAiWorkflowExecutions")]
+    partial class AddAiWorkflowExecutions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,25 +33,11 @@ namespace SRMS.API.Migrations
                         .HasColumnName("workflow_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("ApprovalNotes")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("approval_notes");
-
                     b.Property<string>("ApprovalStatus")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("approval_status");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("approved_at");
-
-                    b.Property<string>("ApprovedBy")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("approved_by");
 
                     b.Property<string>("CompletedStepsJson")
                         .HasColumnType("jsonb")
@@ -228,52 +217,52 @@ namespace SRMS.API.Migrations
                         new
                         {
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111101"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6348),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2071),
                             CurrentSignalState = "RED",
                             JunctionName = "Peradeniya Junction",
                             Latitude = 7.2580m,
                             Longitude = 80.5710m,
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6349)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2072)
                         },
                         new
                         {
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111102"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6353),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2077),
                             CurrentSignalState = "RED",
                             JunctionName = "Gatambe Junction",
                             Latitude = 7.2650m,
                             Longitude = 80.5780m,
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6354)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2078)
                         },
                         new
                         {
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111103"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6358),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2083),
                             CurrentSignalState = "GREEN",
                             JunctionName = "Hospital Junction",
                             Latitude = 7.2720m,
                             Longitude = 80.5850m,
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6358)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2083)
                         },
                         new
                         {
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111104"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6362),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2088),
                             CurrentSignalState = "RED",
                             JunctionName = "Town Junction",
                             Latitude = 7.2790m,
                             Longitude = 80.5920m,
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6363)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2088)
                         },
                         new
                         {
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111105"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6367),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2093),
                             CurrentSignalState = "RED",
                             JunctionName = "Lake Junction",
                             Latitude = 7.2860m,
                             Longitude = 80.5990m,
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(6367)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 292, DateTimeKind.Utc).AddTicks(2093)
                         });
                 });
 
@@ -317,7 +306,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333301"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3211),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9877),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111101"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222201"),
                             SequenceNumber = 1
@@ -325,7 +314,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333302"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3215),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9880),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111102"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222201"),
                             SequenceNumber = 2
@@ -333,7 +322,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333303"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3218),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9883),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111104"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222201"),
                             SequenceNumber = 3
@@ -341,7 +330,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333304"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3221),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9885),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111105"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222201"),
                             SequenceNumber = 4
@@ -349,7 +338,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333305"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3224),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9888),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111101"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222202"),
                             SequenceNumber = 1
@@ -357,7 +346,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333306"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3227),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9890),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111102"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222202"),
                             SequenceNumber = 2
@@ -365,7 +354,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333307"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3230),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9892),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111103"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222202"),
                             SequenceNumber = 3
@@ -373,7 +362,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333308"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3233),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9894),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111101"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222203"),
                             SequenceNumber = 1
@@ -381,7 +370,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333309"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3236),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9897),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111103"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222203"),
                             SequenceNumber = 2
@@ -389,7 +378,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333310"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3239),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9899),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111104"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222203"),
                             SequenceNumber = 3
@@ -397,7 +386,7 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteJunctionId = new Guid("33333333-3333-3333-3333-333333333311"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 863, DateTimeKind.Utc).AddTicks(3242),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(9901),
                             JunctionId = new Guid("11111111-1111-1111-1111-111111111105"),
                             RouteId = new Guid("22222222-2222-2222-2222-222222222203"),
                             SequenceNumber = 4
@@ -512,38 +501,38 @@ namespace SRMS.API.Migrations
                         new
                         {
                             RouteId = new Guid("22222222-2222-2222-2222-222222222201"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8218),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7212),
                             Destination = "Kandy",
                             DistanceKm = 5.00m,
                             EstimatedTimeMinutes = 15,
                             RouteName = "Route A",
                             StartLocation = "Peradeniya",
                             TrafficLevel = "HIGH",
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8219)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7213)
                         },
                         new
                         {
                             RouteId = new Guid("22222222-2222-2222-2222-222222222202"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8224),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7217),
                             Destination = "Kandy",
                             DistanceKm = 6.00m,
                             EstimatedTimeMinutes = 8,
                             RouteName = "Route B",
                             StartLocation = "Peradeniya",
                             TrafficLevel = "LOW",
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8224)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7218)
                         },
                         new
                         {
                             RouteId = new Guid("22222222-2222-2222-2222-222222222203"),
-                            CreatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8228),
+                            CreatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7221),
                             Destination = "Kandy",
                             DistanceKm = 7.00m,
                             EstimatedTimeMinutes = 11,
                             RouteName = "Route C",
                             StartLocation = "Peradeniya",
                             TrafficLevel = "MEDIUM",
-                            UpdatedAt = new DateTime(2026, 9, 24, 18, 21, 43, 862, DateTimeKind.Utc).AddTicks(8229)
+                            UpdatedAt = new DateTime(2026, 9, 24, 16, 29, 1, 291, DateTimeKind.Utc).AddTicks(7222)
                         });
                 });
 

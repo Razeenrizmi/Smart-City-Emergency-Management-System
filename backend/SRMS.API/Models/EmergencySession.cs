@@ -38,4 +38,6 @@ public class EmergencySession
     public virtual TrafficRoute? SelectedRoute { get; set; }
 
     public virtual ICollection<SignalPreemptionLog> SignalPreemptionLogs { get; set; } = new List<SignalPreemptionLog>();
+
+    public virtual ICollection<AiWorkflowExecution> AiWorkflowExecutions { get; set; } = new List<AiWorkflowExecution>();
 }

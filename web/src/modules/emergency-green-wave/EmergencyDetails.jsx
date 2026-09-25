@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import RouteInfo from './RouteInfo';
-import { getEmergencyById, getRouteById } from '../../services/emergencyService';
+import AiWorkflowPanel from './AiWorkflowPanel';
+import StatusBadge from './StatusBadge';
+import { cancelEmergency, getAiReport, getEmergencyById, getRouteById } from '../../services/emergencyService';
 
 function EmergencyDetails({ emergency }) {
   const [detailedEmergency, setDetailedEmergency] = useState(null);
   const [route, setRoute] = useState(null);
+  const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -17,6 +21,11 @@ function EmergencyDetails({ emergency }) {
         // Fetch detailed emergency info
         const detailed = await getEmergencyById(emergency.sessionId);
         setDetailedEmergency(detailed);
+        try {
+          setReport(await getAiReport(emergency.sessionId));
+        } catch {
+          setReport(null);
+        }
 
         // Fetch route if selectedRouteId exists
         if (emergency.selectedRouteId) {
@@ -53,6 +62,28 @@ function EmergencyDetails({ emergency }) {
   }
 
   const displayEmergency = detailedEmergency || emergency;
+  const greenWave = report?.greenWave;
+  const greenWaveStatus = greenWave?.status || 'NOT_STARTED';
+  const isActive = displayEmergency.status === 'ACTIVE';
+
+  const handleCancel = async () => {
+    try {
+      setCancelling(true);
+      setError(null);
+      await cancelEmergency(displayEmergency.sessionId);
+      const refreshedEmergency = await getEmergencyById(displayEmergency.sessionId);
+      setDetailedEmergency(refreshedEmergency);
+      try {
+        setReport(await getAiReport(displayEmergency.sessionId));
+      } catch {
+        setReport(null);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to cancel the emergency session.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="emergency-details">
@@ -109,14 +140,13 @@ function EmergencyDetails({ emergency }) {
           </div>
           <div className="info-item">
             <span className="info-label">Green Wave Status:</span>
-            <span className="info-value neutral">
-              Not available from monitoring API
-            </span>
+            <StatusBadge value={greenWaveStatus} />
           </div>
-          <p className="info-note">
-            Note: The current monitoring API does not expose active SignalPreemptionLog state. 
-            Green Wave activation status cannot be determined from available data.
-          </p>
+          <div className="info-grid green-wave-metrics">
+            <div className="info-item"><span className="info-label">Activated At</span><span className="info-value">{greenWave?.activatedAt ? new Date(greenWave.activatedAt).toLocaleString() : '—'}</span></div>
+            <div className="info-item"><span className="info-label">Restored At</span><span className="info-value">{greenWave?.restoredAt ? new Date(greenWave.restoredAt).toLocaleString() : '—'}</span></div>
+            <div className="info-item"><span className="info-label">Junctions</span><span className="info-value">{greenWave?.junctions?.length || 0}</span></div>
+          </div>
         </div>
       </section>
 
@@ -131,6 +161,32 @@ function EmergencyDetails({ emergency }) {
           No route selected for this emergency session.
         </div>
       )}
+
+      {isActive && (
+        <section className="details-section cancellation-section">
+          <h2>Cancel Emergency</h2>
+          <p className="info-note">
+            Cancellation ends the session without restoring traffic signals.
+          </p>
+          <button
+            className="danger-button"
+            type="button"
+            onClick={handleCancel}
+            disabled={cancelling}
+          >
+            {cancelling ? 'Cancelling...' : 'Cancel Emergency'}
+          </button>
+        </section>
+      )}
+
+      {displayEmergency.status === 'CANCELLED' && (
+        <section className="details-section cancellation-outcome">
+          <h2>Cancellation Outcome</h2>
+          <p>Cancelled — no signal restoration performed</p>
+        </section>
+      )}
+
+      <AiWorkflowPanel emergency={displayEmergency} />
     </div>
   );
 }

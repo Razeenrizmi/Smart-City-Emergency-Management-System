@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<RouteJunction> RouteJunctions { get; set; }
     public DbSet<RoadJunction> RoadJunctions { get; set; }
     public DbSet<SignalPreemptionLog> SignalPreemptionLogs { get; set; }
+    public DbSet<AiWorkflowExecution> AiWorkflowExecutions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -431,6 +432,67 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(spl => spl.JunctionId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_signal_preemption_logs_junction_id");
+        });
+
+        modelBuilder.Entity<AiWorkflowExecution>(entity =>
+        {
+            entity.HasKey(e => e.WorkflowId);
+
+            entity.Property(e => e.WorkflowId)
+                .HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(e => e.SessionId)
+                .IsRequired();
+
+            entity.Property(e => e.ThreadId)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ProposalId)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Objective)
+                .IsRequired()
+                .HasMaxLength(300);
+
+            entity.Property(e => e.CurrentStage)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.WorkflowStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ProposalStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ApprovalStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ErrorSummary)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.ApprovedBy)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ApprovalNotes)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.SessionId)
+                .IsUnique()
+                .HasDatabaseName("uq_ai_workflow_executions_session_id");
+
+            entity.HasOne(e => e.EmergencySession)
+                .WithMany(s => s.AiWorkflowExecutions)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_ai_workflow_executions_session_id");
         });
     }
 }
