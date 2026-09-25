@@ -2,32 +2,43 @@ import { useState, useEffect } from 'react';
 import RouteInfo from './RouteInfo';
 import AiWorkflowPanel from './AiWorkflowPanel';
 import StatusBadge from './StatusBadge';
-import { cancelEmergency, getAiReport, getEmergencyById, getRouteById } from '../../services/emergencyService';
+import { cancelEmergency, getAiReport, getAiWorkflow, getEmergencyById, getRouteById } from '../../services/emergencyService';
 
 function EmergencyDetails({ emergency }) {
   const [detailedEmergency, setDetailedEmergency] = useState(null);
   const [route, setRoute] = useState(null);
   const [report, setReport] = useState(null);
+  const [workflow, setWorkflow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDetails = async () => {
+    let stopped = false;
+    let timer;
+
+    const refreshDetails = async (showLoading) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError(null);
-        
-        // Fetch detailed emergency info
         const detailed = await getEmergencyById(emergency.sessionId);
+        if (stopped) return null;
         setDetailedEmergency(detailed);
+        let currentReport = null;
         try {
-          setReport(await getAiReport(emergency.sessionId));
+          currentReport = await getAiReport(emergency.sessionId);
+          setReport(currentReport);
         } catch {
           setReport(null);
         }
+        let currentWorkflow = null;
+        try {
+          currentWorkflow = await getAiWorkflow(emergency.sessionId);
+          setWorkflow(currentWorkflow);
+        } catch {
+          setWorkflow(null);
+        }
 
-        // Fetch route if selectedRouteId exists
         if (emergency.selectedRouteId) {
           try {
             const routeData = await getRouteById(emergency.selectedRouteId);
@@ -37,16 +48,33 @@ function EmergencyDetails({ emergency }) {
             setError('Could not load route details. The route may have been deleted.');
           }
         }
+        return { detailed, report: currentReport, workflow: currentWorkflow };
       } catch (err) {
         setError('Failed to load emergency details. Please try again.');
         console.error('Emergency details fetch error:', err);
       } finally {
-        setLoading(false);
+        if (showLoading && !stopped) setLoading(false);
       }
     };
 
-    fetchDetails();
-  }, [emergency.sessionId, emergency.selectedRouteId]);
+    const refreshAndSchedule = async (showLoading = false) => {
+      const result = await refreshDetails(showLoading);
+      if (stopped) return;
+      const current = result?.detailed || emergency;
+      const terminal = current.status === 'COMPLETED' || current.status === 'CANCELLED';
+      const workflowTerminal = result?.workflow?.approvalStatus === 'REJECTED'
+        || result?.report?.greenWave?.status === 'RESTORED';
+      if (!terminal && !workflowTerminal) {
+        timer = setTimeout(() => refreshAndSchedule(false), 10000);
+      }
+    };
+
+    refreshAndSchedule(true);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, [emergency, emergency.sessionId, emergency.selectedRouteId]);
 
   if (loading) {
     return <div className="loading-state">Loading emergency details...</div>;
@@ -77,6 +105,11 @@ function EmergencyDetails({ emergency }) {
         setReport(await getAiReport(displayEmergency.sessionId));
       } catch {
         setReport(null);
+      }
+      try {
+        setWorkflow(await getAiWorkflow(displayEmergency.sessionId));
+      } catch {
+        setWorkflow(null);
       }
     } catch (err) {
       setError(err.message || 'Failed to cancel the emergency session.');
@@ -186,7 +219,7 @@ function EmergencyDetails({ emergency }) {
         </section>
       )}
 
-      <AiWorkflowPanel emergency={displayEmergency} />
+      <AiWorkflowPanel emergency={displayEmergency} workflow={workflow} report={report} />
     </div>
   );
 }

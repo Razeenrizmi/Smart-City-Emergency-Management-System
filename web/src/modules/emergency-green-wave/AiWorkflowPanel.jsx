@@ -48,7 +48,7 @@ function ActionList({ actions = [], title = 'Proposed Junction Actions' }) {
   );
 }
 
-function AiWorkflowPanel({ emergency }) {
+function AiWorkflowPanel({ emergency, workflow: externalWorkflow, report: externalReport }) {
   const sessionId = emergency.sessionId;
   const [workflow, setWorkflow] = useState(null);
   const [report, setReport] = useState(null);
@@ -57,6 +57,13 @@ function AiWorkflowPanel({ emergency }) {
   const [error, setError] = useState(null);
   const [operatorId, setOperatorId] = useState('');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    // Parent polling supplies the latest persisted values to this panel.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setWorkflow(externalWorkflow);
+    setReport(externalReport);
+  }, [externalReport, externalWorkflow]);
 
   const loadWorkflow = useCallback(async () => {
     setLoading(true);

@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import '../models/emergency_session.dart';
 import '../models/green_wave_activation_response.dart';
 import '../models/emergency_completion_response.dart';
+import '../models/ai_workflow.dart';
 import '../services/emergency_service.dart';
 
 class EmergencySessionScreen extends StatefulWidget {
   final EmergencySession session;
+  final EmergencyService? emergencyService;
 
   const EmergencySessionScreen({
     super.key,
     required this.session,
+    this.emergencyService,
   });
 
   @override
@@ -17,7 +20,11 @@ class EmergencySessionScreen extends StatefulWidget {
 }
 
 class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
-  final EmergencyService _emergencyService = EmergencyService();
+  late final EmergencyService _emergencyService;
+  late final bool _ownsEmergencyService;
+  AiWorkflow? _workflow;
+  bool _isLoadingWorkflow = true;
+  String? _workflowError;
   
   bool _isActivating = false;
   String? _activationError;
@@ -32,9 +39,41 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   EmergencySession? _cancelledSession;
 
   @override
+  void initState() {
+    super.initState();
+    _emergencyService = widget.emergencyService ?? EmergencyService();
+    _ownsEmergencyService = widget.emergencyService == null;
+    _loadWorkflow();
+  }
+
+  @override
   void dispose() {
-    _emergencyService.dispose();
+    if (_ownsEmergencyService) {
+      _emergencyService.dispose();
+    }
     super.dispose();
+  }
+
+  Future<void> _loadWorkflow() async {
+    setState(() {
+      _isLoadingWorkflow = true;
+      _workflowError = null;
+    });
+
+    try {
+      final workflow = await _emergencyService.getAiWorkflow(widget.session.sessionId);
+      if (!mounted) return;
+      setState(() {
+        _workflow = workflow;
+        _isLoadingWorkflow = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingWorkflow = false;
+        _workflowError = e.toString();
+      });
+    }
   }
 
   Future<void> _activateGreenWave() async {
@@ -100,11 +139,14 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
   bool _canActivateGreenWave() {
     return widget.session.status.toUpperCase() == 'ACTIVE' && 
            widget.session.selectedRouteId != null &&
+           _workflow?.approvalStatus.toUpperCase() == 'APPROVED' &&
+           _workflow?.handoffReady == true &&
            _activationResponse == null;
   }
 
   bool _canCompleteEmergency() {
     return widget.session.status.toUpperCase() == 'ACTIVE' && 
+           _activationResponse != null &&
            _completionResponse == null &&
            _cancelledSession == null;
   }
@@ -131,11 +173,80 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
             const SizedBox(height: 16),
             _buildSessionDetailsCard(),
             const SizedBox(height: 16),
+            _buildWorkflowStatusCard(),
+            const SizedBox(height: 16),
             _buildGreenWaveSection(),
             const SizedBox(height: 16),
             _buildSessionActionsSection(),
             const SizedBox(height: 16),
             _buildInfoCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkflowStatusCard() {
+    if (_isLoadingWorkflow) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Loading AI workflow status...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_workflowError != null) {
+      return Card(
+        color: Colors.orange.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Icons.warning_amber, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(child: Text('AI workflow status unavailable: $_workflowError')),
+              TextButton(onPressed: _loadWorkflow, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_workflow == null) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('No AI workflow has been generated yet.'),
+        ),
+      );
+    }
+
+    final workflow = _workflow!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('AI Workflow Status', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            _buildInfoRow('Workflow', workflow.workflowStatus),
+            _buildInfoRow('Proposal', workflow.proposalStatus),
+            _buildInfoRow('Validation', workflow.isValid ? 'PASSED' : 'FAILED'),
+            _buildInfoRow('Approval', workflow.approvalStatus),
+            _buildInfoRow('Handoff', workflow.handoffReady ? 'READY' : 'NOT READY'),
+            _buildInfoRow('Execution', workflow.signalExecutionPerformed ? 'PERFORMED' : 'NOT PERFORMED'),
+            if (workflow.errorSummary != null) ...[
+              const SizedBox(height: 8),
+              Text(workflow.errorSummary!, style: TextStyle(color: Colors.red.shade700)),
+            ],
           ],
         ),
       ),
@@ -294,6 +405,20 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      );
+    }
+
+    if (widget.session.status.toUpperCase() == 'ACTIVE' && _activationResponse == null) {
+      return Card(
+        color: Colors.orange.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            _workflow == null
+                ? 'Generate and approve an AI proposal before activating Green Wave.'
+                : 'Green Wave activation requires APPROVED AI workflow status and a READY handoff.',
           ),
         ),
       );
@@ -516,11 +641,15 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
           ),
-          Text(value),
+          Flexible(
+            child: Text(value, textAlign: TextAlign.right),
+          ),
         ],
       ),
     );
@@ -985,7 +1114,9 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
             label,
             style: const TextStyle(fontWeight: FontWeight.w500),
           ),
-          Text(value),
+          Flexible(
+            child: Text(value, textAlign: TextAlign.right),
+          ),
         ],
       ),
     );
@@ -997,11 +1128,15 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
           ),
-          Text(value),
+          Flexible(
+            child: Text(value, textAlign: TextAlign.right),
+          ),
         ],
       ),
     );

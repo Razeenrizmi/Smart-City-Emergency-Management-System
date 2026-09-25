@@ -330,7 +330,11 @@ public class SignalActionProposalService
 
         if (workflow == null)
         {
-            return null;
+            return new AiIntegrationErrorResponse
+            {
+                Error = "APPROVAL_REQUIRED",
+                Message = "An AI proposal must be generated and approved before Green Wave activation."
+            };
         }
 
         if (!workflow.IsValid

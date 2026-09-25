@@ -4,6 +4,7 @@ import '../config/api_config.dart';
 import '../models/emergency_session.dart';
 import '../models/green_wave_activation_response.dart';
 import '../models/emergency_completion_response.dart';
+import '../models/ai_workflow.dart';
 
 class EmergencyService {
   final http.Client _client;
@@ -60,8 +61,28 @@ class EmergencyService {
       } else {
         throw Exception('Failed to load emergency session: ${response.statusCode}');
       }
+
     } catch (e) {
       throw Exception('Error fetching emergency session: $e');
+    }
+  }
+
+  Future<AiWorkflow?> getAiWorkflow(String sessionId) async {
+    try {
+      final response = await _client
+          .get(Uri.parse('$baseUrl/emergencies/$sessionId/ai-workflow'))
+          .timeout(ApiConfig.timeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        return AiWorkflow.fromJson(jsonData);
+      } else if (response.statusCode == 404) {
+        return null;
+      } else {
+        throw Exception('Failed to load AI workflow: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching AI workflow: $e');
     }
   }
 
