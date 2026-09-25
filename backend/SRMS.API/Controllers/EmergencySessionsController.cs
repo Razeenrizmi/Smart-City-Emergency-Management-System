@@ -88,6 +88,7 @@ public class EmergencySessionsController : ControllerBase
     public async Task<ActionResult<IEnumerable<EmergencySessionResponse>>> GetEmergencySessions()
     {
         var sessions = await _context.EmergencySessions
+            .OrderByDescending(s => s.CreatedAt)
             .Select(s => new EmergencySessionResponse
             {
                 SessionId = s.SessionId,

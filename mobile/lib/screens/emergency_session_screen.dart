@@ -158,7 +158,8 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
            _currentSession.selectedRouteId != null &&
            _workflow?.approvalStatus.toUpperCase() == 'APPROVED' &&
            _workflow?.handoffReady == true &&
-           _activationResponse == null;
+           _activationResponse == null &&
+           _workflow?.signalExecutionPerformed != true;
   }
 
   bool _canCompleteEmergency() {
@@ -453,7 +454,10 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
       );
     }
 
-    if (_currentSession.status.toUpperCase() == 'ACTIVE' && _activationResponse == null) {
+    final greenWaveActivated = _activationResponse != null ||
+        _workflow?.signalExecutionPerformed == true;
+
+    if (_currentSession.status.toUpperCase() == 'ACTIVE' && !greenWaveActivated) {
       return Card(
         color: Colors.orange.shade50,
         child: Padding(
@@ -512,6 +516,24 @@ class _EmergencySessionScreenState extends State<EmergencySessionScreen> {
     // Show activation success/results
     if (_activationResponse != null) {
       return _buildActivationResultsCard();
+    }
+
+    if (_currentSession.status.toUpperCase() == 'ACTIVE' && greenWaveActivated) {
+      return Card(
+        color: Colors.green.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.traffic, color: Colors.green.shade700),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('Green Wave is currently active.'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     // Session not ACTIVE or already activated
