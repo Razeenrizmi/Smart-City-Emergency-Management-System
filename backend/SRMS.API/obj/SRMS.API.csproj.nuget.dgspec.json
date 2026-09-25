@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mohamedrazeen/Desktop/SLIIT /Y3S1/SEF-project/Smart-City-Emergency-Management-System/backend/SRMS.API/SRMS.API.csproj": {}
+    "C:\\Users\\LINUKA\\Desktop\\Smart-City-Emergency-Management-System\\backend\\SRMS.API\\SRMS.API.csproj": {}
   },
   "projects": {
-    "/Users/mohamedrazeen/Desktop/SLIIT /Y3S1/SEF-project/Smart-City-Emergency-Management-System/backend/SRMS.API/SRMS.API.csproj": {
+    "C:\\Users\\LINUKA\\Desktop\\Smart-City-Emergency-Management-System\\backend\\SRMS.API\\SRMS.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mohamedrazeen/Desktop/SLIIT /Y3S1/SEF-project/Smart-City-Emergency-Management-System/backend/SRMS.API/SRMS.API.csproj",
+        "projectUniqueName": "C:\\Users\\LINUKA\\Desktop\\Smart-City-Emergency-Management-System\\backend\\SRMS.API\\SRMS.API.csproj",
         "projectName": "SRMS.API",
-        "projectPath": "/Users/mohamedrazeen/Desktop/SLIIT /Y3S1/SEF-project/Smart-City-Emergency-Management-System/backend/SRMS.API/SRMS.API.csproj",
-        "packagesPath": "/Users/mohamedrazeen/.nuget/packages/",
-        "outputPath": "/Users/mohamedrazeen/Desktop/SLIIT /Y3S1/SEF-project/Smart-City-Emergency-Management-System/backend/SRMS.API/obj/",
+        "projectPath": "C:\\Users\\LINUKA\\Desktop\\Smart-City-Emergency-Management-System\\backend\\SRMS.API\\SRMS.API.csproj",
+        "packagesPath": "C:\\Users\\LINUKA\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\LINUKA\\Desktop\\Smart-City-Emergency-Management-System\\backend\\SRMS.API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/mohamedrazeen/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\LINUKA\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -53,6 +53,10 @@
               "target": "Package",
               "version": "[10.0.11, )"
             },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
@@ -77,7 +81,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.423/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.423/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

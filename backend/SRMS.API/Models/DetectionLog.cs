@@ -17,4 +17,13 @@ public class DetectionLog
     public string VehicleDetails { get; set; } = string.Empty;
     public string Status { get; set; } = "CLEARED";
     public string Snapshot { get; set; } = string.Empty;
+
+    // Multi-CCTV node tracking context
+    public int NodeId { get; set; }
+    public string SessionId { get; set; } = string.Empty;
+    public int? TrackId { get; set; }
+    public string VehicleType { get; set; } = string.Empty;
+    public double VehicleConfidence { get; set; }
+    public double OcrConfidence { get; set; }
+    public bool CrimeMatch { get; set; }
 }

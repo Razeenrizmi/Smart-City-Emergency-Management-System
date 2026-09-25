@@ -10,6 +10,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHttpClient("AIService", client =>
+{
+    var aiUrl = builder.Configuration["AIService:Url"] ?? "http://localhost:8000";
+    client.BaseAddress = new Uri(aiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -26,6 +33,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+    // EnsureCreated() is a no-op on existing databases — apply idempotent multi-CCTV schema changes.
+    await SchemaMigrator.RunAsync(db);
 }
 
 if (app.Environment.IsDevelopment())
