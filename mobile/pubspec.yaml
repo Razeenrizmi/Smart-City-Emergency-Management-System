@@ -34,7 +34,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Sensor & Hardware
-  sensors_plus: ^6.1.1         # Accelerometer Z-axis spike detection
+  sensors_plus: ^7.1.0        # Accelerometer Z-axis spike detection
   geolocator: ^13.0.0          # GPS coordinates
 
   # Networking
@@ -45,6 +45,10 @@ dependencies:
 
   # UI
   google_fonts: ^6.2.1         # Premium typography
+
+  # Maps (OpenStreetMap — no API key required)
+  flutter_map: ^8.3.2          # OpenStreetMap-based map renderer
+  latlong2: ^0.10.1            # LatLng coordinates for flutter_map
 
   # AI & Image
   image_picker: ^1.1.2         # Camera/gallery photo picker for AI classification
