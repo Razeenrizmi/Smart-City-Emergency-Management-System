@@ -46,12 +46,11 @@ dependencies:
   # UI
   google_fonts: ^6.2.1         # Premium typography
 
-  # Maps (OpenStreetMap — no API key required)
-  flutter_map: ^8.3.2          # OpenStreetMap-based map renderer
-  latlong2: ^0.10.1            # LatLng coordinates for flutter_map
-
   # AI & Image
   image_picker: ^1.1.2         # Camera/gallery photo picker for AI classification
+
+  flutter_map: ^8.3.2
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
