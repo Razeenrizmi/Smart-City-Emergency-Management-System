@@ -6,6 +6,10 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is used as a live CCTV node for automatic number plate recognition.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Audio is disabled for CCTV capture; this entry satisfies platform defaults.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Mobile</string>
 	<key>CFBundleExecutable</key>

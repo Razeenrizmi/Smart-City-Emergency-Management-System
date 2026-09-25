@@ -1,30 +1,28 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mobile/main.dart';
+import 'package:mobile/screens/main_shell.dart';
+import 'package:mobile/screens/splash_screen.dart';
+import 'package:mobile/theme/app_theme.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('App opens splash then dashboard shell — no login', (tester) async {
+    await tester.pumpWidget(const CrimeVehicleApp());
     await tester.pump();
+    expect(find.byType(SplashScreen), findsOneWidget);
+    expect(find.textContaining('LOGIN', findRichText: true), findsNothing);
+    expect(find.textContaining('Sign in', findRichText: true), findsNothing);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Advance past splash timer into the main shell (network may fail in tests).
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(MainShell), findsOneWidget);
+    expect(find.text('Dashboard'), findsWidgets);
+  });
+
+  testWidgets('Theme builds with Material 3', (tester) async {
+    final theme = buildAppTheme();
+    expect(theme.useMaterial3, isTrue);
   });
 }

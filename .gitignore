@@ -1,48 +1,132 @@
-# Backend - .NET
-backend/**/bin/
-backend/**/obj/
-backend/**/Debug/
-backend/**/Release/
-backend/**/*.db
-backend/**/*.user
-backend/**/appsettings.Development.json
-
-# Frontend - Node
-web/node_modules/
-web/dist/
-web/.vite/
-
-# Mobile - Flutter
-mobile/.dart_tool/
-mobile/.packages
-mobile/build/
-mobile/.flutter-plugins
-mobile/.flutter-plugins-dependencies
-mobile/pubspec.lock
-mobile/linux/flutter/ephemeral/
-mobile/android/.gradle/
-mobile/android/app/build/
-mobile/ios/Pods/
-mobile/ios/.symlinks/
-mobile/macos/Pods/
-mobile/macos/Flutter/ephemeral/
-mobile/web/canvaskit/
-mobile/windows/flutter/ephemeral/
-
-# IDE
-.vscode/
-.idea/
-*.suo
-*.user
-*.sln.docstates
-
-# OS
+# ==========================================
+# Operating System Files
+# ==========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Environment / Secrets
+# ==========================================
+# IDEs & Editor Configuration
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vs/
+*.suo
+*.user
+*.userosv
+*.sln.docstates
+*.sw?
+*~
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+hs_err_pid*.log
+replay_pid*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
 .env
-.env.local
+.env.*
+!.env.example
 *.pem
 *.key
+local.properties
+
+# ==========================================
+# Backend - .NET (C#)
+# ==========================================
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.sqlite
+**/*.sqlite3
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# ==========================================
+# Backend - Python (AI / ML)
+# ==========================================
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/
+ENV/
+*.onnx
+*.engine
+*.tflite
+
+# ==========================================
+# Web - Node.js / React / Vite
+# ==========================================
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/.vite/
+.eslintcache
+
+# ==========================================
+# Mobile - Flutter / Dart
+# ==========================================
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+**/coverage/
+.widget_preview/
+app.*.symbols
+app.*.map.json
+
+# Flutter Android
+**/android/.gradle/
+**/android/.kotlin/
+**/android/app/build/
+**/android/build/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# Flutter iOS / macOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.framework
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/ephemeral/
+**/macos/Pods/
+**/macos/Flutter/ephemeral/
+
+# Flutter Windows / Linux / Web
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/web/canvaskit/

@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.mobile"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android requires compileSdk 37 (AGP warns 36 is max recommended).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
