@@ -5,13 +5,8 @@ import {
   FileText,
   Map,
   BarChart3,
-  Radio,
-  Bell,
   RefreshCw,
-  Search,
-  CheckCircle2,
   AlertOctagon,
-  Shield,
   Siren
 } from 'lucide-react';
 import LiveANPRMonitor from './components/LiveANPRMonitor';
@@ -21,22 +16,34 @@ import CameraNetworkMap from './components/CameraNetworkMap';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import DispatchModal from './components/DispatchModal';
 import { crimeVehicleService } from './services/crimeVehicleService';
+import useCCTVNodes from './hooks/useCCTVNodes';
 
 export default function CrimeVehiclePage() {
-  const [activeTab, setActiveTab] = useState('live'); // 'live' | 'hotlist' | 'logs' | 'map' | 'analytics'
+  const [activeTab, setActiveTab] = useState('live');
   const [loading, setLoading] = useState(true);
 
-  // Core datasets
   const [cameras, setCameras] = useState([]);
   const [hotlist, setHotlist] = useState([]);
   const [logs, setLogs] = useState([]);
   const [patrolUnits, setPatrolUnits] = useState([]);
+  const [snapshots, setSnapshots] = useState({});
 
-  // Dispatch modal state
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
   const [selectedDetectionForDispatch, setSelectedDetectionForDispatch] = useState(null);
 
-  // Fetch initial data
+  const {
+    nodes,
+    activeNodeId,
+    setActiveNodeId,
+    onlineCount,
+    loading: nodesLoading,
+    detectionConfig,
+    refreshNodes,
+    reportNodeStatus,
+    startNodeSession,
+    stopNode
+  } = useCCTVNodes();
+
   const loadData = async () => {
     setLoading(true);
     const [cams, hlist, logData, patrols] = await Promise.all([
@@ -46,7 +53,7 @@ export default function CrimeVehiclePage() {
       crimeVehicleService.getPatrolUnits()
     ]);
     setCameras(cams);
-    setHotlist(hlist);
+    setHotlist(Array.isArray(hlist) ? hlist : hlist === null ? null : []);
     setLogs(logData);
     setPatrolUnits(patrols);
     setLoading(false);
@@ -56,24 +63,54 @@ export default function CrimeVehiclePage() {
     loadData();
   }, []);
 
-  // Handlers for state updates
+  // Backend came back after a failed load — recover hotlist.
+  useEffect(() => {
+    if (hotlist === null) {
+      const t = setInterval(async () => {
+        const h = await crimeVehicleService.getHotlist();
+        if (Array.isArray(h)) setHotlist(h);
+      }, 15000);
+      return () => clearInterval(t);
+    }
+  }, [hotlist]);
+
+  const hotlistItems = Array.isArray(hotlist) ? hotlist : [];
+  const hotlistUnavailable = hotlist === null;
+
   const handleAddHotlist = async (newVehicle) => {
-    await crimeVehicleService.addHotlistVehicle(newVehicle);
-    const updated = await crimeVehicleService.getHotlist();
-    setHotlist(updated);
+    const created = await crimeVehicleService.addHotlistVehicle(newVehicle);
+    const h = await crimeVehicleService.getHotlist();
+    if (Array.isArray(h)) setHotlist(h);
+    else if (created) setHotlist((prev) => (Array.isArray(prev) ? [created, ...prev] : [created]));
   };
 
   const handleUpdateStatus = async (id, status) => {
     const updated = await crimeVehicleService.updateHotlistStatus(id, status);
-    setHotlist(updated);
+    if (Array.isArray(updated)) setHotlist(updated);
   };
 
-  const handleAnalyzeImage = async (imageUrl, plateNumber) => {
-    const scanResult = await crimeVehicleService.analyzeVehicleImage(imageUrl, plateNumber);
-    // Refresh logs if match created new log
+  const handleDeleteVehicle = async (vehicleId) => {
+    const success = await crimeVehicleService.deleteHotlistVehicle(vehicleId);
+    if (success) {
+      setHotlist(prev => (Array.isArray(prev) ? prev.filter(v => v.vehicleId !== vehicleId && v.id !== vehicleId) : prev));
+    }
+  };
+
+  const handleEditVehicle = async (vehicleId, vehicleData) => {
+    const updated = await crimeVehicleService.updateHotlistVehicle(vehicleId, vehicleData);
+    if (updated) {
+      setHotlist(prev => (Array.isArray(prev)
+        ? prev.map(v => (v.vehicleId === vehicleId || v.id === vehicleId) ? { ...v, ...vehicleData } : v)
+        : prev));
+    }
+  };
+
+  const handleScanComplete = async (logId, snapshotDataUrl) => {
+    if (logId && snapshotDataUrl) {
+      setSnapshots(prev => ({ ...prev, [logId]: snapshotDataUrl }));
+    }
     const updatedLogs = await crimeVehicleService.getDetectionLogs();
     setLogs(updatedLogs);
-    return scanResult;
   };
 
   const handleOpenDispatch = (detectionLog) => {
@@ -92,7 +129,7 @@ export default function CrimeVehiclePage() {
   };
 
   // Critical alerts for live ticker
-  const criticalAlerts = hotlist.filter(h => h.threatLevel === 'CRITICAL' && h.status === 'WANTED');
+  const criticalAlerts = hotlistItems.filter(h => h.threatLevel === 'CRITICAL' && h.status === 'WANTED');
 
   return (
     <div className="crime-vehicle-root min-h-screen bg-slate-950 text-slate-100 font-sans">
@@ -109,7 +146,7 @@ export default function CrimeVehiclePage() {
                 <span className="badge badge-critical text-[10px]">CRIME VEHICLE DETECTOR v3.0</span>
               </div>
               <p className="text-xs text-slate-400">
-                Automated Number Plate Recognition (ANPR) & Intercept Command Console
+                Multi-CCTV Automated Number Plate Recognition (ANPR) & Intercept Command Console
               </p>
             </div>
           </div>
@@ -118,13 +155,15 @@ export default function CrimeVehiclePage() {
           <div className="flex items-center gap-6 text-xs">
             <div className="hidden md:block">
               <span className="text-slate-400 block">Surveillance Nodes</span>
-              <span className="font-mono text-cyan-400 font-bold">{cameras.length} ONLINE</span>
+              <span className="font-mono text-cyan-400 font-bold">{onlineCount} / {nodes.length || '--'} ONLINE</span>
             </div>
             <div className="hidden md:block">
               <span className="text-slate-400 block">Wanted Hotlist</span>
-              <span className="font-mono text-red-400 font-bold">{hotlist.length} TARGETS</span>
+              <span className="font-mono text-red-400 font-bold">
+                {hotlistUnavailable ? '--' : `${hotlistItems.length} TARGETS`}
+              </span>
             </div>
-            <button onClick={loadData} className="btn-icon" title="Refresh Live Data">
+            <button onClick={() => { loadData(); refreshNodes(); }} className="btn-icon" title="Refresh Live Data">
               <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             </button>
           </div>
@@ -172,7 +211,7 @@ export default function CrimeVehiclePage() {
             onClick={() => setActiveTab('hotlist')}
             className={`nav-tab-btn ${activeTab === 'hotlist' ? 'active' : ''}`}
           >
-            <ShieldAlert size={18} /> Wanted Hotlist ({hotlist.length})
+            <ShieldAlert size={18} /> Wanted Hotlist ({hotlistUnavailable ? '--' : hotlistItems.length})
           </button>
           <button
             onClick={() => setActiveTab('logs')}
@@ -202,20 +241,29 @@ export default function CrimeVehiclePage() {
           </div>
         ) : (
           <>
-            {activeTab === 'live' && (
+            {/* Live monitor stays mounted across tabs so camera streams & ByteTrack sessions survive tab switches */}
+            <div style={{ display: activeTab === 'live' ? 'block' : 'none' }}>
               <LiveANPRMonitor
-                cameras={cameras}
-                hotlist={hotlist}
+                nodes={nodes}
+                activeNodeId={activeNodeId}
+                onSelectNode={setActiveNodeId}
+                onStartSession={startNodeSession}
+                onStopNode={stopNode}
+                onNodeStatus={reportNodeStatus}
+                hotlist={hotlistItems}
                 onOpenDispatch={handleOpenDispatch}
-                onAnalyzeImage={handleAnalyzeImage}
+                onScanComplete={handleScanComplete}
+                detectionConfig={detectionConfig}
               />
-            )}
+            </div>
 
             {activeTab === 'hotlist' && (
               <HotlistManager
-                hotlist={hotlist}
+                hotlist={hotlistItems}
                 onAddHotlist={handleAddHotlist}
                 onUpdateStatus={handleUpdateStatus}
+                onDeleteVehicle={handleDeleteVehicle}
+                onEditVehicle={handleEditVehicle}
                 onOpenDispatch={handleOpenDispatch}
               />
             )}
@@ -223,6 +271,8 @@ export default function CrimeVehiclePage() {
             {activeTab === 'logs' && (
               <DetectionLogs
                 logs={logs}
+                snapshots={snapshots}
+                nodes={nodes}
                 onOpenDispatch={handleOpenDispatch}
               />
             )}
@@ -230,17 +280,17 @@ export default function CrimeVehiclePage() {
             {activeTab === 'map' && (
               <CameraNetworkMap
                 cameras={cameras}
-                hotlist={hotlist}
+                hotlist={hotlistItems}
                 onOpenDispatch={handleOpenDispatch}
               />
             )}
 
             {activeTab === 'analytics' && (
               <AnalyticsDashboard
-                stats={{ totalScannedToday: 18450 }}
                 logs={logs}
-                hotlist={hotlist}
+                hotlist={hotlistItems}
                 patrolUnits={patrolUnits}
+                detectionConfig={detectionConfig}
               />
             )}
           </>

@@ -2,21 +2,15 @@ import apiClient from '../../../services/appClient';
 import {
   INITIAL_CAMERAS,
   INITIAL_HOTLIST,
-  INITIAL_DETECTION_LOGS,
-  INITIAL_PATROL_UNITS,
-  SAMPLE_SCAN_PRESETS
+  INITIAL_PATROL_UNITS
 } from '../data/mockCrimeVehicleData';
 
-// Local storage keys for state persistence in browser demo
 const STORAGE_KEYS = {
   HOTLIST: 'scems_crime_hotlist',
   LOGS: 'scems_crime_logs',
   CAMERAS: 'scems_crime_cameras',
   PATROLS: 'scems_crime_patrols'
 };
-
-// Check if backend API integration is explicitly requested
-const USE_BACKEND_API = import.meta.env.VITE_ENABLE_BACKEND_API === 'true';
 
 const getStored = (key, fallback) => {
   try {
@@ -36,154 +30,215 @@ const setStored = (key, value) => {
 };
 
 export const crimeVehicleService = {
-  // Fetch cameras
   async getCameras() {
-    if (USE_BACKEND_API) {
-      try {
-        const response = await apiClient.get('/crime-vehicle/cameras');
-        return response.data;
-      } catch (e) {
-        console.warn('Backend unavailable, falling back to local storage');
-      }
+    try {
+      const response = await apiClient.get('/crime-vehicle/cameras');
+      return response.data?.data || INITIAL_CAMERAS;
+    } catch (e) {
+      console.warn('Backend unavailable, using fallback camera data');
+      return INITIAL_CAMERAS;
     }
-    return getStored(STORAGE_KEYS.CAMERAS, INITIAL_CAMERAS);
   },
 
-  // Fetch wanted hotlist
   async getHotlist() {
-    if (USE_BACKEND_API) {
-      try {
-        const response = await apiClient.get('/crime-vehicle/hotlist');
-        return response.data;
-      } catch (e) {
-        console.warn('Backend unavailable, falling back to local storage');
-      }
+    try {
+      const response = await apiClient.get('/crime-vehicle/hotlist');
+      return response.data?.data || [];
+    } catch (e) {
+      console.warn('Backend unavailable for hotlist');
+      return null;
     }
-    return getStored(STORAGE_KEYS.HOTLIST, INITIAL_HOTLIST);
   },
 
-  // Add new wanted vehicle to hotlist
   async addHotlistVehicle(vehicleData) {
+    try {
+      const response = await apiClient.post('/crime-vehicle/hotlist', vehicleData);
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend add failed:', e.message);
+    }
     const currentList = getStored(STORAGE_KEYS.HOTLIST, INITIAL_HOTLIST);
     const newVehicle = {
       id: `HV-${Date.now().toString().slice(-4)}`,
       status: 'WANTED',
       wantedSince: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      image: vehicleData.image || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80',
       ...vehicleData
     };
-
-    if (USE_BACKEND_API) {
-      try {
-        const response = await apiClient.post('/crime-vehicle/hotlist', newVehicle);
-        return response.data;
-      } catch (e) {
-        console.warn('Backend unavailable, saving locally');
-      }
-    }
-
     const updated = [newVehicle, ...currentList];
     setStored(STORAGE_KEYS.HOTLIST, updated);
     return newVehicle;
   },
 
-  // Update status or remove from hotlist
+  async deleteHotlistVehicle(vehicleId) {
+    try {
+      const response = await apiClient.delete(`/crime-vehicle/hotlist/${vehicleId}`);
+      if (response.data?.success) return true;
+    } catch (e) {
+      console.warn('Backend delete failed:', e.message);
+    }
+    return false;
+  },
+
+  async updateHotlistVehicle(vehicleId, vehicleData) {
+    try {
+      const response = await apiClient.put(`/crime-vehicle/hotlist/${vehicleId}`, vehicleData);
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend update failed:', e.message);
+    }
+    return null;
+  },
+
   async updateHotlistStatus(id, newStatus) {
+    try {
+      const response = await apiClient.put(`/crime-vehicle/hotlist/${id}/status`, { status: newStatus });
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend update failed:', e.message);
+    }
     const currentList = getStored(STORAGE_KEYS.HOTLIST, INITIAL_HOTLIST);
     const updated = currentList.map(item => item.id === id ? { ...item, status: newStatus } : item);
     setStored(STORAGE_KEYS.HOTLIST, updated);
     return updated;
   },
 
-  // Fetch detection logs
   async getDetectionLogs() {
-    if (USE_BACKEND_API) {
-      try {
-        const response = await apiClient.get('/crime-vehicle/logs');
-        return response.data;
-      } catch (e) {
-        console.warn('Backend unavailable, falling back to local storage');
-      }
+    try {
+      const response = await apiClient.get('/crime-vehicle/logs');
+      return response.data?.data || [];
+    } catch (e) {
+      console.warn('Backend unavailable for logs');
+      return [];
     }
-    return getStored(STORAGE_KEYS.LOGS, INITIAL_DETECTION_LOGS);
   },
 
-  // Fetch available patrol units
   async getPatrolUnits() {
-    if (USE_BACKEND_API) {
-      try {
-        const response = await apiClient.get('/crime-vehicle/patrols');
-        return response.data;
-      } catch (e) {
-        console.warn('Backend unavailable, falling back to local storage');
-      }
+    try {
+      const response = await apiClient.get('/crime-vehicle/patrols');
+      return response.data?.data || INITIAL_PATROL_UNITS;
+    } catch (e) {
+      console.warn('Backend unavailable, using fallback patrol data');
+      return INITIAL_PATROL_UNITS;
     }
-    return getStored(STORAGE_KEYS.PATROLS, INITIAL_PATROL_UNITS);
   },
 
-  // Dispatch Patrol Unit
   async dispatchPatrol(unitId, logId) {
-    const patrols = getStored(STORAGE_KEYS.PATROLS, INITIAL_PATROL_UNITS);
-    const updatedPatrols = patrols.map(u => u.id === unitId ? { ...u, status: 'EN_ROUTE', eta: '3 mins' } : u);
-    setStored(STORAGE_KEYS.PATROLS, updatedPatrols);
-
-    const logs = getStored(STORAGE_KEYS.LOGS, INITIAL_DETECTION_LOGS);
-    const updatedLogs = logs.map(l => l.id === logId ? { ...l, status: 'DISPATCHED' } : l);
-    setStored(STORAGE_KEYS.LOGS, updatedLogs);
-
+    try {
+      const response = await apiClient.post('/crime-vehicle/dispatch', { unitId, logId });
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend dispatch failed:', e.message);
+    }
     return { success: true, unitId, logId };
   },
 
-  // ANPR Image analysis tool simulation
-  async analyzeVehicleImage(imageUrlOrPreset, customPlateNumber = '') {
-    // Artificial delay for futuristic scanning loading effect
-    await new Promise(resolve => setTimeout(resolve, 1200));
+  async scanFrame(imageBlobOrDataUrl, sessionId = '', nodeId = null) {
+    try {
+      const formData = new FormData();
+      if (imageBlobOrDataUrl instanceof Blob) {
+        formData.append('image', imageBlobOrDataUrl, 'cctv-frame.jpg');
+      } else if (typeof imageBlobOrDataUrl === 'string') {
+        const res = await fetch(imageBlobOrDataUrl);
+        const blob = await res.blob();
+        formData.append('image', blob, 'cctv-frame.jpg');
+      } else {
+        throw new Error('Invalid image format');
+      }
 
-    const hotlist = getStored(STORAGE_KEYS.HOTLIST, INITIAL_HOTLIST);
+      if (sessionId) {
+        formData.append('sessionId', sessionId);
+      }
+      if (nodeId !== null && nodeId !== undefined && nodeId !== '') {
+        formData.append('nodeId', String(nodeId));
+      }
 
-    let preset = SAMPLE_SCAN_PRESETS.find(p => p.image === imageUrlOrPreset);
+      const apiResponse = await apiClient.post('/crime-vehicle/scan', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-    let plate = customPlateNumber || (preset ? preset.detectedPlate : 'WP CAD-7829');
-    let confidence = preset ? preset.confidence : (94 + Math.random() * 5.5).toFixed(1);
-    let vehicleInfo = preset ? preset.vehicleInfo : 'Identified Vehicle (SUV Class)';
+      if (apiResponse.data?.success && apiResponse.data?.data) {
+        const result = apiResponse.data.data;
+        return {
+          ...result,
+          snapshot: typeof imageBlobOrDataUrl === 'string'
+            ? imageBlobOrDataUrl
+            : URL.createObjectURL(imageBlobOrDataUrl)
+        };
+      }
 
-    // Check match against hotlist
-    const matchedVehicle = hotlist.find(h =>
-      h.plateNumber.replace(/\s+/g, '').toUpperCase() === plate.replace(/\s+/g, '').toUpperCase()
-    );
-
-    const scanResult = {
-      detectedPlate: plate,
-      confidence: parseFloat(confidence),
-      vehicleInfo,
-      isMatch: !!matchedVehicle,
-      matchedVehicle: matchedVehicle || null,
-      box: preset ? preset.box : { top: '45%', left: '32%', width: '36%', height: '24%' },
-      scannedAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
-    };
-
-    // If match found, generate a log entry automatically
-    if (matchedVehicle) {
-      const logs = getStored(STORAGE_KEYS.LOGS, INITIAL_DETECTION_LOGS);
-      const newLog = {
-        id: `LOG-${Math.floor(10000 + Math.random() * 90000)}`,
-        timestamp: scanResult.scannedAt,
-        plateNumber: plate,
-        cameraId: 'ANPR-UPLOAD-01',
-        cameraName: 'Manual Scanner Upload / Tactical Field Recon',
-        location: 'Field Upload Node',
-        confidence: scanResult.confidence,
-        speed: 'Scanned Image',
-        direction: 'Stationary Scan',
-        isHotlistMatch: true,
-        threatLevel: matchedVehicle.threatLevel,
-        vehicleDetails: matchedVehicle.makeModel + ` (${matchedVehicle.color})`,
-        status: 'ALERT_TRIGGERED',
-        snapshot: imageUrlOrPreset
+      return {
+        detectionStatus: 'AI_SERVICE_UNAVAILABLE',
+        vehicleInfo: 'AI service returned an invalid response.',
+        snapshot: typeof imageBlobOrDataUrl === 'string'
+          ? imageBlobOrDataUrl
+          : URL.createObjectURL(imageBlobOrDataUrl),
+        scannedAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
       };
-      setStored(STORAGE_KEYS.LOGS, [newLog, ...logs]);
+    } catch (e) {
+      console.error('Backend scan API error:', e.message);
+      return {
+        detectionStatus: 'AI_SERVICE_UNAVAILABLE',
+        vehicleInfo: `AI detection service unavailable: ${e.message}`,
+        detectedPlate: 'ERROR',
+        confidence: 0,
+        plateConfidence: 0,
+        vehicleConfidence: 0,
+        isMatch: false,
+        crimeStatus: 'ERROR',
+        riskLevel: 'NONE',
+        validationStatus: 'ERROR',
+        agentStages: [],
+        snapshot: typeof imageBlobOrDataUrl === 'string'
+          ? imageBlobOrDataUrl
+          : URL.createObjectURL(imageBlobOrDataUrl),
+        scannedAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
+      };
     }
+  },
 
-    return scanResult;
+  async endSession(sessionId) {
+    try {
+      const formData = new FormData();
+      formData.append('sessionId', sessionId);
+      await apiClient.post('/crime-vehicle/session/end', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    } catch (e) {
+      console.warn('Failed to end session on backend:', e.message);
+    }
+  },
+
+  async approveDetection(logId) {
+    try {
+      const response = await apiClient.put(`/crime-vehicle/logs/${logId}/approve`);
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend approve failed:', e.message);
+    }
+    return { success: true, logId, status: 'CONFIRMED_BY_OFFICER' };
+  },
+
+  async rejectDetection(logId) {
+    try {
+      const response = await apiClient.put(`/crime-vehicle/logs/${logId}/reject`);
+      if (response.data?.success) return response.data.data;
+    } catch (e) {
+      console.warn('Backend reject failed:', e.message);
+    }
+    return { success: true, logId, status: 'REJECTED_BY_OFFICER' };
+  },
+
+  async getDetectionHistory(filters = {}) {
+    try {
+      const params = {};
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') params[key] = value;
+      });
+      const response = await apiClient.get('/detection/history', { params });
+      return response.data?.data || [];
+    } catch (e) {
+      console.warn('Detection history unavailable:', e.message);
+      return [];
+    }
   }
 };
