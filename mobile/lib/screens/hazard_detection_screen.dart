@@ -383,7 +383,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                         _totalReports++;
                         _status = DetectionStatus.reported;
                       });
-                      _showSnack('Road hazard auto-logged along Colombo corridor! ✅');
+                      _showSnack('Road hazard auto-logged on route between Point A & Point B! ✅');
                     },
                   ),
                 ),

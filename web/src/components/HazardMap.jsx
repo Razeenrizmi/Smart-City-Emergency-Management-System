@@ -1,18 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, ExternalLink, Navigation, Layers, MapPin } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Navigation, Layers, MapPin, Maximize2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
-// Fix default Leaflet icon paths
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
+// Fix Leaflet's missing default icon paths safely without mutating prototype globally
+const defaultIcon = L.icon({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
+L.Marker.prototype.options.icon = defaultIcon;
 
-// Colombo Dematagoda -> Dehiwala Commuter Corridor Coordinates
+// Sri Lanka Island Geographic Boundaries
+const SRI_LANKA_CENTER = [7.8731, 80.7718]; // Geographical Center of Sri Lanka
+const SRI_LANKA_BOUNDS = [
+  [5.8, 79.5],  // Southwest corner (South of Galle / Matara)
+  [9.9, 82.0]   // Northeast corner (North of Jaffna / Trincomalee)
+];
+
+// Colombo Commuter Route Coordinates (Dematagoda -> Dehiwala)
 const DEMATAGODA_DEHIWALA_ROUTE = [
   [6.9322, 79.8821], // Dematagoda Junction
   [6.9250, 79.8805], // Baseline Rd
@@ -26,37 +37,73 @@ const DEMATAGODA_DEHIWALA_ROUTE = [
 ];
 
 const TILE_PROVIDERS = {
-  dark: {
-    name: 'Dark Mode',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; CARTO',
-  },
-  satellite: {
-    name: 'Google / Satellite',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri & Earthstar Geographics',
-  },
-  streets: {
-    name: 'Street View',
+  osm_standard: {
+    name: 'OpenStreetMap (Sri Lanka)',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; OpenStreetMap',
+    subdomains: ['a', 'b', 'c'],
+    attribution: '&copy; OpenStreetMap contributors',
   },
+  google_streets: {
+    name: 'Google Maps (Streets)',
+    url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: '&copy; Google Maps',
+  },
+  google_hybrid: {
+    name: 'Google Satellite',
+    url: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: '&copy; Google Maps Imagery',
+  },
+  carto_dark: {
+    name: 'Carto Dark Mode',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    subdomains: ['a', 'b', 'c', 'd'],
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+  }
 };
 
-const BoundsAdjuster = ({ hazards }) => {
+const BoundsAdjuster = ({ hazards, triggerFit }) => {
   const map = useMap();
+  const hasAdjustedRef = useRef(false);
+
   useEffect(() => {
-    if (hazards && hazards.length > 0) {
-      const bounds = L.latLngBounds(
-        hazards.map((h) => [h.latitude, h.longitude])
-      );
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    // Invalidate size after render to fix grey tile glitches
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+  }, [map]);
+
+  useEffect(() => {
+    if (!hasAdjustedRef.current && hazards && hazards.length > 0) {
+      const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0));
+      if (validHazards.length > 0) {
+        hasAdjustedRef.current = true;
+        const bounds = L.latLngBounds(validHazards.map((h) => [h.latitude, h.longitude]));
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      }
     }
   }, [hazards, map]);
+
+  useEffect(() => {
+    if (triggerFit) {
+      if (hazards && hazards.length > 0) {
+        const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0));
+        if (validHazards.length > 0) {
+          const bounds = L.latLngBounds(validHazards.map((h) => [h.latitude, h.longitude]));
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+          return;
+        }
+      }
+      // Reset back to whole Sri Lanka view if no hazards are present
+      map.setView(SRI_LANKA_CENTER, 8);
+    }
+  }, [triggerFit, hazards, map]);
+
   return null;
 };
 
-const getSeverityIcon = (severityScore, isAiVerified) => {
+const getSeverityIcon = (severityScore = 1, isAiVerified = false) => {
   let color = '#4299E1';
   let scale = 1;
 
@@ -64,19 +111,17 @@ const getSeverityIcon = (severityScore, isAiVerified) => {
   else if (severityScore >= 3) { color = '#ED8936'; scale = 1.15; }
   else if (severityScore >= 2) { color = '#ECC94B'; scale = 1.05; }
 
-  // AI-verified markers get a dashed purple ring
+  const size = Math.round(24 * scale);
   const aiRing = isAiVerified
-    ? `<circle cx="${12 * scale}" cy="${11 * scale}" r="${13 * scale}" fill="none" stroke="#764BA2" stroke-width="1.8" stroke-dasharray="4 2" opacity="0.85"/>`
+    ? `<circle cx="${size / 2}" cy="${size / 2 - 1}" r="${(size / 2) - 1}" fill="none" stroke="#764BA2" stroke-width="2" stroke-dasharray="3 2" opacity="0.9"/>`
     : '';
 
-  const size = 24 * scale;
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
       ${aiRing}
-      <path d="M${12 * scale} ${2 * scale}L${2 * scale} ${22 * scale}h${20 * scale}Z"
-        fill="${color}" stroke="#1A202C" stroke-width="2" stroke-linejoin="round"/>
-      <line x1="${12 * scale}" y1="${9 * scale}" x2="${12 * scale}" y2="${13 * scale}" stroke="#1A202C" stroke-width="2"/>
-      <circle cx="${12 * scale}" cy="${17 * scale}" r="1" fill="#1A202C"/>
+      <path d="M${size / 2} 2 L2 ${size - 2} h${size - 4} Z" fill="${color}" stroke="#1A202C" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="${size / 2}" y1="${size * 0.38}" x2="${size / 2}" y2="${size * 0.58}" stroke="#1A202C" stroke-width="2"/>
+      <circle cx="${size / 2}" cy="${size * 0.72}" r="1.2" fill="#1A202C"/>
     </svg>
   `;
 
@@ -84,20 +129,30 @@ const getSeverityIcon = (severityScore, isAiVerified) => {
     html: svgIcon,
     className: 'custom-leaflet-icon',
     iconSize: [size, size],
-    iconAnchor: [12 * scale, size],
+    iconAnchor: [size / 2, size],
     popupAnchor: [0, -size],
   });
 };
 
 const HazardMap = ({ hazards = [] }) => {
-  const defaultCenter = [6.8916, 79.8737]; // Centered on Dematagoda-Dehiwala corridor
-  const [activeTile, setActiveTile] = useState('dark');
+  const [activeTile, setActiveTile] = useState('osm_standard');
   const [showCorridor, setShowCorridor] = useState(true);
+  const [fitTrigger, setFitTrigger] = useState(0);
 
   return (
-    <div className="map-container-wrapper" style={{ height: '100%', width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid #30363D', position: 'relative' }}>
-      
-      {/* Top Map Toolbar: Layer Switcher + Corridor Route + Google Maps Link */}
+    <div
+      className="map-container-wrapper"
+      style={{
+        height: '100%',
+        minHeight: '500px',
+        width: '100%',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid #30363D',
+        position: 'relative'
+      }}
+    >
+      {/* Top Map Toolbar */}
       <div style={{
         position: 'absolute',
         top: 12,
@@ -131,14 +186,39 @@ const HazardMap = ({ hazards = [] }) => {
               outline: 'none',
             }}
           >
-            <option value="dark">Dark Carto</option>
-            <option value="satellite">Google Satellite</option>
-            <option value="streets">Open Streets</option>
+            <option value="osm_standard">OpenStreetMap (Sri Lanka)</option>
+            <option value="google_streets">Google Maps (Streets)</option>
+            <option value="google_hybrid">Google Satellite</option>
+            <option value="carto_dark">Carto Dark Mode</option>
           </select>
         </div>
 
+        {/* Fit Sri Lanka / Hazards Button */}
+        <button
+          type="button"
+          onClick={() => setFitTrigger((prev) => prev + 1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: '#0D1117',
+            border: '1px solid #30363D',
+            color: '#C9D1D9',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+          title="Reset View to Sri Lanka"
+        >
+          <Maximize2 size={13} />
+          <span>Reset View</span>
+        </button>
+
         {/* Corridor Toggle */}
         <button
+          type="button"
           onClick={() => setShowCorridor(!showCorridor)}
           style={{
             display: 'flex',
@@ -152,58 +232,37 @@ const HazardMap = ({ hazards = [] }) => {
             fontSize: '12px',
             fontWeight: 600,
             cursor: 'pointer',
-            transition: 'all 0.2s',
           }}
-          title="Toggle Dematagoda ➔ Dehiwala Commuter Corridor"
+          title="Toggle Commuter Route Corridor"
         >
           <Navigation size={13} />
-          <span>Dematagoda ➔ Dehiwala</span>
+          <span>Colombo Route</span>
         </button>
-
-        {/* Open Corridor in Google Maps */}
-        <a
-          href="https://www.google.com/maps/dir/?api=1&origin=Dematagoda,Colombo&destination=Dehiwala,Colombo&travelmode=driving"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            background: '#1A73E8',
-            color: '#fff',
-            textDecoration: 'none',
-            padding: '4px 10px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 700,
-            boxShadow: '0 2px 6px rgba(26,115,232,0.3)',
-          }}
-        >
-          <span>Google Maps</span>
-          <ExternalLink size={12} />
-        </a>
       </div>
 
       <MapContainer
-        center={defaultCenter}
-        zoom={12}
-        maxZoom={22}
-        style={{ height: '100%', width: '100%' }}
+        center={SRI_LANKA_CENTER}
+        zoom={8}
+        minZoom={7}
+        maxZoom={19}
+        maxBounds={SRI_LANKA_BOUNDS}
+        maxBoundsViscosity={0.8}
+        style={{ height: '100%', width: '100%', minHeight: '500px' }}
         zoomControl={true}
       >
         <TileLayer
+          key={activeTile}
           attribution={TILE_PROVIDERS[activeTile].attribution}
           url={TILE_PROVIDERS[activeTile].url}
-          maxZoom={22}
-          maxNativeZoom={activeTile === 'satellite' ? 18 : 19}
+          subdomains={TILE_PROVIDERS[activeTile].subdomains}
+          maxZoom={19}
         />
 
-        <BoundsAdjuster hazards={hazards} />
+        <BoundsAdjuster hazards={hazards} triggerFit={fitTrigger} />
 
-        {/* Dematagoda to Dehiwala Commuter Route Polyline */}
+        {/* Colombo Commuter Route */}
         {showCorridor && (
           <>
-            {/* Glowing outer polyline */}
             <Polyline
               positions={DEMATAGODA_DEHIWALA_ROUTE}
               pathOptions={{
@@ -214,7 +273,6 @@ const HazardMap = ({ hazards = [] }) => {
                 lineJoin: 'round',
               }}
             />
-            {/* Main Google Maps navigation blue route */}
             <Polyline
               positions={DEMATAGODA_DEHIWALA_ROUTE}
               pathOptions={{
@@ -225,141 +283,73 @@ const HazardMap = ({ hazards = [] }) => {
                 lineJoin: 'round',
               }}
             />
-            {/* Start point: Dematagoda */}
             <CircleMarker
               center={DEMATAGODA_DEHIWALA_ROUTE[0]}
-              radius={7}
-              pathOptions={{ color: '#0F9D58', fillColor: '#0F9D58', fillOpacity: 1, weight: 3 }}
+              radius={6}
+              pathOptions={{ color: '#0F9D58', fillColor: '#0F9D58', fillOpacity: 1, weight: 2 }}
             >
-              <Popup className="custom-popup">
-                <div style={{ color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+              <Popup>
+                <div style={{ color: '#1A202C', fontFamily: 'Inter, sans-serif' }}>
                   <strong>🚩 Dematagoda Junction</strong>
-                  <div style={{ fontSize: '11px', color: '#A0AEC0' }}>Route Origin (Baseline Rd)</div>
                 </div>
               </Popup>
             </CircleMarker>
-            {/* End point: Dehiwala */}
             <CircleMarker
               center={DEMATAGODA_DEHIWALA_ROUTE[DEMATAGODA_DEHIWALA_ROUTE.length - 1]}
-              radius={7}
-              pathOptions={{ color: '#EA4335', fillColor: '#EA4335', fillOpacity: 1, weight: 3 }}
+              radius={6}
+              pathOptions={{ color: '#EA4335', fillColor: '#EA4335', fillOpacity: 1, weight: 2 }}
             >
-              <Popup className="custom-popup">
-                <div style={{ color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+              <Popup>
+                <div style={{ color: '#1A202C', fontFamily: 'Inter, sans-serif' }}>
                   <strong>🏁 Dehiwala Junction</strong>
-                  <div style={{ fontSize: '11px', color: '#A0AEC0' }}>Route Destination (Galle Rd)</div>
                 </div>
               </Popup>
             </CircleMarker>
           </>
         )}
 
-        {/* Hazard Markers */}
-        {hazards.map((hazard) => (
+        {/* Hazard Markers across Sri Lanka */}
+        {hazards.filter(h => h && h.latitude && h.longitude).map((hazard) => (
           <Marker
-            key={hazard.hazardId}
+            key={hazard.hazardId || hazard.id || `${hazard.latitude}-${hazard.longitude}`}
             position={[hazard.latitude, hazard.longitude]}
             icon={getSeverityIcon(hazard.severityScore, hazard.isVerified)}
           >
-            <Popup className="custom-popup">
-              <div style={{ minWidth: '230px', fontFamily: 'Inter, sans-serif' }}>
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', borderBottom: '1px solid #2D3748', paddingBottom: '8px' }}>
-                  <AlertTriangle size={18} color={hazard.severityScore >= 5 ? '#E53E3E' : hazard.severityScore >= 3 ? '#ED8936' : '#4299E1'} />
-                  <strong style={{ fontSize: '15px', color: '#fff' }}>
+            <Popup>
+              <div style={{ minWidth: '200px', fontFamily: 'Inter, sans-serif' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
+                  <AlertTriangle size={15} color={hazard.severityScore >= 5 ? '#E53E3E' : hazard.severityScore >= 3 ? '#ED8936' : '#4299E1'} />
+                  <strong style={{ fontSize: '13px', color: '#1A202C' }}>
                     {hazard.aiDetectedCategory || hazard.hazardType || 'Road Hazard'}
                   </strong>
                 </div>
 
-                {/* 🤖 AI Verification Badge */}
-                {hazard.isVerified && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    background: 'linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.15))',
-                    border: '1px solid rgba(118,75,162,0.4)',
-                    borderRadius: '8px',
-                    padding: '5px 8px',
-                    marginBottom: '10px',
-                    fontSize: '12px',
-                  }}>
-                    <span>🤖</span>
-                    <span style={{ color: '#A78BFA', fontWeight: 700 }}>AI Verified</span>
-                    {hazard.aiDetectedCategory && (
-                      <span style={{ color: '#8B949E' }}>· {hazard.aiDetectedCategory}</span>
-                    )}
-                    {hazard.aiConfidenceScore > 0 && (
-                      <span style={{
-                        marginLeft: 'auto', color: '#48BB78', fontWeight: 700, fontSize: '11px',
-                        background: 'rgba(72,187,120,0.15)', padding: '2px 6px', borderRadius: '10px',
-                      }}>
-                        {(hazard.aiConfidenceScore * 100).toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* AI Analysis Summary */}
-                {hazard.aiAnalysisSummary && (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.04)', borderRadius: '6px',
-                    padding: '6px 8px', marginBottom: '8px',
-                    fontSize: '11px', color: '#A0AEC0', lineHeight: '1.5',
-                  }}>
-                    {hazard.aiAnalysisSummary}
-                  </div>
-                )}
-
-                {/* Details */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#A0AEC0', fontSize: '13px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#4A5568', fontSize: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Severity:</span>
-                    <strong style={{ color: '#fff' }}>{hazard.severityScore}/5</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Z-Spike:</span>
-                    <strong style={{ color: '#fff' }}>{hazard.accelerometerZSpike ? hazard.accelerometerZSpike.toFixed(2) : '0.00'} m/s²</strong>
+                    <strong style={{ color: '#1A202C' }}>{hazard.severityScore || 1}/5</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Coordinates:</span>
-                    <span style={{ color: '#E2E8F0', fontSize: '12px' }}>
-                      {hazard.latitude.toFixed(4)}, {hazard.longitude.toFixed(4)}
+                    <span style={{ color: '#2D3748', fontSize: '11px' }}>
+                      {Number(hazard.latitude).toFixed(4)}, {Number(hazard.longitude).toFixed(4)}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Status:</span>
-                    <strong style={{ color: hazard.isVerified ? '#48BB78' : '#ECC94B' }}>
-                      {hazard.isVerified ? '✅ Verified' : '⏳ Pending'}
-                    </strong>
-                  </div>
-                  <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #2D3748', fontSize: '11px', color: '#718096' }}>
-                    {new Date(hazard.createdAt).toLocaleString()}
-                  </div>
 
-                  {/* Open in Google Maps Link */}
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${hazard.latitude},${hazard.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      marginTop: '8px',
-                      padding: '6px 10px',
-                      background: 'rgba(26, 115, 232, 0.15)',
-                      border: '1px solid rgba(26, 115, 232, 0.4)',
-                      borderRadius: '8px',
-                      color: '#63B3ED',
-                      textDecoration: 'none',
-                      fontSize: '12px',
-                      fontWeight: 600,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      marginTop: '6px', padding: '4px 8px', background: '#EBF8FF',
+                      border: '1px solid #BEE3F8', borderRadius: '6px', color: '#2B6CB0',
+                      textDecoration: 'none', fontSize: '11px', fontWeight: 600,
                     }}
                   >
-                    <MapPin size={13} />
-                    <span>View Spot in Google Maps</span>
-                    <ExternalLink size={11} />
+                    <MapPin size={11} />
+                    <span>View in Google Maps</span>
+                    <ExternalLink size={10} />
                   </a>
                 </div>
               </div>
