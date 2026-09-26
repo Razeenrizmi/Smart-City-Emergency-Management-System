@@ -1,122 +1,167 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect, useCallback, useRef } from 'react';
+import apiClient from './services/appClient';
+import { getSession, clearSession } from './services/auth';
+import DashboardLayout from './components/DashboardLayout';
+import HazardMap from './components/HazardMap';
+import LoginPage from './components/LoginPage';
+import AssignWorkerModal from './components/AssignWorkerModal';
+import PendingApprovalsView from './pages/PendingApprovalsView';
+import MunicipalWorkersView from './pages/MunicipalWorkersView';
+import MyWorkView from './pages/MyWorkView';
+import { C } from './theme';
+import './index.css';
+
+const Toast = ({ message, tone }) => (
+  <div
+    style={{
+      position: 'fixed',
+      right: '24px',
+      bottom: '24px',
+      zIndex: 3000,
+      maxWidth: '360px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '12px 16px',
+      borderRadius: '12px',
+      background: C.surface,
+      border: `1px solid ${tone === 'error' ? C.red : C.green}66`,
+      color: C.text,
+      fontSize: '13px',
+      boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+      animation: 'fadeInUp 0.3s ease',
+    }}
+  >
+    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: tone === 'error' ? C.red : C.green, flexShrink: 0 }} />
+    {message}
+  </div>
+);
+
+const Centered = ({ children }) => (
+  <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+    {children}
+  </div>
+);
+
+const defaultViewFor = (session) => (session?.user?.role === 'MUNICIPAL_WORKER' ? 'mywork' : 'map');
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [session, setSessionState] = useState(() => getSession());
+  const [view, setView] = useState(() => defaultViewFor(getSession()));
+  const [hazards, setHazards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [assignHazard, setAssignHazard] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+
+  const isWorker = session?.user?.role === 'MUNICIPAL_WORKER';
+
+  const notify = useCallback((message, tone = 'success') => {
+    setToast({ message, tone });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4500);
+  }, []);
+
+  const refreshHazards = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/hazards/all');
+      if (response.data?.success) {
+        setHazards(response.data.data);
+        setError(null);
+      } else {
+        setError('Failed to load hazard data.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Error connecting to the backend API.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Workers don't use the hazard map, so skip the polling entirely for them.
+    if (!session || isWorker) return undefined;
+
+    (async () => { await refreshHazards(); })();
+    const interval = setInterval(refreshHazards, 30000);
+    return () => clearInterval(interval);
+  }, [session, isWorker, refreshHazards]);
+
+  const handleLogin = (newSession) => {
+    setSessionState(newSession);
+    setView(defaultViewFor(newSession));
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    setSessionState(null);
+    setHazards([]);
+  };
+
+  if (!session) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  if (!isWorker && loading && hazards.length === 0) {
+    return (
+      <Centered>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div className="spinner" />
+          <p>Loading Smart City Data...</p>
+        </div>
+      </Centered>
+    );
+  }
+
+  if (!isWorker && error && hazards.length === 0) {
+    return (
+      <Centered>
+        <div style={{ backgroundColor: C.surface, padding: '32px', borderRadius: '16px', border: `1px solid ${C.red}`, maxWidth: '400px', textAlign: 'center' }}>
+          <h3 style={{ color: C.red, marginBottom: '16px' }}>Connection Error</h3>
+          <p style={{ color: C.textDim }}>{error}</p>
+          <button
+            onClick={refreshHazards}
+            style={{ marginTop: '24px', padding: '10px 20px', backgroundColor: C.blue, border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer' }}
+          >
+            Retry Connection
+          </button>
+        </div>
+      </Centered>
+    );
+  }
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <DashboardLayout
+        hazards={hazards}
+        user={session.user}
+        activeView={view}
+        onNavigate={setView}
+        onLogout={handleLogout}
+      >
+        {isWorker ? (
+          <MyWorkView />
+        ) : (
+          <>
+            {view === 'map' && <HazardMap hazards={hazards} onAssign={setAssignHazard} />}
+            {view === 'approvals' && <PendingApprovalsView onChanged={refreshHazards} />}
+            {view === 'workers' && <MunicipalWorkersView />}
+          </>
+        )}
+      </DashboardLayout>
 
-      <div className="ticks"></div>
+      {!isWorker && assignHazard && (
+        <AssignWorkerModal
+          hazard={assignHazard}
+          onClose={() => setAssignHazard(null)}
+          onCreated={() => notify('Dispatch request created — confirm it in Pending Approvals.')}
+        />
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      {toast && <Toast message={toast.message} tone={toast.tone} />}
     </>
-  )
+  );
 }
 
-export default App
+export default App;

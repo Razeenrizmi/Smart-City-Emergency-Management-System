@@ -1,0 +1,12 @@
+# ── .NET build output ──────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+publish/
+*.publishsettings
+
+# ── Visual Studio / Rider ──────────────────────────────────────────────
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
