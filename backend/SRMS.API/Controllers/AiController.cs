@@ -46,7 +46,11 @@ public class AiController : ControllerBase
                 report.AiConfidenceScore = result.ConfidenceScore;
                 report.AiAnalysisSummary = result.AnalysisSummary;
                 report.HazardType = result.DetectedCategory;          // override with AI classification
-                if (result.IsAutoVerified) report.IsVerified = true;
+                if (result.IsAutoVerified)
+                {
+                    report.IsVerified = true;
+                    report.ApprovalStatus = "APPROVED";
+                }
                 await _db.SaveChangesAsync();
             }
         }

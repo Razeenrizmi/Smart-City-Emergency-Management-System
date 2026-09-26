@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, ExternalLink, Navigation, Layers, MapPin, Maximize2 } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Navigation, Layers, MapPin, Maximize2, Wrench } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+import { statusMeta } from '../workflow';
 
 // Fix Leaflet's missing default icon paths safely without mutating prototype globally
 const defaultIcon = L.icon({
@@ -134,7 +135,7 @@ const getSeverityIcon = (severityScore = 1, isAiVerified = false) => {
   });
 };
 
-const HazardMap = ({ hazards = [] }) => {
+const HazardMap = ({ hazards = [], onAssign }) => {
   const [activeTile, setActiveTile] = useState('osm_standard');
   const [showCorridor, setShowCorridor] = useState(true);
   const [fitTrigger, setFitTrigger] = useState(0);
@@ -335,6 +336,12 @@ const HazardMap = ({ hazards = [] }) => {
                       {Number(hazard.latitude).toFixed(4)}, {Number(hazard.longitude).toFixed(4)}
                     </span>
                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Status:</span>
+                    <strong style={{ color: statusMeta(hazard.approvalStatus).color }}>
+                      {statusMeta(hazard.approvalStatus).label}
+                    </strong>
+                  </div>
 
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${hazard.latitude},${hazard.longitude}`}
@@ -351,6 +358,29 @@ const HazardMap = ({ hazards = [] }) => {
                     <span>View in Google Maps</span>
                     <ExternalLink size={10} />
                   </a>
+
+                  {hazard.approvalStatus === 'APPROVED' ? (
+                    <button
+                      type="button"
+                      onClick={() => onAssign?.(hazard)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                        marginTop: '6px', padding: '6px 8px', background: '#667EEA', border: 'none',
+                        borderRadius: '6px', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                      }}
+                    >
+                      <Wrench size={11} />
+                      Assign Worker
+                    </button>
+                  ) : (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      marginTop: '6px', padding: '5px 8px', background: '#FEFCBF', border: '1px solid #F6E05E',
+                      borderRadius: '6px', color: '#975A16', fontSize: '10px', fontWeight: 600,
+                    }}>
+                      Awaiting officer approval
+                    </div>
+                  )}
                 </div>
               </div>
             </Popup>

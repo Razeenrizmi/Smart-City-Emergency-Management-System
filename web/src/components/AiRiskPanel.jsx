@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, TrendingUp, Shield, Zap, RefreshCw } from 'lucide-react';
 import apiClient from '../services/appClient';
 
@@ -30,7 +30,7 @@ const RdiGauge = ({ value }) => {
   );
 };
 
-const AiRiskPanel = ({ onOpenCopilot }) => {
+const AiRiskPanel = () => {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -42,7 +42,7 @@ const AiRiskPanel = ({ onOpenCopilot }) => {
         setInsights(res.data.data);
         setLastUpdated(new Date());
       }
-    } catch (_) {
+    } catch {
       // Silently fail — panel just shows empty state
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ const AiRiskPanel = ({ onOpenCopilot }) => {
   }, []);
 
   useEffect(() => {
-    fetchInsights();
+    (async () => { await fetchInsights(); })();
     const interval = setInterval(fetchInsights, 60_000); // refresh every minute
     return () => clearInterval(interval);
   }, [fetchInsights]);
