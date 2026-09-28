@@ -1,32 +1,66 @@
-# .NET build output
+# ── Secrets / local configuration ──────────────────────────────────────
+# Holds the real DB connection string + JWT signing key — never commit it.
+# Local overrides belong in appsettings.Development.json (tracked, dev-only values).
+backend/SRMS.API/appsettings.json
+*.env
+.env
+.env.*
+!.env.example
+
+# ── .NET build output ──────────────────────────────────────────────────
 **/bin/
 **/obj/
 
-# Visual Studio
+# ── Visual Studio / Rider / VS Code ────────────────────────────────────
 .vs/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
-
-# Rider
 .idea/
+.vscode/*
+!.vscode/extensions.json
 
-# VS Code
-.vscode/
-
-# Test results
+# ── Test results ───────────────────────────────────────────────────────
 TestResults/
 *.trx
 
-# NuGet
+# ── NuGet ──────────────────────────────────────────────────────────────
 *.nupkg
 *.snupkg
 
-# Logs
-*.log
+# ── OS cruft ───────────────────────────────────────────────────────────
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Environment / secrets
-.env
-.env.*
-!.env.example
+# ── Editors ────────────────────────────────────────────────────────────
+*.swp
+*.swo
+
+# ── Local agent tooling (taste config, session state) ──────────────────
+.commandcode/
+
+# ── Node / frontend ────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ── Logs ───────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Python (local AI services, e.g. backend/SRMS.AI) ───────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/

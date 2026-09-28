@@ -3,6 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SRMS.API.Models;
 
+/// <summary>
+/// Persistent AI workflow record for the Emergency Green Wave domain (proposal, validation,
+/// human approval and handoff). The hazard-reporting domain uses
+/// <see cref="HazardAiWorkflowExecution"/> (table "AiWorkflowExecutions") instead.
+/// </summary>
 [Table("ai_workflow_executions")]
 public class AiWorkflowExecution
 {

@@ -1,9 +1,10 @@
-/* Dashboard Layout */
+/* Dashboard Layout — embedded inside the SRMS console shell, so it fills the
+   content area instead of owning the whole viewport. */
 .dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
 }
 
 .dashboard-header {

@@ -13,14 +13,30 @@ import 'package:mobile/services/emergency_service.dart';
 import 'package:mobile/services/route_service.dart';
 
 void main() {
-  group('Emergency Green Wave Mobile Tests', () {
-    testWidgets('Home screen renders Emergency Green Wave title and navigation buttons', (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+  testWidgets('SRMS app renders smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(const SRMSApp());
+    // Just verify the app builds without crashing
+    expect(find.byType(SRMSApp), findsOneWidget);
+  });
 
-      expect(find.text('Emergency Green Wave'), findsWidgets);
-      expect(find.text('Emergency Green Wave System'), findsOneWidget);
+  group('Emergency Green Wave Mobile Tests', () {
+    testWidgets('Home screen links both feature areas with navigation buttons', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(const SRMSApp());
+
+      expect(find.text('Smart City Emergency Management'), findsOneWidget);
+      expect(find.text('Emergency Green Wave'), findsOneWidget);
+      expect(find.text('Road Hazard Detection'), findsOneWidget);
       expect(find.text('Select Route'), findsOneWidget);
       expect(find.text('Create Emergency'), findsOneWidget);
+      expect(find.text('View Created Emergencies'), findsOneWidget);
+      expect(find.text('Start Hazard Detection'), findsOneWidget);
     });
 
     test('RouteService retrieves and deserializes routes via HTTP client', () async {
