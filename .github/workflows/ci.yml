@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Mandatory: ASP.NET Core backend restore → build → test ────────────────
+  # The xUnit suite is a PostgreSQL integration test (SRMS.API.Tests), so it
+  # runs against a throwaway Postgres service container.
+  backend:
+    name: Backend (.NET 8) — build & test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: srms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore backend/SRMS.API.Tests/SRMS.API.Tests.csproj
+
+      - name: Build
+        run: >-
+          dotnet build backend/SRMS.API.Tests/SRMS.API.Tests.csproj
+          --configuration Release --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test backend/SRMS.API.Tests/SRMS.API.Tests.csproj
+          --configuration Release --no-build --verbosity normal
+
+  # ── Web dashboard: lint → tests → production build ────────────────────────
+  web:
+    name: Web (React) — lint, test & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  # ── Flutter mobile app: analyze → unit/widget tests ───────────────────────
+  mobile:
+    name: Mobile (Flutter) — analyze & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Warnings/infos are reported but do not fail the build; analyzer errors still do.
+      - name: Analyze
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+
+      - name: Test
+        run: flutter test
+
+  # ── AI service (FastAPI + LangGraph): pytest ──────────────────────────────
+  ai-service:
+    name: AI Service (FastAPI) — test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+
+    env:
+      # Point the read-only corridor tools at a non-listening port so the suite
+      # deterministically uses the offline SIMULATION_CATALOG fallback instead of
+      # depending on a backend that happens to be running locally.
+      BACKEND_BASE_URL: "http://127.0.0.1:59999/api"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ai-service/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Test
+        run: python -m pytest -q

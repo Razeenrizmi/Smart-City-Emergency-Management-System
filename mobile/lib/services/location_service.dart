@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
@@ -23,11 +26,30 @@ class LocationService {
       );
     }
 
-    return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        timeLimit: Duration(seconds: 10),
-      ),
-    );
+    // Force a fresh, high-accuracy fix. On Android we explicitly use the
+    // platform LocationManager (GPS provider) instead of the fused provider,
+    // which can return a stale cached fix — the usual reason an emulator keeps
+    // reporting its default location instead of the one you set.
+    const timeout = Duration(seconds: 30);
+    final LocationSettings settings = Platform.isAndroid
+        ? AndroidSettings(
+            accuracy: LocationAccuracy.best,
+            forceLocationManager: true,
+            timeLimit: timeout,
+          )
+        : const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: timeout,
+          );
+
+    try {
+      return await Geolocator.getCurrentPosition(locationSettings: settings);
+    } on TimeoutException {
+      // A fresh fix didn't arrive in time; fall back to the most recent known
+      // position instead of failing the whole hazard report.
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+      rethrow;
+    }
   }
 }
