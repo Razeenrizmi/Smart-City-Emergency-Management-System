@@ -22,7 +22,7 @@ namespace SRMS.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SRMS.API.Models.AiWorkflowExecution", b =>
+            modelBuilder.Entity("SRMS.API.Models.HazardAiWorkflowExecution", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

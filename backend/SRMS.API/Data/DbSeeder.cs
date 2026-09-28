@@ -15,6 +15,11 @@ public static class DbSeeder
 
         await db.Database.MigrateAsync();
 
+        // The Emergency Green Wave domain lives in its own context; make sure its
+        // schema (routes, junctions, sessions, signal logs) is applied as well.
+        var greenWaveDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await greenWaveDb.Database.MigrateAsync();
+
         if (!await db.Users.AnyAsync(u => u.Username == "officer"))
         {
             db.Users.Add(new AppUser

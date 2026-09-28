@@ -8,6 +8,7 @@ import AssignWorkerModal from './components/AssignWorkerModal';
 import PendingApprovalsView from './pages/PendingApprovalsView';
 import MunicipalWorkersView from './pages/MunicipalWorkersView';
 import MyWorkView from './pages/MyWorkView';
+import GreenWaveDashboard from './modules/emergency-green-wave/Dashboard';
 import { C } from './theme';
 import './index.css';
 
@@ -147,6 +148,7 @@ function App() {
             {view === 'map' && <HazardMap hazards={hazards} onAssign={setAssignHazard} />}
             {view === 'approvals' && <PendingApprovalsView onChanged={refreshHazards} />}
             {view === 'workers' && <MunicipalWorkersView />}
+            {view === 'greenwave' && <GreenWaveDashboard />}
           </>
         )}
       </DashboardLayout>

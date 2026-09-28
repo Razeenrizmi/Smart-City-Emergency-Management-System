@@ -1,9 +1,33 @@
 # ── Secrets / local configuration ──────────────────────────────────────
 # Holds the real DB connection string + JWT signing key — never commit it.
+# Local overrides belong in appsettings.Development.json (tracked, dev-only values).
 backend/SRMS.API/appsettings.json
 *.env
+.env
 .env.*
 !.env.example
+
+# ── .NET build output ──────────────────────────────────────────────────
+**/bin/
+**/obj/
+
+# ── Visual Studio / Rider / VS Code ────────────────────────────────────
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ── Test results ───────────────────────────────────────────────────────
+TestResults/
+*.trx
+
+# ── NuGet ──────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
 
 # ── OS cruft ───────────────────────────────────────────────────────────
 .DS_Store
@@ -14,13 +38,9 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# ── Editors / IDEs ─────────────────────────────────────────────────────
-.vscode/*
-!.vscode/extensions.json
-.idea/
+# ── Editors ────────────────────────────────────────────────────────────
 *.swp
 *.swo
-*.suo
 
 # ── Local agent tooling (taste config, session state) ──────────────────
 .commandcode/
@@ -38,3 +58,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# ── Python (local AI services, e.g. backend/SRMS.AI) ───────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/

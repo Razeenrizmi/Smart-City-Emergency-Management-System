@@ -58,7 +58,7 @@ public class AiVisionService
         sw.Stop();
 
         // ── Persist workflow log ──────────────────────────────────────────────
-        var execution = new AiWorkflowExecution
+        var execution = new HazardAiWorkflowExecution
         {
             HazardReportId = hazardReportId,
             WorkflowType = "VISION_CLASSIFY",

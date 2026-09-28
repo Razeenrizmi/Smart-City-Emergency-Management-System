@@ -9,6 +9,7 @@ import {
   Users,
   ClipboardList,
   LogOut,
+  Zap,
 } from 'lucide-react';
 import AiRiskPanel from './AiRiskPanel';
 import AiCopilotDrawer from './AiCopilotDrawer';
@@ -18,6 +19,7 @@ import { titleCase } from '../workflow';
 const OFFICER_NAV = [
   { id: 'map', label: 'Live Hazard Map', icon: MapIcon },
   { id: 'approvals', label: 'Pending Approvals', icon: AlertTriangle },
+  { id: 'greenwave', label: 'Emergency Green Wave', icon: Zap },
   { id: 'workers', label: 'Municipal Workers', icon: Users },
 ];
 
@@ -28,6 +30,7 @@ const WORKER_NAV = [
 const VIEW_TITLES = {
   map: 'Live Hazard Map',
   approvals: 'Pending Approvals',
+  greenwave: 'Emergency Green Wave',
   workers: 'Municipal Workers',
   mywork: 'My Assigned Work',
 };
@@ -84,6 +87,8 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
 
   const isWorker = user?.role === 'MUNICIPAL_WORKER';
   const navItems = isWorker ? WORKER_NAV : OFFICER_NAV;
+  // The hazard stat cards / RDI banner only make sense on the hazard views.
+  const showHazardChrome = !isWorker && activeView !== 'greenwave';
 
   const totalReports = hazards.length;
   const severeReports = hazards.filter((h) => h.severityScore >= 4).length;
@@ -220,12 +225,12 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
           </div>
         </div>
 
-        {/* AI Risk Panel (RDI Banner) — officer only */}
-        {!isWorker && <AiRiskPanel />}
+        {/* AI Risk Panel (RDI Banner) — hazard views only */}
+        {showHazardChrome && <AiRiskPanel />}
 
         {/* Dashboard Area */}
         <div style={{ padding: '32px', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
-          {!isWorker && (
+          {showHazardChrome && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
               <StatCard title="Total Reports" value={totalReports} icon={Activity} color="#4299E1" />
               <StatCard title="Severe Hazards" value={severeReports} icon={AlertTriangle} color="#E53E3E" />

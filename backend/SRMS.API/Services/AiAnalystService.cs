@@ -46,7 +46,7 @@ public class AiAnalystService
         sw.Stop();
 
         // Log
-        var log = new AiWorkflowExecution
+        var log = new HazardAiWorkflowExecution
         {
             WorkflowType = "ANALYST_INSIGHTS",
             DomainObjective = "City-wide risk analysis",
@@ -79,7 +79,7 @@ public class AiAnalystService
 
         sw.Stop();
 
-        var log = new AiWorkflowExecution
+        var log = new HazardAiWorkflowExecution
         {
             WorkflowType = "CHAT_QUERY",
             DomainObjective = "Admin copilot chat",

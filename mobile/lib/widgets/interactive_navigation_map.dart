@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/hazard_report_model.dart';
@@ -647,7 +648,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     source: Text('OpenStreetMap contributors'),
                   ),
                 ],
-              )
+              ),
                 // Live Spike Flash Alert Overlay
                 if (_showSpikeFlash)
                   Positioned(
@@ -1101,7 +1102,7 @@ class _DynamicRouteMapPainter extends CustomPainter {
     if (routePoints.isEmpty) return;
 
     // 2. Draw Dynamic Route Polyline
-    final polyPath = Path();
+    final polyPath = ui.Path();
     for (int i = 0; i < routePoints.length; i++) {
       final pt = _latLngToScreen(routePoints[i].lat, routePoints[i].lng, size);
       if (i == 0) {
@@ -1199,7 +1200,7 @@ class _DynamicRouteMapPainter extends CustomPainter {
     canvas.rotate((carBearing * pi) / 180);
 
     // Car body chevron
-    final carBody = Path()
+    final carBody = ui.Path()
       ..moveTo(0, -14)
       ..lineTo(9, 10)
       ..lineTo(0, 5)

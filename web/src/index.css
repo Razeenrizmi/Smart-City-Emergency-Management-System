@@ -6,13 +6,38 @@
   padding: 0;
 }
 
+/*
+ * Shared design tokens. The hazard console uses the `C` palette from theme.js,
+ * while the Emergency Green Wave module styles itself with these CSS variables —
+ * both are aligned to the same dark surface so the two modules look like one app.
+ */
+:root {
+  --text: #8B949E;
+  --text-h: #E2E8F0;
+  --bg: #161B22;
+  --border: #30363D;
+  --code-bg: #0D1117;
+  --accent: #667EEA;
+  --accent-bg: rgba(102, 126, 234, 0.12);
+  --accent-border: rgba(102, 126, 234, 0.5);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 body {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #0D1117;
   color: #E2E8F0;
   overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Spinner for Loading State */
@@ -68,6 +93,25 @@ body {
 
 .leaflet-popup-close-button:hover {
   color: #fff !important;
+}
+
+/* ─── Emergency Green Wave: dark-surface contrast fixes ─────────────────── */
+
+/* The module ships light-mode callouts; retune them for the dark console. */
+.green-wave-info {
+  background: rgba(236, 201, 75, 0.1);
+  border: 1px solid rgba(236, 201, 75, 0.35);
+}
+
+.card-alert {
+  border-left: 3px solid #d97706;
+  background: rgba(217, 119, 6, 0.12);
+  color: #f6c177;
+}
+
+.emergency-details .details-section,
+.dashboard .section {
+  background: var(--bg);
 }
 
 /* ─── AI Component Animations ───────────────────────────────── */

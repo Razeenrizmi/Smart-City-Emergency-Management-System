@@ -1,39 +1,92 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SRMS.API.Models;
 
 /// <summary>
-/// Tracks AI workflow executions — image classification, analyst runs, and chat queries.
+/// Persistent AI workflow record for the Emergency Green Wave domain (proposal, validation,
+/// human approval and handoff). The hazard-reporting domain uses
+/// <see cref="HazardAiWorkflowExecution"/> (table "AiWorkflowExecutions") instead.
 /// </summary>
+[Table("ai_workflow_executions")]
 public class AiWorkflowExecution
 {
     [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    [Column("workflow_id")]
+    public Guid WorkflowId { get; set; }
 
-    /// <summary>Linked hazard report (nullable for chat-only queries).</summary>
-    public Guid? HazardReportId { get; set; }
+    [Required]
+    [Column("session_id")]
+    public Guid SessionId { get; set; }
 
-    /// <summary>Type: VISION_CLASSIFY | ANALYST_INSIGHTS | CHAT_QUERY</summary>
-    public string WorkflowType { get; set; } = "VISION_CLASSIFY";
+    [MaxLength(200)]
+    [Column("thread_id")]
+    public string? ThreadId { get; set; }
 
-    /// <summary>Kept for backward compatibility — describes the domain objective.</summary>
-    public string DomainObjective { get; set; } = string.Empty;
+    [MaxLength(100)]
+    [Column("proposal_id")]
+    public string? ProposalId { get; set; }
 
-    public string ExecutionPlanJson { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(300)]
+    [Column("objective")]
+    public string Objective { get; set; } = string.Empty;
 
-    /// <summary>Raw AI query or image base64 input (truncated for storage).</summary>
-    public string? InputPayload { get; set; }
+    [MaxLength(100)]
+    [Column("current_stage")]
+    public string? CurrentStage { get; set; }
 
-    /// <summary>AI response JSON or text output.</summary>
-    public string? OutputPayload { get; set; }
+    [Column("completed_steps", TypeName = "jsonb")]
+    public string? CompletedStepsJson { get; set; }
 
-    public double? ConfidenceScore { get; set; }
-    public string? DetectedCategory { get; set; }
-    public bool WasAutoVerified { get; set; } = false;
+    [Required]
+    [MaxLength(50)]
+    [Column("workflow_status")]
+    public string WorkflowStatus { get; set; } = string.Empty;
 
-    /// <summary>Approval status: Pending | Approved | Rejected</summary>
-    public string ApprovalStatus { get; set; } = "Pending";
+    [Required]
+    [MaxLength(50)]
+    [Column("proposal_status")]
+    public string ProposalStatus { get; set; } = string.Empty;
 
-    public long ProcessingMs { get; set; } = 0;
+    [Required]
+    [MaxLength(50)]
+    [Column("approval_status")]
+    public string ApprovalStatus { get; set; } = string.Empty;
+
+    [Column("is_valid")]
+    public bool IsValid { get; set; }
+
+    [Column("handoff_ready")]
+    public bool HandoffReady { get; set; }
+
+    [Column("validation_notes", TypeName = "jsonb")]
+    public string? ValidationNotesJson { get; set; }
+
+    [Column("proposed_actions", TypeName = "jsonb")]
+    public string? ProposedActionsJson { get; set; }
+
+    [MaxLength(500)]
+    [Column("error_summary")]
+    public string? ErrorSummary { get; set; }
+
+    [Column("approved_at")]
+    public DateTime? ApprovedAt { get; set; }
+
+    [MaxLength(200)]
+    [Column("approved_by")]
+    public string? ApprovedBy { get; set; }
+
+    [MaxLength(500)]
+    [Column("approval_notes")]
+    public string? ApprovalNotes { get; set; }
+
+    [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [ForeignKey(nameof(SessionId))]
+    public virtual EmergencySession EmergencySession { get; set; } = null!;
 }
