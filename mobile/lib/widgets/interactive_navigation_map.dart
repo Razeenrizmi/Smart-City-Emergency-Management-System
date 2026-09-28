@@ -327,14 +327,25 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
 
   // ─── Trigger Pothole Detection along dynamic trip ──────────────────
   Future<void> _handleRoadHazardSpike(double zSpike) async {
-    final lat = _currentCarLat;
-    final lng = _currentCarLng;
     final severity = zSpike >= 18 ? 5 : zSpike >= 14 ? 4 : zSpike >= 10 ? 3 : 2;
 
     setState(() {
       _showSpikeFlash = true;
-      _lastAlertMsg = '💥 Pothole detected on route between Point A & Point B! Z = ${zSpike.toStringAsFixed(1)} m/s²';
+      _lastAlertMsg = '💥 Pothole detected! Z = ${zSpike.toStringAsFixed(1)} m/s²';
     });
+
+    // Report the actual device location. Only fall back to the simulated car
+    // position when no GPS fix is available, so hazard reports never carry the
+    // hardcoded route coordinates.
+    double lat = _currentCarLat;
+    double lng = _currentCarLng;
+    try {
+      final pos = await LocationService.getCurrentPosition();
+      lat = pos.latitude;
+      lng = pos.longitude;
+    } catch (_) {
+      // Keep the simulated position as a last resort.
+    }
 
     // Auto-report to backend
     final report = HazardReportModel(
