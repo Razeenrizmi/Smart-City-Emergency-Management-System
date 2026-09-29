@@ -17,10 +17,344 @@ namespace SRMS.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("SRMS.API.Models.AppUser", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("WorkerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("SRMS.API.Models.Camera", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CameraId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Fps")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LastPlate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastScanTime")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Resolution")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ScannedToday")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Zone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CameraId")
+                        .IsUnique();
+
+                    b.ToTable("Cameras");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CameraId = "CAM-101",
+                            Fps = 60,
+                            LastPlate = "",
+                            LastScanTime = "Never",
+                            Lat = 6.9271000000000003,
+                            Lng = 79.861199999999997,
+                            Name = "Main St & 5th Ave Intersection",
+                            Resolution = "4K HDR ANPR",
+                            ScannedToday = 0,
+                            Status = "Active",
+                            Zone = "Downtown Central"
+                        });
+                });
+
+            modelBuilder.Entity("SRMS.API.Models.CctvNode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CameraName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CameraType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastSeenAt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double?>("Lat")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Lng")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NodeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreamSource")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreamUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NodeId")
+                        .IsUnique();
+
+                    b.ToTable("CctvNodes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CameraName = "Main Street CCTV",
+                            CameraType = "LAPTOP_WEBCAM",
+                            CreatedAt = "2026-01-01 00:00:00",
+                            LastSeenAt = "Never",
+                            Lat = 6.9271000000000003,
+                            Lng = 79.861199999999997,
+                            Location = "Main St & 5th Ave (University Simulated Node)",
+                            NodeId = 1,
+                            Status = "OFFLINE",
+                            StreamSource = "LOCAL_WEBCAM",
+                            StreamUrl = ""
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CameraName = "University Gate CCTV",
+                            CameraType = "MOBILE_CAMERA",
+                            CreatedAt = "2026-01-01 00:00:00",
+                            LastSeenAt = "Never",
+                            Lat = 6.9175000000000004,
+                            Lng = 79.882999999999996,
+                            Location = "University Main Gate (University Simulated Node)",
+                            NodeId = 2,
+                            Status = "OFFLINE",
+                            StreamSource = "PHONE_CAMERA",
+                            StreamUrl = ""
+                        });
+                });
+
+            modelBuilder.Entity("SRMS.API.Models.DetectionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CameraId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CameraName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<bool>("CrimeMatch")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsHotlistMatch")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LogId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NodeId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("OcrConfidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Snapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Speed")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ThreatLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Timestamp")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("TrackId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("VehicleConfidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("VehicleDetails")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VehicleType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogId")
+                        .IsUnique();
+
+                    b.HasIndex("NodeId", "SessionId", "TrackId")
+                        .IsUnique();
+
+                    b.ToTable("DetectionLogs");
+                });
+
+            modelBuilder.Entity("SRMS.API.Models.DetectionSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EndedAt")
+                        .HasColumnType("text");
+
+                    b.Property<int>("NodeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StartedAt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId")
+                        .IsUnique();
+
+                    b.ToTable("DetectionSessions");
+                });
 
             modelBuilder.Entity("SRMS.API.Models.HazardAiWorkflowExecution", b =>
                 {
@@ -73,46 +407,68 @@ namespace SRMS.API.Migrations
                     b.ToTable("AiWorkflowExecutions");
                 });
 
-            modelBuilder.Entity("SRMS.API.Models.AppUser", b =>
+            modelBuilder.Entity("SRMS.API.Models.HotlistVehicle", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FullName")
+                    b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Role")
+                    b.Property<string>("IncidentType")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("LastSeenCamera")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("WorkerId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("MakeModel")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("UserId");
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("Username")
+                    b.Property<string>("OwnerName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ThreatLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VehicleId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("WantedSince")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("vehicle", (string)null);
                 });
 
             modelBuilder.Entity("SRMS.API.Models.MunicipalWorker", b =>
@@ -145,6 +501,104 @@ namespace SRMS.API.Migrations
                     b.HasKey("WorkerId");
 
                     b.ToTable("Workers");
+                });
+
+            modelBuilder.Entity("SRMS.API.Models.PatrolUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Callsign")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DistanceToAlert")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Eta")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LeadOfficer")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sector")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UnitId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VehicleType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UnitId")
+                        .IsUnique();
+
+                    b.ToTable("PatrolUnits");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Callsign = "Patrol Alpha 4",
+                            DistanceToAlert = "1.2 km",
+                            Eta = "2 mins",
+                            LeadOfficer = "Sgt. Miller & Off. Davis",
+                            Sector = "Downtown Central",
+                            Status = "AVAILABLE",
+                            UnitId = "UNIT-402",
+                            VehicleType = "High-Speed Interceptor Utility"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Callsign = "Tactical Bravo 2",
+                            DistanceToAlert = "2.8 km",
+                            Eta = "4 mins",
+                            LeadOfficer = "Capt. Reynolds (SWAT)",
+                            Sector = "Financial District",
+                            Status = "AVAILABLE",
+                            UnitId = "UNIT-308",
+                            VehicleType = "Armored Tactical Response Unit"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Callsign = "Highway Patrol Delta 9",
+                            DistanceToAlert = "4.5 km",
+                            Eta = "6 mins",
+                            LeadOfficer = "Off. Chen",
+                            Sector = "Western Highway Corridor",
+                            Status = "AVAILABLE",
+                            UnitId = "UNIT-512",
+                            VehicleType = "Dodge Pursuit Cruiser"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Callsign = "Air Surveillance Recon 1",
+                            DistanceToAlert = "0.8 km",
+                            Eta = "1 min",
+                            LeadOfficer = "Pilot Vance",
+                            Sector = "City-Wide Aerial",
+                            Status = "ON_PATROL",
+                            UnitId = "UNIT-105",
+                            VehicleType = "Eurocopter Emergency Drone/Chopper"
+                        });
                 });
 
             modelBuilder.Entity("SRMS.API.Models.RepairWorkOrder", b =>

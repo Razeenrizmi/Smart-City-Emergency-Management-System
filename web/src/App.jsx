@@ -9,6 +9,7 @@ import PendingApprovalsView from './pages/PendingApprovalsView';
 import MunicipalWorkersView from './pages/MunicipalWorkersView';
 import MyWorkView from './pages/MyWorkView';
 import GreenWaveDashboard from './modules/emergency-green-wave/Dashboard';
+import CrimeVehiclePage from './modules/crime-vehicle/CrimeVehiclePage';
 import { C } from './theme';
 import './index.css';
 
@@ -149,6 +150,7 @@ function App() {
             {view === 'approvals' && <PendingApprovalsView onChanged={refreshHazards} />}
             {view === 'workers' && <MunicipalWorkersView />}
             {view === 'greenwave' && <GreenWaveDashboard />}
+            {view === 'crimevehicle' && <CrimeVehiclePage />}
           </>
         )}
       </DashboardLayout>

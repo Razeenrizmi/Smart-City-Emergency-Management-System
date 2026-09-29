@@ -9,36 +9,56 @@ import 'package:mobile/models/emergency_session.dart';
 import 'package:mobile/models/route.dart' as route_model;
 import 'package:mobile/screens/create_emergency_screen.dart';
 import 'package:mobile/screens/emergency_session_screen.dart';
+import 'package:mobile/screens/home_screen.dart';
+import 'package:mobile/screens/main_shell.dart';
+import 'package:mobile/screens/splash_screen.dart';
 import 'package:mobile/services/emergency_service.dart';
 import 'package:mobile/services/route_service.dart';
+import 'package:mobile/theme/app_theme.dart';
 
 void main() {
-  testWidgets('SRMS app renders smoke test', (WidgetTester tester) async {
+  testWidgets('SRMS app opens splash then the unified shell — no login', (WidgetTester tester) async {
     await tester.pumpWidget(const SRMSApp());
-    // Just verify the app builds without crashing
+    await tester.pump();
+
     expect(find.byType(SRMSApp), findsOneWidget);
+    expect(find.byType(SplashScreen), findsOneWidget);
+    expect(find.textContaining('LOGIN', findRichText: true), findsNothing);
+    expect(find.textContaining('Sign in', findRichText: true), findsNothing);
+
+    // Advance past the splash timer into the main shell (network may fail in tests).
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(MainShell), findsOneWidget);
+  });
+
+  testWidgets('Unified home hub links both feature areas', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    expect(find.text('Smart City Emergency Management'), findsOneWidget);
+    expect(find.text('Emergency Green Wave'), findsOneWidget);
+    expect(find.text('Road Hazard Detection'), findsOneWidget);
+    expect(find.text('Crime Vehicle Detection'), findsOneWidget);
+    expect(find.text('Select Route'), findsOneWidget);
+    expect(find.text('Create Emergency'), findsOneWidget);
+    expect(find.text('View Created Emergencies'), findsOneWidget);
+    expect(find.text('Start Hazard Detection'), findsOneWidget);
+  });
+
+  testWidgets('Theme builds with Material 3', (WidgetTester tester) async {
+    final theme = buildAppTheme();
+    expect(theme.useMaterial3, isTrue);
   });
 
   group('Emergency Green Wave Mobile Tests', () {
-    testWidgets('Home screen links both feature areas with navigation buttons', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      await tester.pumpWidget(const SRMSApp());
-
-      expect(find.text('Smart City Emergency Management'), findsOneWidget);
-      expect(find.text('Emergency Green Wave'), findsOneWidget);
-      expect(find.text('Road Hazard Detection'), findsOneWidget);
-      expect(find.text('Select Route'), findsOneWidget);
-      expect(find.text('Create Emergency'), findsOneWidget);
-      expect(find.text('View Created Emergencies'), findsOneWidget);
-      expect(find.text('Start Hazard Detection'), findsOneWidget);
-    });
-
     test('RouteService retrieves and deserializes routes via HTTP client', () async {
       final mockClient = MockClient((request) async {
         if (request.url.path.endsWith('/routes')) {

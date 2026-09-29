@@ -62,7 +62,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ─── Databases (two feature domains share the same PostgreSQL instance) ───────
-// Hazard reporting, worker dispatch, accounts and work orders.
+// Hazard reporting, worker dispatch, accounts and work orders — plus the
+// crime-vehicle detection tables (cameras, hotlist, detection logs, CCTV nodes).
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -113,7 +114,25 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpClient("AIService", client =>
+{
+    var aiUrl = builder.Configuration["AIService:Url"] ?? "http://localhost:8000";
+    client.BaseAddress = new Uri(aiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 var app = builder.Build();
+
+// Apply EF migrations and seed baseline data for every domain.
+await DbSeeder.SeedAsync(app);
+
+// EnsureCreated() is a no-op on existing databases — apply idempotent multi-CCTV
+// schema changes so pre-existing smart_city databases pick up the new columns.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await SchemaMigrator.RunAsync(db);
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -121,9 +140,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Apply migrations and seed baseline data for every domain
-await DbSeeder.SeedAsync(app);
 
 app.UseCors("AllowAll");
 app.UseAuthentication();
