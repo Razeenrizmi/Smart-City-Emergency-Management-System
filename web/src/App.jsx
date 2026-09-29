@@ -8,6 +8,10 @@ import AssignWorkerModal from './components/AssignWorkerModal';
 import PendingApprovalsView from './pages/PendingApprovalsView';
 import MunicipalWorkersView from './pages/MunicipalWorkersView';
 import MyWorkView from './pages/MyWorkView';
+import JunctionControlPanel from './pages/JunctionControlPanel';
+import SignalTestSimulator from './pages/SignalTestSimulator';
+import FaultReports from './pages/FaultReports';
+import { TestJunctionProvider } from './context/TestJunctionContext';
 import GreenWaveDashboard from './modules/emergency-green-wave/Dashboard';
 import CrimeVehiclePage from './modules/crime-vehicle/CrimeVehiclePage';
 import { C } from './theme';
@@ -134,7 +138,7 @@ function App() {
   }
 
   return (
-    <>
+    <TestJunctionProvider>
       <DashboardLayout
         hazards={hazards}
         user={session.user}
@@ -151,6 +155,9 @@ function App() {
             {view === 'workers' && <MunicipalWorkersView />}
             {view === 'greenwave' && <GreenWaveDashboard />}
             {view === 'crimevehicle' && <CrimeVehiclePage />}
+            {view === 'junctions' && <JunctionControlPanel />}
+            {view === 'signaltest' && <SignalTestSimulator />}
+            {view === 'reports' && <FaultReports />}
           </>
         )}
       </DashboardLayout>
@@ -164,7 +171,7 @@ function App() {
       )}
 
       {toast && <Toast message={toast.message} tone={toast.tone} />}
-    </>
+    </TestJunctionProvider>
   );
 }
 

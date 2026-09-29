@@ -11,6 +11,9 @@ import {
   LogOut,
   Zap,
   ShieldAlert,
+  TrafficCone,
+  RadioReceiver,
+  FileWarning,
 } from 'lucide-react';
 import AiRiskPanel from './AiRiskPanel';
 import AiCopilotDrawer from './AiCopilotDrawer';
@@ -22,6 +25,9 @@ const OFFICER_NAV = [
   { id: 'approvals', label: 'Pending Approvals', icon: AlertTriangle },
   { id: 'greenwave', label: 'Emergency Green Wave', icon: Zap },
   { id: 'crimevehicle', label: 'Crime Vehicle Detection', icon: ShieldAlert },
+  { id: 'junctions', label: 'Junction Control', icon: TrafficCone },
+  { id: 'signaltest', label: 'Signal Test Simulator', icon: RadioReceiver },
+  { id: 'reports', label: 'Camera Fault Reports', icon: FileWarning },
   { id: 'workers', label: 'Municipal Workers', icon: Users },
 ];
 
@@ -34,6 +40,9 @@ const VIEW_TITLES = {
   approvals: 'Pending Approvals',
   greenwave: 'Emergency Green Wave',
   crimevehicle: 'Crime Vehicle Detection',
+  junctions: 'Junction Control Panel',
+  signaltest: 'Signal Test Simulator',
+  reports: 'Camera Fault Reports',
   workers: 'Municipal Workers',
   mywork: 'My Assigned Work',
 };
@@ -91,7 +100,8 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
   const isWorker = user?.role === 'MUNICIPAL_WORKER';
   const navItems = isWorker ? WORKER_NAV : OFFICER_NAV;
   // The hazard stat cards / RDI banner only make sense on the hazard views.
-  const showHazardChrome = !isWorker && activeView !== 'greenwave' && activeView !== 'crimevehicle';
+  const showHazardChrome =
+    !isWorker && !['greenwave', 'crimevehicle', 'junctions', 'signaltest', 'reports'].includes(activeView);
 
   const totalReports = hazards.length;
   const severeReports = hazards.filter((h) => h.severityScore >= 4).length;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import 'alerts_screen.dart';
+import 'camera_status_screen.dart';
 import 'cctv_screen.dart';
 import 'create_emergency_screen.dart';
 import 'dashboard_screen.dart';
@@ -69,6 +70,23 @@ class HomeScreen extends StatelessWidget {
                 label: 'Start Hazard Detection',
                 icon: Icons.sensors_rounded,
                 onPressed: () => _open(context, const HazardDetectionScreen()),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          const _SectionLabel('TRAFFIC SIGNAL CONTROL'),
+          const SizedBox(height: 10),
+          _ModuleCard(
+            icon: Icons.traffic,
+            accent: AppPalette.accent,
+            title: 'Junction Camera Status',
+            subtitle:
+                'Live per-junction camera density, read from the signal-control backend, with per-road fault reporting.',
+            actions: [
+              _ModuleAction(
+                label: 'Camera Status',
+                icon: Icons.videocam_outlined,
+                onPressed: () => _open(context, const CameraStatusScreen()),
               ),
             ],
           ),

@@ -7,8 +7,11 @@ using Microsoft.OpenApi.Models;
 using SRMS.API.Configuration;
 using SRMS.API.Data;
 using SRMS.API.Services;
+using SRMS.API.Services.Agents;
 
 var builder = WebApplication.CreateBuilder(args);
+
+const string WebDevCorsPolicy = "WebDevCorsPolicy";
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -121,6 +124,27 @@ builder.Services.AddHttpClient("AIService", client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+builder.Services.AddDbContext<SrmsDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SrmsDb")));
+
+builder.Services.AddCors(options =>
+{
+    // Vite's default dev server origin plus the Flutter web dev origin —
+    // React and Flutter are required to talk only to this API, never
+    // directly to the database, so this is scoped to just these dev
+    // origins rather than AllowAnyOrigin.
+    options.AddPolicy(WebDevCorsPolicy, policy =>
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5080").AllowAnyHeader().AllowAnyMethod());
+});
+
+// Your Agentic AI contribution's model client — Ollama runs locally on
+// this machine (no API key, no cost), so this is just a plain named
+// HttpClient pointed at its local port.
+builder.Services.AddHttpClient<OllamaClient>();
+builder.Services.AddScoped<SignalTimingAgentWorkflow>();
+
+builder.Services.AddHostedService<CameraTelemetrySimulatorService>();
+
 var app = builder.Build();
 
 // Apply EF migrations and seed baseline data for every domain.
@@ -132,6 +156,13 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await SchemaMigrator.RunAsync(db);
+
+    // The junction / signal-timing domain lives in its own database
+    // (congestion_control). This context ships no migrations, so provision the
+    // database and its tables on first run — EnsureCreated is a no-op once the
+    // schema is present.
+    var junctionDb = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
+    await junctionDb.Database.EnsureCreatedAsync();
 }
 
 // Configure the HTTP request pipeline
