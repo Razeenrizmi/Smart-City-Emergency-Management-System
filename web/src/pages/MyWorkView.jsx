@@ -18,7 +18,7 @@ const Summary = ({ orders }) => {
           <div style={{ width: '10px', height: '38px', borderRadius: '6px', background: c.color }} />
           <div>
             <div style={{ color: C.textDim, fontSize: '12px' }}>{c.label}</div>
-            <div style={{ color: '#fff', fontSize: '22px', fontWeight: 700 }}>{c.value}</div>
+            <div style={{ color: C.textStrong, fontSize: '22px', fontWeight: 700 }}>{c.value}</div>
           </div>
         </div>
       ))}
@@ -75,7 +75,7 @@ const JobCard = ({ order, busy, onAction }) => {
               type="button"
               disabled={busy}
               onClick={() => onAction(order, 'IN_PROGRESS')}
-              style={{ ...button(C.orange, busy), flex: 1, background: busy ? `${C.orange}22` : C.orange, color: '#0D1117', border: 'none' }}
+              style={{ ...button(C.orange, busy), flex: 1, background: busy ? `${C.orange}22` : C.orange, color: C.textStrong, border: 'none' }}
             >
               <Play size={14} /> Start Work
             </button>
@@ -85,7 +85,7 @@ const JobCard = ({ order, busy, onAction }) => {
               type="button"
               disabled={busy}
               onClick={() => onAction(order, 'COMPLETED')}
-              style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: '#0D1117', border: 'none' }}
+              style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: C.textStrong, border: 'none' }}
             >
               <Check size={14} /> Mark Completed
             </button>

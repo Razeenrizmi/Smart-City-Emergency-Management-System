@@ -148,7 +148,7 @@ const HazardMap = ({ hazards = [], onAssign }) => {
         width: '100%',
         borderRadius: '16px',
         overflow: 'hidden',
-        border: '1px solid #30363D',
+        border: '1px solid #DCE3EC',
         position: 'relative'
       }}
     >
@@ -161,23 +161,23 @@ const HazardMap = ({ hazards = [], onAssign }) => {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        background: 'rgba(22, 27, 34, 0.92)',
+        background: 'rgba(255, 255, 255, 0.92)',
         backdropFilter: 'blur(8px)',
-        border: '1px solid #30363D',
+        border: '1px solid #DCE3EC',
         borderRadius: '12px',
         padding: '6px 10px',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        boxShadow: '0 4px 16px rgba(15,23,42,0.15)',
       }}>
         {/* Layer Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Layers size={14} color="#8B949E" />
+          <Layers size={14} color="#5B6875" />
           <select
             value={activeTile}
             onChange={(e) => setActiveTile(e.target.value)}
             style={{
-              background: '#0D1117',
-              color: '#C9D1D9',
-              border: '1px solid #30363D',
+              background: '#FFFFFF',
+              color: '#1F2A37',
+              border: '1px solid #DCE3EC',
               borderRadius: '6px',
               padding: '4px 8px',
               fontSize: '12px',
@@ -201,9 +201,9 @@ const HazardMap = ({ hazards = [], onAssign }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '5px',
-            background: '#0D1117',
-            border: '1px solid #30363D',
-            color: '#C9D1D9',
+            background: '#FFFFFF',
+            border: '1px solid #DCE3EC',
+            color: '#1F2A37',
             padding: '4px 10px',
             borderRadius: '6px',
             fontSize: '12px',
@@ -224,9 +224,9 @@ const HazardMap = ({ hazards = [], onAssign }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            background: showCorridor ? 'rgba(66, 153, 225, 0.2)' : '#0D1117',
-            border: showCorridor ? '1px solid #4299E1' : '1px solid #30363D',
-            color: showCorridor ? '#63B3ED' : '#8B949E',
+            background: showCorridor ? 'rgba(66, 153, 225, 0.2)' : '#FFFFFF',
+            border: showCorridor ? '1px solid #4299E1' : '1px solid #DCE3EC',
+            color: showCorridor ? '#2563EB' : '#5B6875',
             padding: '4px 10px',
             borderRadius: '6px',
             fontSize: '12px',
@@ -315,21 +315,21 @@ const HazardMap = ({ hazards = [], onAssign }) => {
           >
             <Popup>
               <div style={{ minWidth: '200px', fontFamily: 'Inter, sans-serif' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', borderBottom: '1px solid #DCE3EC', paddingBottom: '4px' }}>
                   <AlertTriangle size={15} color={hazard.severityScore >= 5 ? '#E53E3E' : hazard.severityScore >= 3 ? '#ED8936' : '#4299E1'} />
                   <strong style={{ fontSize: '13px', color: '#1A202C' }}>
                     {hazard.aiDetectedCategory || hazard.hazardType || 'Road Hazard'}
                   </strong>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#4A5568', fontSize: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#8A97A6', fontSize: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Severity:</span>
                     <strong style={{ color: '#1A202C' }}>{hazard.severityScore || 1}/5</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Coordinates:</span>
-                    <span style={{ color: '#2D3748', fontSize: '11px' }}>
+                    <span style={{ color: '#5B6875', fontSize: '11px' }}>
                       {Number(hazard.latitude).toFixed(4)}, {Number(hazard.longitude).toFixed(4)}
                     </span>
                   </div>

@@ -211,7 +211,7 @@ class _MapScreenState extends State<MapScreen> {
             onPressed: () => _getDeviceRealGps(showSnack: true),
             icon: Icon(
               Icons.my_location,
-              color: _locatingGps ? AppPalette.accent : Colors.white,
+              color: _locatingGps ? AppPalette.accent : AppPalette.text,
             ),
             tooltip: 'Detect Real Device GPS',
           ),
@@ -436,7 +436,7 @@ class _MapScreenState extends State<MapScreen> {
                                   child: Text(
                                     n.nodeLabel,
                                     style: TextStyle(
-                                      color: n.isOnline ? AppPalette.online : AppPalette.text,
+                                      color: n.isOnline ? AppPalette.online : AppPalette.offline,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -467,7 +467,7 @@ class _MapScreenState extends State<MapScreen> {
                       backgroundColor: AppPalette.surface,
                       onPressed: () => _fitToAllCameras(),
                       tooltip: 'Fit All Cameras',
-                      child: const Icon(Icons.aspect_ratio, color: Colors.white),
+                      child: const Icon(Icons.aspect_ratio, color: AppPalette.text),
                     ),
                     const SizedBox(height: 8),
                     FloatingActionButton.small(
@@ -498,7 +498,7 @@ class _MapScreenState extends State<MapScreen> {
               Text(
                 '${located.length + (_deviceLocation != null ? 1 : 0)} REAL CAMERAS ON GOOGLE MAP',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppPalette.text,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -552,7 +552,7 @@ class _MapScreenState extends State<MapScreen> {
                             const SizedBox(height: 6),
                             const Text(
                               'Real Mobile Device GPS Location',
-                              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                              style: TextStyle(color: AppPalette.text, fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                             const Spacer(),
                             Text(
@@ -606,7 +606,7 @@ class _MapScreenState extends State<MapScreen> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppPalette.text,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),

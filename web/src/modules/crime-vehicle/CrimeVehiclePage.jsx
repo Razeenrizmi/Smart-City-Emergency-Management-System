@@ -129,14 +129,14 @@ export default function CrimeVehiclePage() {
   const criticalAlerts = hotlistItems.filter(h => h.threatLevel === 'CRITICAL' && h.status === 'WANTED');
 
   return (
-    <div className="crime-vehicle-root text-slate-100 font-sans">
+    <div className="crime-vehicle-root text-slate-900 font-sans">
       {/* Critical Alert Ticker Banner */}
       {criticalAlerts.length > 0 && (
-        <div className="bg-red-950/80 border-b border-red-600/60 px-6 py-2">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 text-xs font-mono text-red-200">
+        <div className="bg-red-50 border-b border-red-600/60 px-6 py-2">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 text-xs font-mono text-red-700">
             <div className="flex items-center gap-2 truncate">
               <AlertOctagon className="text-red-500 animate-bounce shrink-0" size={16} />
-              <span className="font-bold text-red-400">CRITICAL HOTLIST ALERT:</span>
+              <span className="font-bold text-red-600">CRITICAL HOTLIST ALERT:</span>
               <span className="truncate">
                 TARGET PLATE <strong>{criticalAlerts[0].plateNumber}</strong> ({criticalAlerts[0].makeModel}) — {criticalAlerts[0].incidentType}
               </span>
@@ -162,23 +162,23 @@ export default function CrimeVehiclePage() {
         {/* Command Toolbar — rendered inside the shared SRMS shell header area */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-red-600/20 text-red-500 rounded-lg border border-red-500/40">
+            <div className="p-1.5 bg-red-600/20 text-red-500 rounded-lg border border-red-200">
               <Siren size={18} className="animate-pulse" />
             </div>
             <span className="badge badge-critical text-[10px]">CRIME VEHICLE DETECTOR v3.0</span>
-            <span className="text-xs text-slate-400 hidden sm:inline">
+            <span className="text-xs text-slate-500 hidden sm:inline">
               Multi-CCTV ANPR &amp; Intercept Console
             </span>
           </div>
 
           <div className="flex items-center gap-6 text-xs">
             <div className="hidden md:block">
-              <span className="text-slate-400 block">Surveillance Nodes</span>
-              <span className="font-mono text-cyan-400 font-bold">{onlineCount} / {nodes.length || '--'} ONLINE</span>
+              <span className="text-slate-500 block">Surveillance Nodes</span>
+              <span className="font-mono text-cyan-600 font-bold">{onlineCount} / {nodes.length || '--'} ONLINE</span>
             </div>
             <div className="hidden md:block">
-              <span className="text-slate-400 block">Wanted Hotlist</span>
-              <span className="font-mono text-red-400 font-bold">
+              <span className="text-slate-500 block">Wanted Hotlist</span>
+              <span className="font-mono text-red-600 font-bold">
                 {hotlistUnavailable ? '--' : `${hotlistItems.length} TARGETS`}
               </span>
             </div>
@@ -189,7 +189,7 @@ export default function CrimeVehiclePage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="nav-tabs flex flex-wrap gap-2 mb-6 border-b border-slate-800 pb-2">
+        <div className="nav-tabs flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-2">
           <button
             onClick={() => setActiveTab('live')}
             className={`nav-tab-btn ${activeTab === 'live' ? 'active' : ''}`}
@@ -225,8 +225,8 @@ export default function CrimeVehiclePage() {
         {/* Tab Contents */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <RefreshCw className="animate-spin text-cyan-400 mb-3" size={36} />
-            <span className="font-mono text-slate-400 text-sm">Connecting to Smart City ANPR Data Stream...</span>
+            <RefreshCw className="animate-spin text-cyan-600 mb-3" size={36} />
+            <span className="font-mono text-slate-500 text-sm">Connecting to Smart City ANPR Data Stream...</span>
           </div>
         ) : (
           <>

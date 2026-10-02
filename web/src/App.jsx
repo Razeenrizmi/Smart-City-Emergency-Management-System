@@ -5,6 +5,7 @@ import DashboardLayout from './components/DashboardLayout';
 import HazardMap from './components/HazardMap';
 import LoginPage from './components/LoginPage';
 import AssignWorkerModal from './components/AssignWorkerModal';
+import LandingPage from './pages/LandingPage';
 import PendingApprovalsView from './pages/PendingApprovalsView';
 import MunicipalWorkersView from './pages/MunicipalWorkersView';
 import MyWorkView from './pages/MyWorkView';
@@ -34,7 +35,7 @@ const Toast = ({ message, tone }) => (
       border: `1px solid ${tone === 'error' ? C.red : C.green}66`,
       color: C.text,
       fontSize: '13px',
-      boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+      boxShadow: '0 16px 40px rgba(15,23,42,0.25)',
       animation: 'fadeInUp 0.3s ease',
     }}
   >
@@ -44,7 +45,7 @@ const Toast = ({ message, tone }) => (
 );
 
 const Centered = ({ children }) => (
-  <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+  <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', color: C.text }}>
     {children}
   </div>
 );
@@ -53,6 +54,7 @@ const defaultViewFor = (session) => (session?.user?.role === 'MUNICIPAL_WORKER' 
 
 function App() {
   const [session, setSessionState] = useState(() => getSession());
+  const [entered, setEntered] = useState(() => Boolean(getSession()));
   const [view, setView] = useState(() => defaultViewFor(getSession()));
   const [hazards, setHazards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,11 +104,15 @@ function App() {
   const handleLogout = () => {
     clearSession();
     setSessionState(null);
+    setEntered(false);
     setHazards([]);
   };
 
   if (!session) {
-    return <LoginPage onLogin={handleLogin} />;
+    if (!entered) {
+      return <LandingPage onEnter={() => setEntered(true)} />;
+    }
+    return <LoginPage onLogin={handleLogin} onBack={() => setEntered(false)} />;
   }
 
   if (!isWorker && loading && hazards.length === 0) {

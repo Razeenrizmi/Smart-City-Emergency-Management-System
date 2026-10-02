@@ -1,11 +1,11 @@
 import { Circle, Loader2, AlertTriangle, WifiOff, Radio } from 'lucide-react';
 
 const STATUS_META = {
-  ONLINE: { label: 'ONLINE', className: 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300', Icon: Circle, pulse: false },
-  ANALYZING: { label: 'ANALYZING', className: 'bg-cyan-950/90 border-cyan-400 text-cyan-300', Icon: Radio, pulse: true },
-  CONNECTING: { label: 'CONNECTING', className: 'bg-amber-950/80 border-amber-500/60 text-amber-300', Icon: Loader2, pulse: true },
-  ERROR: { label: 'ERROR', className: 'bg-red-950/80 border-red-500/60 text-red-300', Icon: AlertTriangle, pulse: false },
-  OFFLINE: { label: 'OFFLINE', className: 'bg-slate-800 border-slate-700 text-slate-400', Icon: WifiOff, pulse: false }
+  ONLINE: { label: 'ONLINE', className: 'bg-emerald-50 border-emerald-200 text-emerald-600', Icon: Circle, pulse: false },
+  ANALYZING: { label: 'ANALYZING', className: 'bg-cyan-50 border-cyan-400 text-cyan-600', Icon: Radio, pulse: true },
+  CONNECTING: { label: 'CONNECTING', className: 'bg-amber-50 border-amber-200 text-amber-600', Icon: Loader2, pulse: true },
+  ERROR: { label: 'ERROR', className: 'bg-red-50 border-red-200 text-red-600', Icon: AlertTriangle, pulse: false },
+  OFFLINE: { label: 'OFFLINE', className: 'bg-slate-100 border-slate-200 text-slate-500', Icon: WifiOff, pulse: false }
 };
 
 export default function NodeStatus({ status = 'OFFLINE', size = 'sm' }) {

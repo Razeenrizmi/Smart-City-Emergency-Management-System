@@ -7,6 +7,7 @@ import '../models/hazard_report_model.dart';
 import '../services/hazard_api_service.dart';
 import '../services/navigation_launcher_service.dart';
 import '../services/location_service.dart';
+import '../theme/app_theme.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -402,7 +403,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
   void _openRouteSelector() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF161B22),
+      backgroundColor: AppPalette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -421,13 +422,13 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                       Text(
                         'Select Dynamic Trip (Point A ➔ Point B)',
                         style: GoogleFonts.outfit(
-                          color: Colors.white,
+                          color: AppPalette.text,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: const Icon(Icons.close, color: AppPalette.textMuted),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -441,11 +442,11 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     leading: const Icon(Icons.my_location_rounded, color: Color(0xFF0F9D58)),
                     title: Text(
                       'Use My Current GPS as Point A',
-                      style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                      style: GoogleFonts.outfit(color: AppPalette.text, fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                     subtitle: Text(
                       'Detects real location and navigates to $_destName',
-                      style: GoogleFonts.outfit(color: const Color(0xFF8B949E), fontSize: 12),
+                      style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 12),
                     ),
                     onTap: () async {
                       final messenger = ScaffoldMessenger.of(context);
@@ -482,7 +483,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
 
                   Text(
                     'Preset Routes in Sri Lanka:',
-                    style: GoogleFonts.outfit(color: const Color(0xFF8B949E), fontSize: 12, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
 
@@ -491,28 +492,28 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1A73E8).withValues(alpha: 0.18) : const Color(0xFF0D1117),
+                        color: isSelected ? const Color(0xFF1A73E8).withValues(alpha: 0.18) : AppPalette.surface2,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFF30363D),
+                          color: isSelected ? const Color(0xFF1A73E8) : AppPalette.border,
                         ),
                       ),
                       child: ListTile(
                         leading: Icon(
                           Icons.route_rounded,
-                          color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFF8B949E),
+                          color: isSelected ? const Color(0xFF1A73E8) : AppPalette.textMuted,
                         ),
                         title: Text(
                           preset.title,
                           style: GoogleFonts.outfit(
-                            color: Colors.white,
+                            color: AppPalette.text,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
                         ),
                         subtitle: Text(
                           '${preset.originName} ➔ ${preset.destName}',
-                          style: GoogleFonts.outfit(color: const Color(0xFF8B949E), fontSize: 11),
+                          style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
                         ),
                         trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFF1A73E8), size: 20) : null,
                         onTap: () {
@@ -552,9 +553,9 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF30363D)),
+        border: Border.all(color: AppPalette.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -859,7 +860,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
   Widget _buildRouteEndpointsBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      color: const Color(0xFF0D1117),
+      color: AppPalette.surface,
       child: Row(
         children: [
           Expanded(
@@ -873,7 +874,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     Expanded(
                       child: Text(
                         _originName,
-                        style: GoogleFonts.outfit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.outfit(color: AppPalette.text, fontSize: 11, fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -887,7 +888,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     Expanded(
                       child: Text(
                         _destName,
-                        style: GoogleFonts.outfit(color: const Color(0xFFC9D1D9), fontSize: 11),
+                        style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -898,14 +899,14 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
           ),
           TextButton.icon(
             onPressed: _openRouteSelector,
-            icon: const Icon(Icons.swap_horiz_rounded, size: 16, color: Color(0xFF63B3ED)),
+            icon: const Icon(Icons.swap_horiz_rounded, size: 16, color: AppPalette.info),
             label: Text(
               'Change Trip',
-              style: GoogleFonts.outfit(color: const Color(0xFF63B3ED), fontSize: 11, fontWeight: FontWeight.w700),
+              style: GoogleFonts.outfit(color: AppPalette.info, fontSize: 11, fontWeight: FontWeight.w700),
             ),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              backgroundColor: const Color(0xFF161B22),
+              backgroundColor: AppPalette.surface2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
@@ -918,7 +919,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
   Widget _buildBottomActionPanel() {
     return Container(
       padding: const EdgeInsets.all(14),
-      color: const Color(0xFF161B22),
+      color: AppPalette.surface,
       child: Column(
         children: [
           // Trip Stats Line
@@ -931,7 +932,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: widget.isMonitoring ? const Color(0xFF38A169) : const Color(0xFF718096),
+                      color: widget.isMonitoring ? AppPalette.success : AppPalette.textMuted,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -939,7 +940,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                   Text(
                     widget.isMonitoring ? 'Sensor: Active' : 'Sensor: Idle',
                     style: GoogleFonts.outfit(
-                      color: widget.isMonitoring ? const Color(0xFF38A169) : const Color(0xFF718096),
+                      color: widget.isMonitoring ? AppPalette.success : AppPalette.textMuted,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -949,14 +950,14 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
               Text(
                 'Hazards Logged: ${_detectedHazards.length}',
                 style: GoogleFonts.outfit(
-                  color: const Color(0xFFED8936),
+                  color: AppPalette.warning,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
                 'Lat: ${_currentCarLat.toStringAsFixed(4)}, Lng: ${_currentCarLng.toStringAsFixed(4)}',
-                style: GoogleFonts.outfit(color: const Color(0xFF8B949E), fontSize: 11),
+                style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
               ),
             ],
           ),
@@ -975,7 +976,7 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isDrivingSim ? const Color(0xFF2D3748) : const Color(0xFF667EEA),
+                    backgroundColor: _isDrivingSim ? AppPalette.text : const Color(0xFF667EEA),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -992,17 +993,17 @@ class _InteractiveNavigationMapState extends State<InteractiveNavigationMap>
                     final spike = 13.0 + Random().nextDouble() * 6.5;
                     _handleRoadHazardSpike(spike);
                   },
-                  icon: const Icon(Icons.flash_on_rounded, size: 18, color: Color(0xFFED8936)),
+                  icon: const Icon(Icons.flash_on_rounded, size: 18, color: AppPalette.warning),
                   label: Text(
                     'Simulate Spike',
                     style: GoogleFonts.outfit(
-                      color: const Color(0xFFED8936),
+                      color: AppPalette.warning,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFED8936), width: 1.5),
+                    side: const BorderSide(color: AppPalette.warning, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -1096,12 +1097,12 @@ class _DynamicRouteMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = const Color(0xFF12161F);
+    final bgPaint = Paint()..color = AppPalette.surface2;
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     // 1. Draw Grid Lines
     final gridPaint = Paint()
-      ..color = const Color(0xFF1E2532)
+      ..color = AppPalette.border
       ..strokeWidth = 1.0;
     for (double x = 0; x < size.width; x += 40) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
@@ -1158,7 +1159,7 @@ class _DynamicRouteMapPainter extends CustomPainter {
         final tp = TextPainter(
           text: TextSpan(
             text: labelText,
-            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: AppPalette.text, fontSize: 11, fontWeight: FontWeight.bold),
           ),
           textDirection: TextDirection.ltr,
         )..layout();
@@ -1189,7 +1190,7 @@ class _DynamicRouteMapPainter extends CustomPainter {
       final hazardText = TextPainter(
         text: TextSpan(
           text: '💥 Z:${h.zSpike.toStringAsFixed(1)}',
-          style: const TextStyle(color: Color(0xFFFEB2B2), fontSize: 9, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: AppPalette.danger, fontSize: 9, fontWeight: FontWeight.bold),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -1219,7 +1220,7 @@ class _DynamicRouteMapPainter extends CustomPainter {
       ..close();
 
     final carPaint = Paint()
-      ..color = Colors.white
+      ..color = AppPalette.text
       ..style = PaintingStyle.fill;
     canvas.drawPath(carBody, carPaint);
 

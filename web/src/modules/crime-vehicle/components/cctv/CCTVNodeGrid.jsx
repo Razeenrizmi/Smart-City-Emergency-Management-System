@@ -3,13 +3,13 @@ import CCTVNodeCard from './CCTVNodeCard';
 
 export default function CCTVNodeGrid({ nodes = [], activeNodeId, nodeRuntime = {}, targetAiFps, onSelect, onStop }) {
   return (
-    <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl mb-4">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-        <h3 className="font-bold text-white text-sm flex items-center gap-2">
-          <LayoutGrid size={16} className="text-cyan-400" />
+    <div className="card bg-white border-slate-200 p-4 rounded-xl mb-4">
+      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+        <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <LayoutGrid size={16} className="text-cyan-600" />
           CCTV SURVEILLANCE NODES ({nodes.length})
         </h3>
-        <span className="text-[10px] font-mono text-slate-400">
+        <span className="text-[10px] font-mono text-slate-500">
           SELECT A NODE TO VIEW ITS LIVE FEED
         </span>
       </div>

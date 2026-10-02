@@ -108,11 +108,11 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
     <div className="analytics-dashboard-container">
       <div className="section-header flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <BarChart3 className="text-cyan-400" size={24} />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <BarChart3 className="text-cyan-600" size={24} />
             CRIME VEHICLE SURVEILLANCE & RESPONSE ANALYTICS
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Real-time metrics computed from actual detection logs — no hardcoded data
           </p>
         </div>
@@ -125,74 +125,74 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
 
       {/* High-Level Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="card bg-slate-900 border-slate-800 p-4 border-l-4 border-l-cyan-400">
+        <div className="card bg-white border-slate-200 p-4 border-l-4 border-l-cyan-400">
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-xs font-semibold text-slate-400">Total Vehicles Scanned</div>
-              <div className="text-2xl font-extrabold text-white mt-1 font-mono">{totalScanned.toLocaleString()}</div>
+              <div className="text-xs font-semibold text-slate-500">Total Vehicles Scanned</div>
+              <div className="text-2xl font-extrabold text-slate-900 mt-1 font-mono">{totalScanned.toLocaleString()}</div>
             </div>
-            <div className="p-2.5 rounded-lg bg-cyan-950/60 text-cyan-400">
+            <div className="p-2.5 rounded-lg bg-cyan-50 text-cyan-600">
               <Zap size={22} />
             </div>
           </div>
-          <div className="text-[11px] text-cyan-400 mt-3 flex items-center gap-1 font-medium">
+          <div className="text-[11px] text-cyan-600 mt-3 flex items-center gap-1 font-medium">
             <TrendingUp size={14} /> Detection log entries
           </div>
         </div>
 
-        <div className="card bg-slate-900 border-slate-800 p-4 border-l-4 border-l-red-500">
+        <div className="card bg-white border-slate-200 p-4 border-l-4 border-l-red-500">
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-xs font-semibold text-slate-400">Hotlist Detections</div>
-              <div className="text-2xl font-extrabold text-red-400 mt-1 font-mono">{hotlistHits}</div>
+              <div className="text-xs font-semibold text-slate-500">Hotlist Detections</div>
+              <div className="text-2xl font-extrabold text-red-600 mt-1 font-mono">{hotlistHits}</div>
             </div>
-            <div className="p-2.5 rounded-lg bg-red-950/60 text-red-400">
+            <div className="p-2.5 rounded-lg bg-red-50 text-red-600">
               <AlertTriangle size={22} />
             </div>
           </div>
-          <div className="text-[11px] text-red-400 mt-3 flex items-center gap-1 font-medium">
+          <div className="text-[11px] text-red-600 mt-3 flex items-center gap-1 font-medium">
             <Radio size={14} className="animate-pulse" /> {activeAlertsCount} Unresolved Alerts
           </div>
         </div>
 
-        <div className="card bg-slate-900 border-slate-800 p-4 border-l-4 border-l-emerald-400">
+        <div className="card bg-white border-slate-200 p-4 border-l-4 border-l-emerald-400">
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-xs font-semibold text-slate-400">Patrol Units Available</div>
-              <div className="text-2xl font-extrabold text-emerald-400 mt-1 font-mono">
+              <div className="text-xs font-semibold text-slate-500">Patrol Units Available</div>
+              <div className="text-2xl font-extrabold text-emerald-600 mt-1 font-mono">
                 {patrolUnits.filter(u => u.status === 'EN_ROUTE' || u.status === 'AVAILABLE').length} / {patrolUnits.length}
               </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-emerald-950/60 text-emerald-400">
+            <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
               <Users size={22} />
             </div>
           </div>
-          <div className="text-[11px] text-emerald-400 mt-3 flex items-center gap-1 font-medium">
+          <div className="text-[11px] text-emerald-600 mt-3 flex items-center gap-1 font-medium">
             <ShieldCheck size={14} /> Intercept Readiness
           </div>
         </div>
 
-        <div className="card bg-slate-900 border-slate-800 p-4 border-l-4 border-l-amber-400">
+        <div className="card bg-white border-slate-200 p-4 border-l-4 border-l-amber-400">
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-xs font-semibold text-slate-400">Avg Detection Confidence</div>
-              <div className="text-2xl font-extrabold text-amber-400 mt-1 font-mono">{avgConfidence}%</div>
+              <div className="text-xs font-semibold text-slate-500">Avg Detection Confidence</div>
+              <div className="text-2xl font-extrabold text-amber-600 mt-1 font-mono">{avgConfidence}%</div>
             </div>
-            <div className="p-2.5 rounded-lg bg-amber-950/60 text-amber-400">
+            <div className="p-2.5 rounded-lg bg-amber-50 text-amber-600">
               <Clock size={22} />
             </div>
           </div>
-          <div className="text-[11px] text-slate-400 mt-3">Across all detection events</div>
+          <div className="text-[11px] text-slate-500 mt-3">Across all detection events</div>
         </div>
       </div>
 
       {/* Visual Analytics Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Hourly Detection Bar Chart — Real Data */}
-        <div className="card bg-slate-900 border-slate-800 p-5">
-          <h3 className="font-bold text-white text-sm mb-4 flex items-center justify-between">
+        <div className="card bg-white border-slate-200 p-5">
+          <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center justify-between">
             <span>HOURLY DETECTION DISTRIBUTION</span>
-            <span className="text-xs font-mono text-cyan-400">COMPUTED FROM LOGS</span>
+            <span className="text-xs font-mono text-cyan-600">COMPUTED FROM LOGS</span>
           </h3>
           {totalScanned === 0 ? (
             <div className="h-48 flex items-center justify-center text-slate-500 text-xs">
@@ -203,10 +203,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
               </div>
             </div>
           ) : (
-            <div className="h-48 flex items-end gap-2 pt-6 pb-2 border-b border-slate-800 px-2">
+            <div className="h-48 flex items-end gap-2 pt-6 pb-2 border-b border-slate-200 px-2">
               {hourlyData.map((bar, idx) => (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2 group min-w-0">
-                  <div className="text-[10px] font-mono text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-[10px] font-mono text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity">
                     {bar.value}
                   </div>
                   <div
@@ -214,7 +214,7 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
                     style={{ height: bar.height }}
                     title={`${bar.time} — ${bar.value} detection${bar.value === 1 ? '' : 's'}`}
                   ></div>
-                  <span className="text-[9px] font-mono text-slate-400 truncate">{bar.time}</span>
+                  <span className="text-[9px] font-mono text-slate-500 truncate">{bar.time}</span>
                 </div>
               ))}
             </div>
@@ -222,10 +222,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
         </div>
 
         {/* Detection Status Breakdown */}
-        <div className="card bg-slate-900 border-slate-800 p-5">
-          <h3 className="font-bold text-white text-sm mb-4 flex items-center justify-between">
+        <div className="card bg-white border-slate-200 p-5">
+          <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center justify-between">
             <span>DETECTION OUTCOME BREAKDOWN</span>
-            <span className="text-xs font-mono text-amber-400">STATUS COUNTS</span>
+            <span className="text-xs font-mono text-amber-600">STATUS COUNTS</span>
           </h3>
           {totalScanned === 0 ? (
             <div className="h-48 flex items-center justify-center text-slate-500 text-xs">
@@ -237,20 +237,20 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
           ) : (
             <div className="space-y-3">
               {[
-                { label: 'Alert Triggered', count: statusCounts.ALERT_TRIGGERED, color: 'bg-red-500', textColor: 'text-red-400' },
-                { label: 'Dispatched', count: statusCounts.DISPATCHED, color: 'bg-amber-500', textColor: 'text-amber-400' },
-                { label: 'Officer Confirmed', count: statusCounts.CONFIRMED, color: 'bg-emerald-500', textColor: 'text-emerald-400' },
-                { label: 'Officer Rejected', count: statusCounts.REJECTED, color: 'bg-slate-500', textColor: 'text-slate-400' },
-                { label: 'Cleared (Auto)', count: statusCounts.CLEARED, color: 'bg-cyan-500', textColor: 'text-cyan-400' },
+                { label: 'Alert Triggered', count: statusCounts.ALERT_TRIGGERED, color: 'bg-red-500', textColor: 'text-red-600' },
+                { label: 'Dispatched', count: statusCounts.DISPATCHED, color: 'bg-amber-500', textColor: 'text-amber-600' },
+                { label: 'Officer Confirmed', count: statusCounts.CONFIRMED, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
+                { label: 'Officer Rejected', count: statusCounts.REJECTED, color: 'bg-slate-500', textColor: 'text-slate-500' },
+                { label: 'Cleared (Auto)', count: statusCounts.CLEARED, color: 'bg-cyan-500', textColor: 'text-cyan-600' },
                 { label: 'Cooldown Suppressed', count: statusCounts.COOLDOWN, color: 'bg-amber-600', textColor: 'text-amber-500' },
-                { label: 'Pending Review', count: statusCounts.PENDING, color: 'bg-violet-500', textColor: 'text-violet-400' }
+                { label: 'Pending Review', count: statusCounts.PENDING, color: 'bg-violet-500', textColor: 'text-violet-600' }
               ].map((item, idx) => (
                 <div key={idx}>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="font-semibold text-slate-200">{item.label}</span>
+                    <span className="font-semibold text-slate-900">{item.label}</span>
                     <span className={`font-mono font-bold ${item.textColor}`}>{item.count}</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full ${item.color} transition-all duration-500`}
                       style={{ width: `${totalScanned > 0 ? (item.count / totalScanned) * 100 : 0}%` }}
@@ -265,10 +265,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
 
       {/* High Risk Hotspots — Computed from logs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card bg-slate-900 border-slate-800 p-5">
-          <h3 className="font-bold text-white text-sm mb-4 flex items-center justify-between">
+        <div className="card bg-white border-slate-200 p-5">
+          <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center justify-between">
             <span>HIGH RISK INCIDENT SECTORS</span>
-            <span className="text-xs font-mono text-amber-400">HOTSPOT ANALYSIS</span>
+            <span className="text-xs font-mono text-amber-600">HOTSPOT ANALYSIS</span>
           </h3>
           {hotspotData.length === 0 ? (
             <div className="h-40 flex items-center justify-center text-slate-500 text-xs">
@@ -283,10 +283,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
               {hotspotData.map((sector, idx) => (
                 <div key={idx}>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="font-semibold text-slate-200 truncate max-w-[70%]">{sector.zone}</span>
-                    <span className="font-mono text-slate-400">{sector.risk} ({sector.percent}%)</span>
+                    <span className="font-semibold text-slate-900 truncate max-w-[70%]">{sector.zone}</span>
+                    <span className="font-mono text-slate-500">{sector.risk} ({sector.percent}%)</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full ${sector.color}`} style={{ width: `${sector.percent}%` }}></div>
                   </div>
                 </div>
@@ -296,10 +296,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
         </div>
 
         {/* Officer Verification Stats */}
-        <div className="card bg-slate-900 border-slate-800 p-5">
-          <h3 className="font-bold text-white text-sm mb-4 flex items-center justify-between">
+        <div className="card bg-white border-slate-200 p-5">
+          <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center justify-between">
             <span>OFFICER VERIFICATION SUMMARY</span>
-            <span className="text-xs font-mono text-emerald-400">AUDIT STATS</span>
+            <span className="text-xs font-mono text-emerald-600">AUDIT STATS</span>
           </h3>
           {totalScanned === 0 ? (
             <div className="h-40 flex items-center justify-center text-slate-500 text-xs">
@@ -310,26 +310,26 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-slate-800/60 p-4 rounded-lg flex items-center justify-between">
+              <div className="bg-slate-100 p-4 rounded-lg flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-slate-400">Confirmed Detections (TP)</div>
-                  <div className="text-xl font-bold text-emerald-400 font-mono">{confirmedCount}</div>
+                  <div className="text-xs text-slate-500">Confirmed Detections (TP)</div>
+                  <div className="text-xl font-bold text-emerald-600 font-mono">{confirmedCount}</div>
                 </div>
-                <ShieldCheck className="text-emerald-400" size={28} />
+                <ShieldCheck className="text-emerald-600" size={28} />
               </div>
-              <div className="bg-slate-800/60 p-4 rounded-lg flex items-center justify-between">
+              <div className="bg-slate-100 p-4 rounded-lg flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-slate-400">Rejected (False Positives)</div>
-                  <div className="text-xl font-bold text-slate-400 font-mono">{rejectedCount}</div>
+                  <div className="text-xs text-slate-500">Rejected (False Positives)</div>
+                  <div className="text-xl font-bold text-slate-500 font-mono">{rejectedCount}</div>
                 </div>
-                <AlertTriangle className="text-slate-400" size={28} />
+                <AlertTriangle className="text-slate-500" size={28} />
               </div>
-              <div className="bg-slate-800/60 p-4 rounded-lg flex items-center justify-between">
+              <div className="bg-slate-100 p-4 rounded-lg flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-slate-400">Units Dispatched</div>
-                  <div className="text-xl font-bold text-amber-400 font-mono">{dispatchedCount}</div>
+                  <div className="text-xs text-slate-500">Units Dispatched</div>
+                  <div className="text-xl font-bold text-amber-600 font-mono">{dispatchedCount}</div>
                 </div>
-                <Radio className="text-amber-400" size={28} />
+                <Radio className="text-amber-600" size={28} />
               </div>
             </div>
           )}
@@ -337,10 +337,10 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
       </div>
 
       {/* Honest Detection Quality Metrics — computed, never faked */}
-      <div className="card bg-slate-900 border-slate-800 p-5 mt-6">
-        <h3 className="font-bold text-white text-sm mb-1 flex items-center justify-between">
+      <div className="card bg-white border-slate-200 p-5 mt-6">
+        <h3 className="font-bold text-slate-900 text-sm mb-1 flex items-center justify-between">
           <span>DETECTION QUALITY & THROUGHPUT METRICS</span>
-          <span className="text-xs font-mono text-cyan-400">COMPUTED / MEASURED ONLY</span>
+          <span className="text-xs font-mono text-cyan-600">COMPUTED / MEASURED ONLY</span>
         </h3>
         <p className="text-[11px] text-slate-500 mb-4">
           Officer-decision metrics are exact. Precision uses confirmed vs rejected only.
@@ -348,9 +348,9 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-4">
-            <div className="text-[11px] text-slate-400 mb-1">Officer Precision (confirmed / decided)</div>
-            <div className="text-2xl font-extrabold font-mono text-emerald-400">
+          <div className="bg-white/80 border border-slate-200 rounded-lg p-4">
+            <div className="text-[11px] text-slate-500 mb-1">Officer Precision (confirmed / decided)</div>
+            <div className="text-2xl font-extrabold font-mono text-emerald-600">
               {officerMetrics.precision != null ? `${officerMetrics.precision}%` : '—'}
             </div>
             <div className="text-[10px] text-slate-500 mt-1 font-mono">
@@ -360,25 +360,25 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
             </div>
           </div>
 
-          <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-4">
-            <div className="text-[11px] text-slate-400 mb-1">Recall / F1</div>
+          <div className="bg-white/80 border border-slate-200 rounded-lg p-4">
+            <div className="text-[11px] text-slate-500 mb-1">Recall / F1</div>
             <div className="text-2xl font-extrabold font-mono text-slate-500">N/A</div>
             <div className="text-[10px] text-slate-500 mt-1">
               Requires labeled ground-truth dataset — not inventable from live logs
             </div>
           </div>
 
-          <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-4">
-            <div className="text-[11px] text-slate-400 mb-1">Alert Cooldown Suppressed</div>
-            <div className="text-2xl font-extrabold font-mono text-amber-400">{officerMetrics.cooldown}</div>
+          <div className="bg-white/80 border border-slate-200 rounded-lg p-4">
+            <div className="text-[11px] text-slate-500 mb-1">Alert Cooldown Suppressed</div>
+            <div className="text-2xl font-extrabold font-mono text-amber-600">{officerMetrics.cooldown}</div>
             <div className="text-[10px] text-slate-500 mt-1 font-mono">
               Window: {cfg.alertCooldownSeconds || 60}s per plate + node
             </div>
           </div>
 
-          <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-4">
-            <div className="text-[11px] text-slate-400 mb-1">AI Sampling Config</div>
-            <div className="text-2xl font-extrabold font-mono text-cyan-400">
+          <div className="bg-white/80 border border-slate-200 rounded-lg p-4">
+            <div className="text-[11px] text-slate-500 mb-1">AI Sampling Config</div>
+            <div className="text-2xl font-extrabold font-mono text-cyan-600">
               {cfg.targetAiFps || 5} FPS
             </div>
             <div className="text-[10px] text-slate-500 mt-1 font-mono">
@@ -388,21 +388,21 @@ export default function AnalyticsDashboard({ logs = [], patrolUnits = [], detect
         </div>
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="bg-slate-800/50 rounded p-3">
-            <div className="text-slate-400 text-[11px]">Pending Review</div>
-            <div className="font-mono font-bold text-violet-400">{officerMetrics.pending}</div>
+          <div className="bg-slate-100 rounded p-3">
+            <div className="text-slate-500 text-[11px]">Pending Review</div>
+            <div className="font-mono font-bold text-violet-600">{officerMetrics.pending}</div>
           </div>
-          <div className="bg-slate-800/50 rounded p-3">
-            <div className="text-slate-400 text-[11px]">Cooldown Suppressed</div>
-            <div className="font-mono font-bold text-amber-400">{statusCounts.COOLDOWN}</div>
+          <div className="bg-slate-100 rounded p-3">
+            <div className="text-slate-500 text-[11px]">Cooldown Suppressed</div>
+            <div className="font-mono font-bold text-amber-600">{statusCounts.COOLDOWN}</div>
           </div>
-          <div className="bg-slate-800/50 rounded p-3">
-            <div className="text-slate-400 text-[11px]">Avg OCR Confidence</div>
-            <div className="font-mono font-bold text-cyan-400">{avgConfidence}%</div>
+          <div className="bg-slate-100 rounded p-3">
+            <div className="text-slate-500 text-[11px]">Avg OCR Confidence</div>
+            <div className="font-mono font-bold text-cyan-600">{avgConfidence}%</div>
           </div>
-          <div className="bg-slate-800/50 rounded p-3">
-            <div className="text-slate-400 text-[11px]">Evidence Rule</div>
-            <div className="font-mono font-bold text-slate-300 text-[11px]">No invented plates/FPS</div>
+          <div className="bg-slate-100 rounded p-3">
+            <div className="text-slate-500 text-[11px]">Evidence Rule</div>
+            <div className="font-mono font-bold text-slate-700 text-[11px]">No invented plates/FPS</div>
           </div>
         </div>
       </div>

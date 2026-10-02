@@ -40,7 +40,7 @@ const MessageBubble = ({ msg }) => {
         border: isAi ? '1px solid rgba(102,126,234,0.3)' : '1px solid rgba(66,153,225,0.25)',
         borderRadius: isAi ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
         padding: '10px 14px',
-        color: '#E2E8F0',
+        color: '#1F2A37',
         fontSize: '13px',
         lineHeight: '1.6',
         whiteSpace: 'pre-wrap',
@@ -56,7 +56,7 @@ const MessageBubble = ({ msg }) => {
             ))}
           </div>
         ) : msg.text}
-        <div style={{ fontSize: '10px', color: '#4A5568', marginTop: '4px', textAlign: isAi ? 'left' : 'right' }}>
+        <div style={{ fontSize: '10px', color: '#8A97A6', marginTop: '4px', textAlign: isAi ? 'left' : 'right' }}>
           {msg.time}
         </div>
       </div>
@@ -133,7 +133,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
           onClick={onClose}
           style={{
             position: 'fixed', inset: 0,
-            background: 'rgba(0,0,0,0.4)',
+            background: 'rgba(15,23,42,0.35)',
             backdropFilter: 'blur(2px)',
             zIndex: 999,
             animation: 'fadeIn 0.2s ease',
@@ -147,20 +147,20 @@ const AiCopilotDrawer = ({ open, onClose }) => {
         style={{
           position: 'fixed', top: 0, right: 0, bottom: 0,
           width: '420px',
-          background: '#0D1117',
-          borderLeft: '1px solid #30363D',
+          background: '#F6F8FB',
+          borderLeft: '1px solid #DCE3EC',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: open ? '-8px 0 40px rgba(0,0,0,0.6)' : 'none',
+          boxShadow: open ? '-8px 0 40px rgba(15,23,42,0.25)' : 'none',
         }}
       >
         {/* Header */}
         <div style={{
           padding: '20px',
-          borderBottom: '1px solid #30363D',
+          borderBottom: '1px solid #DCE3EC',
           background: 'linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.1))',
           display: 'flex',
           alignItems: 'center',
@@ -174,27 +174,27 @@ const AiCopilotDrawer = ({ open, onClose }) => {
             <Bot size={22} color="#fff" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: '#fff', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontWeight: 700, color: '#0B1220', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               AI Copilot
               <Sparkles size={14} color="#ECC94B" />
             </div>
-            <div style={{ fontSize: '11px', color: '#8B949E' }}>SRMS Analyst Engine · Powered by spatial AI</div>
+            <div style={{ fontSize: '11px', color: '#5B6875' }}>SRMS Analyst Engine · Powered by spatial AI</div>
           </div>
           <button
             id="ai-copilot-close-btn"
             onClick={onClose}
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid #30363D',
+              background: 'rgba(15,23,42,0.04)',
+              border: '1px solid #DCE3EC',
               borderRadius: '8px',
               padding: '6px',
               cursor: 'pointer',
-              color: '#8B949E',
+              color: '#5B6875',
               display: 'flex',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#8B949E'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,23,42,0.08)'; e.currentTarget.style.color = '#0B1220'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(15,23,42,0.04)'; e.currentTarget.style.color = '#5B6875'; }}
           >
             <X size={18} />
           </button>
@@ -203,7 +203,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
         {/* Quick prompts */}
         <div style={{
           padding: '12px 16px',
-          borderBottom: '1px solid #30363D',
+          borderBottom: '1px solid #DCE3EC',
           display: 'flex', gap: '6px', flexWrap: 'wrap',
         }}>
           {QUICK_PROMPTS.map(q => (
@@ -218,13 +218,13 @@ const AiCopilotDrawer = ({ open, onClose }) => {
                 borderRadius: '20px',
                 padding: '4px 10px',
                 fontSize: '11px',
-                color: '#A0AEC0',
+                color: '#5B6875',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 opacity: loading ? 0.5 : 1,
               }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = 'rgba(102,126,234,0.2)'; e.currentTarget.style.color = '#fff'; }}}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,126,234,0.1)'; e.currentTarget.style.color = '#A0AEC0'; }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = 'rgba(102,126,234,0.2)'; e.currentTarget.style.color = '#0B1220'; }}}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,126,234,0.1)'; e.currentTarget.style.color = '#5B6875'; }}
             >
               {q.label}
             </button>
@@ -247,7 +247,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
         {/* Input */}
         <div style={{
           padding: '16px',
-          borderTop: '1px solid #30363D',
+          borderTop: '1px solid #DCE3EC',
           display: 'flex',
           gap: '10px',
           alignItems: 'flex-end',
@@ -263,11 +263,11 @@ const AiCopilotDrawer = ({ open, onClose }) => {
             disabled={loading}
             style={{
               flex: 1,
-              background: '#161B22',
-              border: '1px solid #30363D',
+              background: '#FFFFFF',
+              border: '1px solid #DCE3EC',
               borderRadius: '12px',
               padding: '10px 14px',
-              color: '#E2E8F0',
+              color: '#1F2A37',
               fontSize: '13px',
               resize: 'none',
               outline: 'none',
@@ -278,7 +278,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
               overflowY: 'auto',
             }}
             onFocus={e => e.target.style.borderColor = '#667EEA'}
-            onBlur={e => e.target.style.borderColor = '#30363D'}
+            onBlur={e => e.target.style.borderColor = '#DCE3EC'}
           />
           <button
             id="ai-copilot-send-btn"
@@ -289,7 +289,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
               borderRadius: '12px',
               background: input.trim() && !loading
                 ? 'linear-gradient(135deg, #667EEA, #764BA2)'
-                : '#21262D',
+                : '#EEF2F7',
               border: 'none',
               cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -297,7 +297,7 @@ const AiCopilotDrawer = ({ open, onClose }) => {
               flexShrink: 0,
             }}
           >
-            {loading ? <Zap size={16} color="#667EEA" /> : <Send size={16} color={input.trim() ? '#fff' : '#4A5568'} />}
+            {loading ? <Zap size={16} color="#667EEA" /> : <Send size={16} color={input.trim() ? '#fff' : '#8A97A6'} />}
           </button>
         </div>
       </div>

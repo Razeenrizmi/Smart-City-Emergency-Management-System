@@ -63,7 +63,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
       textAlign: 'left',
       font: 'inherit',
       backgroundColor: active ? 'rgba(66, 153, 225, 0.15)' : 'transparent',
-      color: active ? '#4299E1' : '#A0AEC0',
+      color: active ? '#4299E1' : '#5B6875',
       transition: 'all 0.2s',
     }}
   >
@@ -89,7 +89,7 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
     </div>
     <div>
       <div style={{ color: C.textDim, fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>{title}</div>
-      <div style={{ color: '#fff', fontSize: '24px', fontWeight: '700' }}>{value}</div>
+      <div style={{ color: C.textStrong, fontSize: '24px', fontWeight: '700' }}>{value}</div>
     </div>
   </div>
 );
@@ -108,7 +108,7 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
   const verifiedReports = hazards.filter((h) => h.isVerified).length;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, color: '#fff' }}>
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, color: C.text }}>
       {/* Sidebar */}
       <div style={{ width: '280px', borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '24px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -150,7 +150,7 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
                   ? 'linear-gradient(135deg, rgba(102,126,234,0.25), rgba(118,75,162,0.15))'
                   : 'linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.05))',
                 border: '1px solid rgba(102,126,234,0.3)',
-                color: '#A78BFA',
+                color: C.purpleDeep,
                 transition: 'all 0.2s',
                 marginTop: '8px',
               }}
@@ -166,7 +166,7 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
 
         <div style={{ padding: '20px', borderTop: `1px solid ${C.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#2D3748', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: C.surfaceAlt, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
               {(user?.fullName || 'U').charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>

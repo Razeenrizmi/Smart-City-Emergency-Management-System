@@ -116,45 +116,45 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
     <div className="detection-logs-container">
       <div className="section-header flex flex-wrap justify-between items-center gap-4 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <FileText className="text-cyan-400" size={24} />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="text-cyan-600" size={24} />
             SURVEILLANCE DETECTION LOGS & ANPR AUDIT TRAIL
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Real detection records from the AI pipeline — filtered per CCTV node, no seed or mock data
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer bg-slate-800/80 px-3 py-2 rounded-lg border border-slate-700">
+          <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer bg-slate-100 px-3 py-2 rounded-lg border border-slate-200">
             <input type="checkbox" checked={matchOnly} onChange={(e) => setMatchOnly(e.target.checked)} className="checkbox" />
-            <span className="font-semibold text-red-400">Hotlist Matches Only</span>
+            <span className="font-semibold text-red-600">Hotlist Matches Only</span>
           </label>
-          <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer bg-slate-800/80 px-3 py-2 rounded-lg border border-slate-700">
+          <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer bg-slate-100 px-3 py-2 rounded-lg border border-slate-200">
             <input type="checkbox" checked={pendingOnly} onChange={(e) => setPendingOnly(e.target.checked)} className="checkbox" />
-            <span className="font-semibold text-amber-400">Pending Review Only</span>
+            <span className="font-semibold text-amber-600">Pending Review Only</span>
           </label>
         </div>
       </div>
 
       {/* History filters */}
-      <div className="card bg-slate-900 border-slate-800 p-4 mb-6 space-y-3">
+      <div className="card bg-white border-slate-200 p-4 mb-6 space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-3 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-3 text-slate-500" size={18} />
           <input
             type="text"
             placeholder="Search by plate number, camera, or vehicle description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input pl-10 bg-slate-950 border-slate-700 text-white rounded-lg w-full text-xs py-2.5"
+            className="input pl-10 bg-white border-slate-200 text-slate-900 rounded-lg w-full text-xs py-2.5"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <label className="text-[11px] text-slate-400 flex flex-col gap-1">
+          <label className="text-[11px] text-slate-500 flex flex-col gap-1">
             CCTV Node
             <select
               value={nodeFilter}
               onChange={(e) => setNodeFilter(e.target.value)}
-              className="input bg-slate-950 border-slate-700 text-white rounded-lg text-xs py-2"
+              className="input bg-white border-slate-200 text-slate-900 rounded-lg text-xs py-2"
             >
               <option value="">All Nodes</option>
               <option value="0">No Node / Legacy</option>
@@ -163,60 +163,60 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
               ))}
             </select>
           </label>
-          <label className="text-[11px] text-slate-400 flex flex-col gap-1">
+          <label className="text-[11px] text-slate-500 flex flex-col gap-1">
             Vehicle Type
             <select
               value={vehicleTypeFilter}
               onChange={(e) => setVehicleTypeFilter(e.target.value)}
-              className="input bg-slate-950 border-slate-700 text-white rounded-lg text-xs py-2"
+              className="input bg-white border-slate-200 text-slate-900 rounded-lg text-xs py-2"
             >
               <option value="">All Types</option>
               {VEHICLE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </label>
-          <label className="text-[11px] text-slate-400 flex flex-col gap-1">
+          <label className="text-[11px] text-slate-500 flex flex-col gap-1">
             Status
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="input bg-slate-950 border-slate-700 text-white rounded-lg text-xs py-2"
+              className="input bg-white border-slate-200 text-slate-900 rounded-lg text-xs py-2"
             >
               {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
-          <label className="text-[11px] text-slate-400 flex flex-col gap-1">
+          <label className="text-[11px] text-slate-500 flex flex-col gap-1">
             From Date
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="input bg-slate-950 border-slate-700 text-white rounded-lg text-xs py-2"
+              className="input bg-white border-slate-200 text-slate-900 rounded-lg text-xs py-2"
             />
           </label>
-          <label className="text-[11px] text-slate-400 flex flex-col gap-1">
+          <label className="text-[11px] text-slate-500 flex flex-col gap-1">
             To Date
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="input bg-slate-950 border-slate-700 text-white rounded-lg text-xs py-2"
+              className="input bg-white border-slate-200 text-slate-900 rounded-lg text-xs py-2"
             />
           </label>
         </div>
         <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
           <span>{filteredLogs.length} of {localLogs.length} records</span>
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="text-cyan-400 hover:text-cyan-300 font-semibold">
+            <button onClick={clearFilters} className="text-cyan-600 hover:text-cyan-600 font-semibold">
               CLEAR ALL FILTERS
             </button>
           )}
         </div>
       </div>
 
-      <div className="card bg-slate-900 border-slate-800 overflow-hidden rounded-xl">
+      <div className="card bg-white border-slate-200 overflow-hidden rounded-xl">
         <div className="overflow-x-auto">
-          <table className="table-dark w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider">
+          <table className="table-dark w-full text-left text-xs text-slate-700">
+            <thead className="bg-white text-slate-500 border-b border-slate-200 text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="p-3">Time</th>
                 <th className="p-3">Node</th>
@@ -230,12 +230,12 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="text-center py-12 text-slate-500 text-xs">
                     <FileText size={32} className="mx-auto mb-2 opacity-30" />
-                    <p className="font-medium text-slate-400">No detection logs match the current filters</p>
+                    <p className="font-medium text-slate-500">No detection logs match the current filters</p>
                     <p className="text-slate-600 mt-1">Detection records will appear here after scanning frames through the AI pipeline.</p>
                   </td>
                 </tr>
@@ -243,40 +243,40 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                 filteredLogs.map((log) => (
                   <tr
                     key={log.id || log.logId}
-                    className={`hover:bg-slate-800/50 transition-colors ${(log.isHotlistMatch || log.crimeMatch) ? 'bg-red-950/20' : ''}`}
+                    className={`hover:bg-slate-100 transition-colors ${(log.isHotlistMatch || log.crimeMatch) ? 'bg-red-50' : ''}`}
                   >
-                    <td className="font-mono text-xs text-slate-300 p-3 whitespace-nowrap">{log.timestamp}</td>
+                    <td className="font-mono text-xs text-slate-700 p-3 whitespace-nowrap">{log.timestamp}</td>
                     <td className="p-3">
-                      <span className="font-mono text-[11px] text-cyan-400 font-bold">
+                      <span className="font-mono text-[11px] text-cyan-600 font-bold">
                         {log.nodeId > 0 ? `NODE-${log.nodeId}` : '—'}
                       </span>
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1.5">
-                        <Camera size={12} className="text-cyan-400 shrink-0" />
-                        <span className="text-[11px] text-slate-300 truncate max-w-[120px]">{log.cameraName || log.cameraId || 'N/A'}</span>
+                        <Camera size={12} className="text-cyan-600 shrink-0" />
+                        <span className="text-[11px] text-slate-700 truncate max-w-[120px]">{log.cameraName || log.cameraId || 'N/A'}</span>
                       </div>
                     </td>
                     <td className="p-3">
-                      <span className="font-mono text-[11px] text-indigo-300">
+                      <span className="font-mono text-[11px] text-indigo-600">
                         {log.trackId != null ? `T${log.trackId}` : '—'}
                       </span>
                     </td>
                     <td className="p-3">
-                      <div className="font-semibold text-slate-200 text-[11px]">{log.vehicleDetails || 'N/A'}</div>
+                      <div className="font-semibold text-slate-900 text-[11px]">{log.vehicleDetails || 'N/A'}</div>
                       {log.vehicleType && (
                         <div className="text-[10px] text-slate-500 font-mono">{log.vehicleType}</div>
                       )}
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
-                        <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs whitespace-nowrap ${(log.isHotlistMatch || log.crimeMatch) ? 'bg-red-950 text-red-300 border border-red-500/40' : 'bg-slate-800 text-slate-200'}`}>
+                        <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs whitespace-nowrap ${(log.isHotlistMatch || log.crimeMatch) ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-900'}`}>
                           {log.plateNumber}
                         </span>
                         {log.plateNumber && log.plateNumber !== 'NO_PLATE_DETECTED' && (
                           <button
                             onClick={(e) => openObservations(log.plateNumber, e)}
-                            className="text-slate-500 hover:text-cyan-400 shrink-0"
+                            className="text-slate-500 hover:text-cyan-600 shrink-0"
                             title="View cross-node observation history for this plate"
                           >
                             <History size={13} />
@@ -285,45 +285,45 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                       </div>
                     </td>
                     <td className="p-3">
-                      <span className="font-mono text-xs text-emerald-400 font-semibold">{log.confidence}%</span>
+                      <span className="font-mono text-xs text-emerald-600 font-semibold">{log.confidence}%</span>
                     </td>
                     <td className="p-3">
                       {(log.isHotlistMatch || log.crimeMatch) ? (
-                        <span className="badge bg-red-950/90 text-red-300 border border-red-500/50 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
+                        <span className="badge bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
                           <AlertTriangle size={12} /> {log.threatLevel || 'MATCH'}
                         </span>
                       ) : log.plateNumber === 'NO_PLATE_DETECTED' ? (
-                        <span className="badge bg-slate-800/80 text-slate-400 border border-slate-700 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
+                        <span className="badge bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
                           <Shield size={12} /> No Plate
                         </span>
                       ) : (
-                        <span className="badge bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
+                        <span className="badge bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 w-fit">
                           <CheckCircle size={12} /> Under Review
                         </span>
                       )}
                     </td>
                     <td className="p-3">
                       {log.status === 'CONFIRMED_BY_OFFICER' ? (
-                        <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1"><UserCheck size={13} /> Confirmed</span>
+                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1"><UserCheck size={13} /> Confirmed</span>
                       ) : log.status === 'REJECTED_BY_OFFICER' ? (
                         <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1"><UserX size={13} /> Rejected</span>
                       ) : log.status === 'DISPATCHED' ? (
-                        <span className="text-[11px] font-bold text-red-400 flex items-center gap-1"><Radar size={13} /> Dispatched</span>
+                        <span className="text-[11px] font-bold text-red-600 flex items-center gap-1"><Radar size={13} /> Dispatched</span>
                       ) : isReviewable(log.status) ? (
-                        <span className="text-[11px] font-bold text-amber-400 flex items-center gap-1 animate-pulse"><Clock size={13} /> Pending Review</span>
+                        <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 animate-pulse"><Clock size={13} /> Pending Review</span>
                       ) : (
-                        <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1"><CheckCircle size={13} /> Cleared</span>
+                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle size={13} /> Cleared</span>
                       )}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setSelectedLog(log)} className="btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded" title="View Details & Snapshot">
+                        <button onClick={() => setSelectedLog(log)} className="btn bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded" title="View Details & Snapshot">
                           <Eye size={15} />
                         </button>
                         {isReviewable(log.status) && (
                           <>
                             <button onClick={(e) => handleApprove(log.logId || log.id, e)} className="btn bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-2 py-1 rounded font-bold">Confirm</button>
-                            <button onClick={(e) => handleReject(log.logId || log.id, e)} className="btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] px-2 py-1 rounded border border-slate-700 font-bold">Reject</button>
+                            <button onClick={(e) => handleReject(log.logId || log.id, e)} className="btn bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] px-2 py-1 rounded border border-slate-200 font-bold">Reject</button>
                           </>
                         )}
                         {log.status === 'CONFIRMED_BY_OFFICER' && onOpenDispatch && (
@@ -342,23 +342,23 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
       {/* Observation history modal */}
       {obsPlate && (
         <div className="modal-backdrop fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
-          <div className="modal-card bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 font-bold text-white text-base">
-                <History className="text-cyan-400" size={20} />
-                <span>OBSERVATION HISTORY — <span className="font-mono text-amber-400 whitespace-nowrap">{obsPlate}</span></span>
+          <div className="modal-card bg-white border border-slate-200 rounded-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-base">
+                <History className="text-cyan-600" size={20} />
+                <span>OBSERVATION HISTORY — <span className="font-mono text-amber-600 whitespace-nowrap">{obsPlate}</span></span>
               </div>
-              <button onClick={() => setObsPlate(null)} className="btn text-slate-400 hover:text-white">
+              <button onClick={() => setObsPlate(null)} className="btn text-slate-500 hover:text-slate-900">
                 <X size={20} />
               </button>
             </div>
             {obsLoading ? (
-              <div className="text-center py-8 text-slate-400 text-xs">Loading observations across all CCTV nodes...</div>
+              <div className="text-center py-8 text-slate-500 text-xs">Loading observations across all CCTV nodes...</div>
             ) : observations.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-xs">No observations recorded for this plate.</div>
             ) : (
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="text-[10px] uppercase text-slate-500 border-b border-slate-800">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="text-[10px] uppercase text-slate-500 border-b border-slate-200">
                   <tr>
                     <th className="py-2">Time</th>
                     <th className="py-2">Node</th>
@@ -368,17 +368,17 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                     <th className="py-2">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200">
                   {observations.map((o) => (
                     <tr key={o.id || o.logId}>
                       <td className="py-2 font-mono text-[11px]">{o.timestamp}</td>
-                      <td className="py-2 font-mono text-cyan-400">{o.nodeId > 0 ? `NODE-${o.nodeId}` : '—'}</td>
+                      <td className="py-2 font-mono text-cyan-600">{o.nodeId > 0 ? `NODE-${o.nodeId}` : '—'}</td>
                       <td className="py-2 text-[11px]">{o.cameraName}</td>
-                      <td className="py-2 font-mono text-indigo-300">{o.trackId != null ? `T${o.trackId}` : '—'}</td>
+                      <td className="py-2 font-mono text-indigo-600">{o.trackId != null ? `T${o.trackId}` : '—'}</td>
                       <td className="py-2">
                         {(o.isHotlistMatch || o.crimeMatch)
-                          ? <span className="text-red-400 font-bold">MATCH</span>
-                          : <span className="text-emerald-400">CLEARED</span>}
+                          ? <span className="text-red-600 font-bold">MATCH</span>
+                          : <span className="text-emerald-600">CLEARED</span>}
                       </td>
                       <td className="py-2 text-[11px]">{o.status}</td>
                     </tr>
@@ -396,13 +396,13 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
       {/* Detail / Snapshot Modal */}
       {selectedLog && (
         <div className="modal-backdrop fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
-          <div className="modal-card bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 font-bold text-white text-base">
-                <Shield className="text-cyan-400" size={20} />
+          <div className="modal-card bg-white border border-slate-200 rounded-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-base">
+                <Shield className="text-cyan-600" size={20} />
                 <span>DETECTION EVENT DETAILS</span>
               </div>
-              <button onClick={() => setSelectedLog(null)} className="btn text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedLog(null)} className="btn text-slate-500 hover:text-slate-900">
                 <X size={20} />
               </button>
             </div>
@@ -410,7 +410,7 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
             <div className="space-y-4">
               {/* Snapshot */}
               {hasSnapshot(selectedLog) ? (
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-video border border-slate-700">
+                <div className="relative rounded-lg overflow-hidden bg-black aspect-video border border-slate-200">
                   <img src={selectedLog.snapshot} alt={`Frame: ${selectedLog.plateNumber}`} className="w-full h-full object-cover" />
                   <div className="absolute top-3 left-3 bg-black/80 backdrop-blur px-2.5 py-1 rounded text-xs font-mono font-bold text-amber-400 border border-amber-500/50">
                     PLATE: {selectedLog.plateNumber}
@@ -420,69 +420,69 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg bg-slate-800/60 border border-slate-700 p-8 flex flex-col items-center justify-center text-center">
+                <div className="rounded-lg bg-slate-100 border border-slate-200 p-8 flex flex-col items-center justify-center text-center">
                   <ImageOff size={40} className="text-slate-600 mb-3" />
-                  <p className="text-sm text-slate-400 font-medium">No captured frame available</p>
+                  <p className="text-sm text-slate-500 font-medium">No captured frame available</p>
                   <p className="text-xs text-slate-600 mt-1">This detection was logged before snapshot storage was enabled, or the frame was not saved.</p>
                 </div>
               )}
 
               {/* Data Grid */}
-              <div className="grid grid-cols-2 gap-3 bg-slate-800/60 p-4 rounded-lg border border-slate-700 text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-slate-100 p-4 rounded-lg border border-slate-200 text-xs">
                 <div>
-                  <span className="text-slate-400 block">Log ID</span>
-                  <span className="font-mono font-bold text-white">{selectedLog.logId}</span>
+                  <span className="text-slate-500 block">Log ID</span>
+                  <span className="font-mono font-bold text-slate-900">{selectedLog.logId}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Timestamp</span>
-                  <span className="font-mono text-cyan-300">{selectedLog.timestamp}</span>
+                  <span className="text-slate-500 block">Timestamp</span>
+                  <span className="font-mono text-cyan-600">{selectedLog.timestamp}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">CCTV Node</span>
-                  <span className="font-mono font-bold text-cyan-400">
+                  <span className="text-slate-500 block">CCTV Node</span>
+                  <span className="font-mono font-bold text-cyan-600">
                     {selectedLog.nodeId > 0 ? `NODE-${selectedLog.nodeId}` : 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Track / Session</span>
-                  <span className="font-mono text-indigo-300 text-[10px] break-all">
+                  <span className="text-slate-500 block">Track / Session</span>
+                  <span className="font-mono text-indigo-600 text-[10px] break-all">
                     {selectedLog.trackId != null ? `T${selectedLog.trackId}` : '—'} | {selectedLog.sessionId || '—'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Camera Node</span>
-                  <span className="font-semibold text-white">{selectedLog.cameraName || selectedLog.cameraId || 'N/A'}</span>
+                  <span className="text-slate-500 block">Camera Node</span>
+                  <span className="font-semibold text-slate-900">{selectedLog.cameraName || selectedLog.cameraId || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Location</span>
-                  <span className="font-semibold text-slate-200">{selectedLog.location || 'N/A'}</span>
+                  <span className="text-slate-500 block">Location</span>
+                  <span className="font-semibold text-slate-900">{selectedLog.location || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Vehicle Details</span>
-                  <span className="font-semibold text-slate-200">{selectedLog.vehicleDetails || 'N/A'}</span>
+                  <span className="text-slate-500 block">Vehicle Details</span>
+                  <span className="font-semibold text-slate-900">{selectedLog.vehicleDetails || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Vehicle Type</span>
-                  <span className="font-semibold text-slate-200">{selectedLog.vehicleType || 'N/A'}</span>
+                  <span className="text-slate-500 block">Vehicle Type</span>
+                  <span className="font-semibold text-slate-900">{selectedLog.vehicleType || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Plate Number</span>
-                  <span className="font-mono font-bold text-amber-400 whitespace-nowrap">{selectedLog.plateNumber}</span>
+                  <span className="text-slate-500 block">Plate Number</span>
+                  <span className="font-mono font-bold text-amber-600 whitespace-nowrap">{selectedLog.plateNumber}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Confidence</span>
-                  <span className="font-mono text-emerald-400 font-bold">{selectedLog.confidence}%</span>
+                  <span className="text-slate-500 block">Confidence</span>
+                  <span className="font-mono text-emerald-600 font-bold">{selectedLog.confidence}%</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Validation Status</span>
-                  <span className="font-bold text-amber-400">{selectedLog.status || 'N/A'}</span>
+                  <span className="text-slate-500 block">Validation Status</span>
+                  <span className="font-bold text-amber-600">{selectedLog.status || 'N/A'}</span>
                 </div>
               </div>
 
               {isReviewable(selectedLog.status) && (
-                <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-xl space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-slate-300 font-bold">
-                    <AlertTriangle className="text-amber-400" size={18} />
+                <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                    <AlertTriangle className="text-amber-600" size={18} />
                     <span>Requires authorized officer verification — Confirm or Reject this detection</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -491,7 +491,7 @@ export default function DetectionLogs({ logs, snapshots = {}, nodes = [], onOpen
                       <UserCheck size={16} /> Confirm Detection
                     </button>
                     <button type="button" onClick={() => handleReject(selectedLog.logId || selectedLog.id)}
-                      className="btn bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2 px-4 rounded-lg font-bold flex items-center gap-1.5 flex-1 justify-center border border-slate-700">
+                      className="btn bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs py-2 px-4 rounded-lg font-bold flex items-center gap-1.5 flex-1 justify-center border border-slate-200">
                       <UserX size={16} /> Reject Detection
                     </button>
                   </div>

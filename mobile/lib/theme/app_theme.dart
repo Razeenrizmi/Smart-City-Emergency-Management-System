@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppPalette {
-  static const Color bg = Color(0xFF0B1220);
-  static const Color surface = Color(0xFF121A2B);
-  static const Color surface2 = Color(0xFF18233A);
-  static const Color border = Color(0xFF243250);
-  static const Color text = Color(0xFFE8EEF9);
-  static const Color textMuted = Color(0xFF8B9BB4);
-  static const Color online = Color(0xFF22C55E);
-  static const Color offline = Color(0xFF64748B);
-  static const Color danger = Color(0xFFEF4444);
-  static const Color error = Color(0xFFEF4444);
-  static const Color success = Color(0xFF22C55E);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color accent = Color(0xFF22D3EE);
-  static const Color info = Color(0xFF3B82F6);
-  static const Color background = Color(0xFF0B1220);
+  static const Color bg = Color(0xFFF5F7FA);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surface2 = Color(0xFFEEF2F7);
+  static const Color border = Color(0xFFDCE3EC);
+  static const Color text = Color(0xFF1F2A37);
+  static const Color textMuted = Color(0xFF5B6875);
+  static const Color online = Color(0xFF16A34A);
+  static const Color offline = Color(0xFF94A3B8);
+  static const Color danger = Color(0xFFDC2626);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF16A34A);
+  static const Color warning = Color(0xFFD97706);
+  static const Color accent = Color(0xFF0891B2);
+  static const Color info = Color(0xFF2563EB);
+  static const Color background = Color(0xFFF5F7FA);
 }
 
 ThemeData buildAppTheme() {
   final base = ColorScheme.fromSeed(
     seedColor: AppPalette.accent,
-    brightness: Brightness.dark,
+    brightness: Brightness.light,
   ).copyWith(
-    surface: AppPalette.bg,
+    surface: AppPalette.surface,
     secondary: AppPalette.surface2,
     outline: AppPalette.border,
   );
@@ -33,9 +33,10 @@ ThemeData buildAppTheme() {
     colorScheme: base,
     scaffoldBackgroundColor: AppPalette.bg,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppPalette.bg,
+      backgroundColor: AppPalette.surface,
       foregroundColor: AppPalette.text,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
         color: AppPalette.text,
@@ -55,9 +56,9 @@ ThemeData buildAppTheme() {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppPalette.surface,
-      indicatorColor: AppPalette.accent.withValues(alpha: 0.16),
+      indicatorColor: AppPalette.accent.withValues(alpha: 0.14),
       labelTextStyle: WidgetStateProperty.all(
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppPalette.text),
       ),
     ),
     chipTheme: ChipThemeData(
@@ -66,9 +67,9 @@ ThemeData buildAppTheme() {
       labelStyle: const TextStyle(color: AppPalette.text, fontSize: 12),
     ),
     dividerTheme: const DividerThemeData(color: AppPalette.border),
-    snackBarTheme: SnackBarThemeData(
-      backgroundColor: AppPalette.surface2,
-      contentTextStyle: const TextStyle(color: AppPalette.text),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: Color(0xFF1F2A37),
+      contentTextStyle: TextStyle(color: Colors.white),
       behavior: SnackBarBehavior.floating,
     ),
   );

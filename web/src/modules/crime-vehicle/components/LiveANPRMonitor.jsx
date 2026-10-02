@@ -630,11 +630,11 @@ export default function LiveANPRMonitor({
     <div className="anpr-monitor-container">
       <div className="section-header flex flex-wrap justify-between items-center gap-4 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Camera className="text-cyan-400" size={24} />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Camera className="text-cyan-600" size={24} />
             AUTOMATIC NUMBER PLATE RECOGNITION (ANPR) SURVEILLANCE
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Multi-node CCTV feed with isolated YOLO/ByteTrack tracking per node, {targetAiFps} FPS AI sampling ({frameIntervalMs}ms), multi-frame confirmation & EasyOCR plate voting
           </p>
         </div>
@@ -664,9 +664,9 @@ export default function LiveANPRMonitor({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Feed Card */}
-        <div className="lg:col-span-2 card bg-slate-900 border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+        <div className="lg:col-span-2 card bg-white border-slate-200 p-4 rounded-xl flex flex-col justify-between">
           <div>
-            <div className="feed-viewport-header flex flex-wrap justify-between items-center pb-3 border-b border-slate-800 gap-2">
+            <div className="feed-viewport-header flex flex-wrap justify-between items-center pb-3 border-b border-slate-200 gap-2">
               <div className="flex items-center gap-3">
                 <div className="relative flex h-3 w-3">
                   {isCameraActive ? (
@@ -679,10 +679,10 @@ export default function LiveANPRMonitor({
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">
+                  <h3 className="font-bold text-slate-900 text-base">
                     {activeNode?.cameraName || 'Select a CCTV node'}
                   </h3>
-                  <span className="text-xs text-cyan-400">
+                  <span className="text-xs text-cyan-600">
                     {activeNode
                       ? `${activeNode.location} • Node ID: ${activeNode.nodeId} • ${activeNode.streamSource}`
                       : 'No node selected'}
@@ -692,43 +692,43 @@ export default function LiveANPRMonitor({
 
               <div className="flex items-center gap-2 text-xs">
                 {isCameraActive ? (
-                  <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 font-mono font-bold flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 font-mono font-bold flex items-center gap-1">
                     <Circle size={8} className="fill-emerald-400" /> NODE ONLINE
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 font-mono font-bold">
                     NODE OFFLINE
                   </span>
                 )}
                 {isMonitoring && (
-                  <span className="px-2 py-0.5 rounded bg-cyan-950/90 border border-cyan-400 text-cyan-300 font-mono font-bold animate-pulse">
+                  <span className="px-2 py-0.5 rounded bg-cyan-50 border border-cyan-400 text-cyan-600 font-mono font-bold animate-pulse">
                     {targetAiFps} FPS MONITORING
                   </span>
                 )}
                 {isMonitoring && (
-                  <span className="px-2 py-0.5 rounded bg-emerald-950/90 border border-emerald-400 text-emerald-300 font-mono font-bold" title="Measured AI FPS from real frame completions">
+                  <span className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-400 text-emerald-600 font-mono font-bold" title="Measured AI FPS from real frame completions">
                     AI {rt.stats?.aiFps != null ? rt.stats.aiFps : '—'} FPS
                   </span>
                 )}
                 {isCameraActive && rt.streamMode === 'webrtc' && rt.stats?.streamFps != null && (
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-slate-300 font-mono font-bold" title="Measured stream FPS via requestVideoFrameCallback">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-600 text-slate-700 font-mono font-bold" title="Measured stream FPS via requestVideoFrameCallback">
                     STREAM {rt.stats.streamFps} FPS
                   </span>
                 )}
                 {isCameraActive && rt.streamMode === 'mjpeg' && (
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-500 font-mono font-bold" title="MJPEG stream — frame rate not measurable in browser">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 font-mono font-bold" title="MJPEG stream — frame rate not measurable in browser">
                     STREAM — FPS
                   </span>
                 )}
                 {isMonitoring && sessionId && (
-                  <span className="px-2 py-0.5 rounded bg-indigo-950/90 border border-indigo-400 text-indigo-300 font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-400 text-indigo-600 font-mono font-bold">
                     TRACKING: {trackingStats.processedTracks} processed
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="feed-canvas relative mt-3 rounded-lg overflow-hidden bg-black aspect-video border border-slate-800 flex items-center justify-center">
+            <div className="feed-canvas relative mt-3 rounded-lg overflow-hidden bg-black aspect-video border border-slate-200 flex items-center justify-center">
               {/* Video elements for every node (getUserMedia streams) — all stay mounted; only the active one is visible */}
               {nodes.map((node) => (
                 <video
@@ -850,10 +850,10 @@ export default function LiveANPRMonitor({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800">
-            <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-slate-200">
+            <div className="text-xs font-semibold text-slate-500 mb-2 flex items-center justify-between">
               <span>CCTV NODE & ANPR MONITORING CONTROLS — NODE {String(activeId ?? '--')}</span>
-              <span className="text-[11px] font-mono text-cyan-400">
+              <span className="text-[11px] font-mono text-cyan-600">
                 {isMonitoring ? `STATUS: CONTINUOUS MONITORING (${targetAiFps} FPS)` : isCameraActive ? 'STATUS: READY' : 'STATUS: OFFLINE'}
               </span>
             </div>
@@ -863,7 +863,7 @@ export default function LiveANPRMonitor({
                 disabled={isCameraActive}
                 className={`btn text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition-all ${
                   isCameraActive
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200'
                     : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
                 }`}
               >
@@ -875,8 +875,8 @@ export default function LiveANPRMonitor({
                 disabled={!isCameraActive}
                 className={`btn text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition-all ${
                   !isCameraActive
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                    : 'bg-red-600/80 hover:bg-red-600 text-white border border-red-500/50'
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200'
+                    : 'bg-red-600/80 hover:bg-red-600 text-white border border-red-200'
                 }`}
               >
                 <CameraOff size={15} /> Stop Camera
@@ -887,7 +887,7 @@ export default function LiveANPRMonitor({
                 disabled={!isCameraActive || isAnalyzing}
                 className={`btn text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition-all ${
                   !isCameraActive || isAnalyzing
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200'
                     : 'bg-amber-600 hover:bg-amber-500 text-white shadow-md'
                 }`}
                 title="Analyze current node frame through AI detection pipeline"
@@ -901,7 +901,7 @@ export default function LiveANPRMonitor({
                 disabled={!isCameraActive || isMonitoring}
                 className={`btn text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition-all ${
                   !isCameraActive || isMonitoring
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200'
                     : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-md'
                 }`}
               >
@@ -913,8 +913,8 @@ export default function LiveANPRMonitor({
                 disabled={!isMonitoring}
                 className={`btn text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition-all ${
                   !isMonitoring
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                    : 'bg-slate-700 hover:bg-slate-600 text-white border border-slate-600'
+                    ? 'bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200'
+                    : 'bg-slate-200 hover:bg-slate-600 text-slate-900 border border-slate-600'
                 }`}
               >
                 <Pause size={15} /> Stop CCTV Monitoring
@@ -924,53 +924,53 @@ export default function LiveANPRMonitor({
         </div>
 
         {/* Right Sidebar: Agent Pipeline & Results */}
-        <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl flex flex-col justify-between overflow-y-auto max-h-[720px]">
+        <div className="card bg-white border-slate-200 p-4 rounded-xl flex flex-col justify-between overflow-y-auto max-h-[720px]">
           <div>
-            <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <Cpu size={18} className="text-cyan-400" />
+            <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <Cpu size={18} className="text-cyan-600" />
                 CONTROLLED AGENTIC AI PIPELINE
               </h3>
               {isMonitoring && (
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
+                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   LIVE REFRESH {targetAiFps} FPS
                 </span>
               )}
             </div>
 
             {/* Pipeline Stages */}
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800 mb-4 text-xs font-mono space-y-1.5">
-              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
-                <FileCheck size={12} className="text-cyan-400" /> Agent Processing Pipeline Stages
+            <div className="bg-white/80 p-3 rounded-lg border border-slate-200 mb-4 text-xs font-mono space-y-1.5">
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                <FileCheck size={12} className="text-cyan-600" /> Agent Processing Pipeline Stages
               </div>
 
-              <div className="flex items-center gap-2 text-emerald-400">
+              <div className="flex items-center gap-2 text-emerald-600">
                 <Check size={13} className="shrink-0" />
                 <span className="truncate">Coordinator Agent: Frame Captured (Node {activeId ?? '--'})</span>
               </div>
 
-              <div className={`flex items-center gap-2 ${isAnalyzing ? 'text-amber-400 animate-pulse' : latestResult?.vehicleDetected ? 'text-emerald-400' : latestResult ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 ${isAnalyzing ? 'text-amber-600 animate-pulse' : latestResult?.vehicleDetected ? 'text-emerald-600' : latestResult ? 'text-slate-500' : 'text-slate-500'}`}>
                 {isAnalyzing ? <Loader2 size={13} className="animate-spin shrink-0" /> : latestResult?.vehicleDetected ? <Check size={13} className="shrink-0" /> : latestResult ? <XCircle size={13} className="shrink-0" /> : <Circle size={10} className="shrink-0" />}
                 <span className="truncate">
                   Vehicle Detection (YOLO): {isAnalyzing ? 'Running...' : latestResult?.vehicleDetected ? 'Vehicle Found' : latestResult ? 'No Vehicle' : 'Pending'}
                 </span>
               </div>
 
-              <div className={`flex items-center gap-2 ${latestResult?.plateDetected ? 'text-emerald-400' : latestResult ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 ${latestResult?.plateDetected ? 'text-emerald-600' : latestResult ? 'text-slate-500' : 'text-slate-500'}`}>
                 {latestResult?.plateDetected ? <Check size={13} className="shrink-0" /> : latestResult ? <XCircle size={13} className="shrink-0" /> : <Circle size={10} className="shrink-0" />}
                 <span className="truncate">
                   Plate OCR: {latestResult?.plateDetected ? latestResult.detectedPlate : latestResult ? 'No Plate Read' : 'Pending'}
                 </span>
               </div>
 
-              <div className={`flex items-center gap-2 ${latestResult?.isMatch ? 'text-red-400 font-bold' : latestResult ? 'text-emerald-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 ${latestResult?.isMatch ? 'text-red-600 font-bold' : latestResult ? 'text-emerald-600' : 'text-slate-500'}`}>
                 {latestResult ? <Database size={13} className="shrink-0" /> : <Circle size={10} className="shrink-0" />}
                 <span className="truncate">
                   DB Match: {latestResult ? (latestResult.isMatch ? 'MATCH FOUND' : 'CLEARED') : 'Pending'}
                 </span>
               </div>
 
-              <div className={`flex items-center gap-2 ${latestResult?.isMatch ? 'text-amber-400 font-bold' : latestResult ? 'text-emerald-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 ${latestResult?.isMatch ? 'text-amber-600 font-bold' : latestResult ? 'text-emerald-600' : 'text-slate-500'}`}>
                 {latestResult?.isMatch ? <AlertTriangle size={13} className="shrink-0" /> : latestResult ? <Check size={13} className="shrink-0" /> : <Circle size={10} className="shrink-0" />}
                 <span className="truncate">
                   Safety Agent: {latestResult?.validationStatus === 'CONFIRMED_BY_OFFICER' ? 'OFFICER CONFIRMED' : latestResult?.validationStatus === 'REJECTED_BY_OFFICER' ? 'OFFICER REJECTED' : latestResult?.isMatch ? 'REQUIRES REVIEW' : latestResult ? 'AUTO CLEARED' : 'Pending'}
@@ -978,7 +978,7 @@ export default function LiveANPRMonitor({
               </div>
 
               {isMonitoring && sessionId && (
-                <div className="flex items-center gap-2 text-indigo-400">
+                <div className="flex items-center gap-2 text-indigo-600">
                   <Eye size={13} className="shrink-0" />
                   <span className="truncate">
                     ByteTrack: {trackingStats.activeTracks} active / {trackingStats.processedTracks} processed | Session: {sessionId}
@@ -989,10 +989,10 @@ export default function LiveANPRMonitor({
 
             {/* Analyzing State */}
             {isAnalyzing ? (
-              <div className="p-6 bg-slate-950/80 rounded-xl border border-cyan-500/40 text-center py-8 my-2">
-                <Loader2 size={36} className="animate-spin text-cyan-400 mx-auto mb-3" />
-                <h4 className="font-bold text-white text-sm">Analyzing current frame...</h4>
-                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+              <div className="p-6 bg-white/80 rounded-xl border border-cyan-200 text-center py-8 my-2">
+                <Loader2 size={36} className="animate-spin text-cyan-600 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-900 text-sm">Analyzing current frame...</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
                   Forwarding frame from Node {activeId} to Python AI service (YOLO vehicle detection + EasyOCR plate reading + PostgreSQL lookup).
                 </p>
               </div>
@@ -1000,7 +1000,7 @@ export default function LiveANPRMonitor({
               /* Result Display */
               <div className="space-y-3">
                 {latestSnapshot && (
-                  <div className="relative rounded-lg overflow-hidden border border-slate-800 aspect-video bg-black">
+                  <div className="relative rounded-lg overflow-hidden border border-slate-200 aspect-video bg-black">
                     <img src={latestSnapshot} alt="Captured Frame" className="w-full h-full object-cover" />
                     <div className="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300">
                       NODE {latestResult.nodeId || activeId} CAPTURE FRAME
@@ -1014,10 +1014,10 @@ export default function LiveANPRMonitor({
                 {/* Detection Data */}
                 <div className="space-y-2 text-xs">
                   {/* Plate Display */}
-                  <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700/80 flex justify-between items-center">
+                  <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 flex justify-between items-center">
                     <div>
-                      <div className="text-[11px] text-slate-400">Detected Number Plate</div>
-                      <div className="font-mono text-xl font-black text-amber-400">
+                      <div className="text-[11px] text-slate-500">Detected Number Plate</div>
+                      <div className="font-mono text-xl font-black text-amber-600">
                         {latestResult.detectedPlate && !['NO_VEHICLE_DETECTED', 'NO_PLATE_DETECTED', 'ERROR'].includes(latestResult.detectedPlate)
                           ? latestResult.detectedPlate
                           : '—'}
@@ -1025,48 +1025,48 @@ export default function LiveANPRMonitor({
                     </div>
                     {latestResult.plateConfidence > 0 && (
                       <div className="text-right">
-                        <div className="text-[11px] text-slate-400">Plate OCR Conf.</div>
-                        <div className="font-mono text-sm font-bold text-emerald-400">{latestResult.plateConfidence}%</div>
+                        <div className="text-[11px] text-slate-500">Plate OCR Conf.</div>
+                        <div className="font-mono text-sm font-bold text-emerald-600">{latestResult.plateConfidence}%</div>
                       </div>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Vehicle Info</span>
-                      <span className="font-bold text-slate-200 text-[11px] leading-tight block">{latestResult.vehicleInfo || 'No data'}</span>
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Vehicle Info</span>
+                      <span className="font-bold text-slate-900 text-[11px] leading-tight block">{latestResult.vehicleInfo || 'No data'}</span>
                     </div>
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Vehicle Confidence</span>
-                      <span className="font-mono text-emerald-400 font-bold">{latestResult.vehicleConfidence > 0 ? `${latestResult.vehicleConfidence}%` : '—'}</span>
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Vehicle Confidence</span>
+                      <span className="font-mono text-emerald-600 font-bold">{latestResult.vehicleConfidence > 0 ? `${latestResult.vehicleConfidence}%` : '—'}</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Crime Database</span>
-                      <span className={`font-bold font-mono ${latestResult.isMatch ? 'text-red-400' : 'text-emerald-400'}`}>
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Crime Database</span>
+                      <span className={`font-bold font-mono ${latestResult.isMatch ? 'text-red-600' : 'text-emerald-600'}`}>
                         {latestResult.isMatch ? 'MATCH FOUND' : 'NO MATCH'}
                       </span>
                     </div>
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Crime Status</span>
-                      <span className={`font-bold text-[11px] ${latestResult.isMatch ? 'text-red-400' : 'text-slate-200'}`}>
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Crime Status</span>
+                      <span className={`font-bold text-[11px] ${latestResult.isMatch ? 'text-red-600' : 'text-slate-900'}`}>
                         {latestResult.crimeStatus || 'CLEARED'}
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Source Node</span>
-                      <span className="font-mono text-cyan-400 font-bold">
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Source Node</span>
+                      <span className="font-mono text-cyan-600 font-bold">
                         NODE {latestResult.nodeId || activeId} — {resultNode?.cameraName || 'Unknown'}
                       </span>
                     </div>
-                    <div className="p-2.5 bg-slate-800/60 rounded-lg border border-slate-700/80">
-                      <span className="text-slate-400 text-[11px] block">Track / Session</span>
-                      <span className="font-mono text-indigo-300 font-bold text-[10px] break-all">
+                    <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                      <span className="text-slate-500 text-[11px] block">Track / Session</span>
+                      <span className="font-mono text-indigo-600 font-bold text-[10px] break-all">
                         {latestResult.trackId != null ? `T${latestResult.trackId}` : '—'} | {latestResult.sessionId || sessionId || '—'}
                       </span>
                     </div>
@@ -1075,12 +1075,12 @@ export default function LiveANPRMonitor({
 
                 {/* Cooldown-suppressed crime match — CrimeMatch retained, re-alert suppressed */}
                 {latestResult.isMatch && status === 'COOLDOWN_SUPPRESSED' && (
-                  <div className="p-4 bg-amber-950/80 border border-amber-500/70 rounded-xl text-amber-200 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-amber-400 text-sm">
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-600 text-sm">
                       <ShieldAlert className="shrink-0" size={18} />
                       Crime match retained — re-alert suppressed (cooldown {cfg.alertCooldownSeconds || 60}s)
                     </div>
-                    <div className="text-[11px] font-mono text-amber-300">
+                    <div className="text-[11px] font-mono text-amber-600">
                       Node {latestResult.nodeId || activeId} — {resultNode?.cameraName || activeNode?.cameraName || 'Unknown node'}
                     </div>
                     {latestResult.matchedVehicle && (
@@ -1090,7 +1090,7 @@ export default function LiveANPRMonitor({
                         <p><strong>Incident:</strong> {latestResult.matchedVehicle.incidentType}</p>
                       </div>
                     )}
-                    <p className="text-[11px] text-amber-200/80 leading-snug">
+                    <p className="text-[11px] text-amber-700 leading-snug">
                       Same plate + node was alerted within the cooldown window. No new officer-review alert was raised.
                     </p>
                   </div>
@@ -1098,12 +1098,12 @@ export default function LiveANPRMonitor({
 
                 {/* Crime Match Alert */}
                 {latestResult.isMatch && status !== 'COOLDOWN_SUPPRESSED' ? (
-                  <div className="p-4 bg-red-950/90 border border-red-500/80 rounded-xl text-red-200 space-y-3">
-                    <div className="flex items-center gap-2 font-bold text-red-400 text-sm">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 space-y-3">
+                    <div className="flex items-center gap-2 font-bold text-red-600 text-sm">
                       <ShieldAlert className="animate-pulse shrink-0" size={18} />
                       Possible crime-related vehicle detected
                     </div>
-                    <div className="text-[11px] font-mono text-red-300">
+                    <div className="text-[11px] font-mono text-red-600">
                       Node {latestResult.nodeId || activeId} — {resultNode?.cameraName || activeNode?.cameraName || 'Unknown node'}
                     </div>
                     {latestResult.matchedVehicle && (
@@ -1114,7 +1114,7 @@ export default function LiveANPRMonitor({
                         <p><strong>Threat:</strong> {latestResult.matchedVehicle.threatLevel}</p>
                       </div>
                     )}
-                    <p className="text-xs text-red-200 leading-snug">
+                    <p className="text-xs text-red-700 leading-snug">
                       Requires authorized officer verification before final criminal record entry.
                     </p>
                     <div className="flex items-center gap-2 pt-1">
@@ -1135,8 +1135,8 @@ export default function LiveANPRMonitor({
                         disabled={actionLoading || latestResult.validationStatus === 'REJECTED_BY_OFFICER'}
                         className={`btn flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 shadow-md ${
                           latestResult.validationStatus === 'REJECTED_BY_OFFICER'
-                            ? 'bg-slate-800 text-slate-400 cursor-default'
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                            ? 'bg-slate-100 text-slate-500 cursor-default'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
                         }`}
                       >
                         <UserX size={14} />
@@ -1164,12 +1164,12 @@ export default function LiveANPRMonitor({
                   /* Non-match result messages */
                   <div className={`p-3 rounded-xl border ${
                     status === 'NO_VEHICLE' || status === 'PERSON_DETECTED'
-                      ? 'bg-slate-800/60 border-slate-700 text-slate-300'
+                      ? 'bg-slate-100 border-slate-200 text-slate-700'
                       : status === 'VEHICLE_DETECTED_NO_PLATE' || status === 'PLATE_UNREADABLE'
-                        ? 'bg-amber-950/40 border-amber-500/50 text-amber-300'
+                        ? 'bg-amber-50 border-amber-200 text-amber-600'
                         : status === 'AI_SERVICE_UNAVAILABLE' || status === 'ERROR'
-                          ? 'bg-red-950/60 border-red-500/50 text-red-300'
-                          : 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300'
+                          ? 'bg-red-50 border-red-200 text-red-600'
+                          : 'bg-emerald-50 border-emerald-200 text-emerald-600'
                   }`}>
                     <div className="flex items-center gap-2 font-bold text-xs">
                       {status === 'NO_VEHICLE' && <><Circle size={16} /> No vehicle detected</>}
@@ -1181,14 +1181,14 @@ export default function LiveANPRMonitor({
                       {(status === 'AI_SERVICE_UNAVAILABLE' || status === 'ERROR') && <><XCircle size={16} /> Service error</>}
                       {status === 'IDLE' && <><CheckCircle size={16} /> Ready</>}
                     </div>
-                    <p className="text-[11px] text-slate-300 mt-1">{latestResult.vehicleInfo || 'No additional information.'}</p>
+                    <p className="text-[11px] text-slate-700 mt-1">{latestResult.vehicleInfo || 'No additional information.'}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-10 text-slate-400 text-xs px-4">
-                <Cpu size={40} className="mx-auto mb-3 opacity-30 text-cyan-400" />
-                <p className="font-medium text-slate-300 mb-1">
+              <div className="text-center py-10 text-slate-500 text-xs px-4">
+                <Cpu size={40} className="mx-auto mb-3 opacity-30 text-cyan-600" />
+                <p className="font-medium text-slate-700 mb-1">
                   {isCameraActive ? 'Pipeline Ready' : 'CCTV Stream Offline'}
                 </p>
                 <p className="text-slate-500">

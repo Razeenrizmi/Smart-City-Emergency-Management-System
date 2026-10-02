@@ -189,8 +189,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               setData(prev => ({ ...prev, plateNumber: e.target.value.toUpperCase() }));
               if (errors.plateNumber) setErrors(prev => ({ ...prev, plateNumber: '' }));
             }}
-            className={`input font-mono uppercase ${errors.plateNumber ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-          {errors.plateNumber && <p className="text-red-400 text-[11px] mt-1">{errors.plateNumber}</p>}
+            className={`input font-mono uppercase ${errors.plateNumber ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+          {errors.plateNumber && <p className="text-red-600 text-[11px] mt-1">{errors.plateNumber}</p>}
         </div>
         <div>
           <label className="form-label">Threat Severity Level *</label>
@@ -199,12 +199,12 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               setData(prev => ({ ...prev, threatLevel: e.target.value }));
               if (errors.threatLevel) setErrors(prev => ({ ...prev, threatLevel: '' }));
             }}
-            className={`input ${errors.threatLevel ? 'border-red-500 ring-1 ring-red-500/50' : ''}`}>
+            className={`input ${errors.threatLevel ? 'border-red-200 ring-1 ring-red-500/50' : ''}`}>
             <option value="CRITICAL">CRITICAL (Armed / Violence)</option>
             <option value="HIGH">HIGH (Stolen / Major Crime)</option>
             <option value="MEDIUM">MEDIUM (Traffic Felony / Evading)</option>
           </select>
-          {errors.threatLevel && <p className="text-red-400 text-[11px] mt-1">{errors.threatLevel}</p>}
+          {errors.threatLevel && <p className="text-red-600 text-[11px] mt-1">{errors.threatLevel}</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -216,8 +216,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               setData(prev => ({ ...prev, makeModel: e.target.value }));
               if (errors.makeModel) setErrors(prev => ({ ...prev, makeModel: '' }));
             }}
-            className={`input ${errors.makeModel ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-          {errors.makeModel && <p className="text-red-400 text-[11px] mt-1">{errors.makeModel}</p>}
+            className={`input ${errors.makeModel ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+          {errors.makeModel && <p className="text-red-600 text-[11px] mt-1">{errors.makeModel}</p>}
         </div>
         <div>
           <label className="form-label">Vehicle Color *</label>
@@ -227,8 +227,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               setData(prev => ({ ...prev, color: e.target.value }));
               if (errors.color) setErrors(prev => ({ ...prev, color: '' }));
             }}
-            className={`input ${errors.color ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-          {errors.color && <p className="text-red-400 text-[11px] mt-1">{errors.color}</p>}
+            className={`input ${errors.color ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+          {errors.color && <p className="text-red-600 text-[11px] mt-1">{errors.color}</p>}
         </div>
       </div>
       <div>
@@ -239,8 +239,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
             setData(prev => ({ ...prev, incidentType: e.target.value }));
             if (errors.incidentType) setErrors(prev => ({ ...prev, incidentType: '' }));
           }}
-          className={`input ${errors.incidentType ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-        {errors.incidentType && <p className="text-red-400 text-[11px] mt-1">{errors.incidentType}</p>}
+          className={`input ${errors.incidentType ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+        {errors.incidentType && <p className="text-red-600 text-[11px] mt-1">{errors.incidentType}</p>}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -251,8 +251,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               setData(prev => ({ ...prev, ownerName: e.target.value }));
               if (errors.ownerName) setErrors(prev => ({ ...prev, ownerName: '' }));
             }}
-            className={`input ${errors.ownerName ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-          {errors.ownerName && <p className="text-red-400 text-[11px] mt-1">{errors.ownerName}</p>}
+            className={`input ${errors.ownerName ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+          {errors.ownerName && <p className="text-red-600 text-[11px] mt-1">{errors.ownerName}</p>}
         </div>
         <div>
           <label className="form-label">Vehicle Image *</label>
@@ -260,14 +260,14 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
             onChange={(e) => handleImageUpload(e, isEdit)}
             className="hidden" />
           <button type="button" onClick={() => (isEdit ? editFileInputRef : addFileInputRef).current?.click()}
-            className={`btn bg-slate-800 hover:bg-slate-700 text-slate-300 w-full text-xs flex items-center gap-2 border py-2.5 rounded-lg ${errors.image ? 'border-red-500 ring-1 ring-red-500/50' : 'border-slate-700'}`}>
+            className={`btn bg-slate-100 hover:bg-slate-200 text-slate-700 w-full text-xs flex items-center gap-2 border py-2.5 rounded-lg ${errors.image ? 'border-red-200 ring-1 ring-red-500/50' : 'border-slate-200'}`}>
             <Upload size={14} />
             {data.image ? 'Change Image' : 'Upload Image from Device'}
           </button>
-          {errors.image && <p className="text-red-400 text-[11px] mt-1">{errors.image}</p>}
+          {errors.image && <p className="text-red-600 text-[11px] mt-1">{errors.image}</p>}
           {data.image && (
             <div className="mt-2 relative">
-              <img src={data.image} alt="Preview" className="w-full h-24 object-cover rounded-lg border border-slate-700" />
+              <img src={data.image} alt="Preview" className="w-full h-24 object-cover rounded-lg border border-slate-200" />
               <button type="button" onClick={() => {
                 setData(prev => ({ ...prev, image: '' }));
                 setErrors(prev => ({ ...prev, image: 'Vehicle image is required' }));
@@ -287,8 +287,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
             setData(prev => ({ ...prev, notes: e.target.value }));
             if (errors.notes) setErrors(prev => ({ ...prev, notes: '' }));
           }}
-          className={`input ${errors.notes ? 'border-red-500 ring-1 ring-red-500/50' : ''}`} />
-        {errors.notes && <p className="text-red-400 text-[11px] mt-1">{errors.notes}</p>}
+          className={`input ${errors.notes ? 'border-red-200 ring-1 ring-red-500/50' : ''}`} />
+        {errors.notes && <p className="text-red-600 text-[11px] mt-1">{errors.notes}</p>}
       </div>
     </>
   );
@@ -298,11 +298,11 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
       {/* Header Bar */}
       <div className="section-header flex flex-wrap justify-between items-center gap-4 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <ShieldAlert className="text-red-500" size={24} />
             WANTED VEHICLE HOTLIST & BLACKLIST DATABASE
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Active criminal hotlist registry synced across all smart city ANPR surveillance nodes
           </p>
         </div>
@@ -315,10 +315,10 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="card bg-slate-900 border-slate-800 p-4 mb-6">
+      <div className="card bg-white border-slate-200 p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-3 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-3 text-slate-500" size={18} />
             <input
               type="text"
               placeholder="Search by license plate, make, model, suspect or incident..."
@@ -351,20 +351,20 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
         {filteredList.map((item) => (
           <div
             key={item.id || item.vehicleId}
-            className={`card bg-slate-900 border p-5 transition-all relative ${
+            className={`card bg-white border p-5 transition-all relative ${
               item.threatLevel === 'CRITICAL'
-                ? 'border-red-500/60 shadow-lg shadow-red-950/20'
+                ? 'border-red-200 shadow-lg shadow-red-950/20'
                 : item.threatLevel === 'HIGH'
-                ? 'border-amber-500/50'
-                : 'border-slate-800'
+                ? 'border-amber-200'
+                : 'border-slate-200'
             }`}
           >
             <div className="flex gap-4">
               {item.image ? (
                 <img src={item.image} alt={item.makeModel}
-                  className="w-32 h-28 object-cover rounded-lg border border-slate-800 shrink-0" />
+                  className="w-32 h-28 object-cover rounded-lg border border-slate-200 shrink-0" />
               ) : (
-                <div className="w-32 h-28 rounded-lg border border-slate-700 bg-slate-800 flex flex-col items-center justify-center shrink-0">
+                <div className="w-32 h-28 rounded-lg border border-slate-200 bg-slate-100 flex flex-col items-center justify-center shrink-0">
                   <Image size={24} className="text-slate-600 mb-1" />
                   <span className="text-[10px] text-slate-500">No Image</span>
                 </div>
@@ -372,51 +372,51 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-mono text-xl font-extrabold text-amber-400 bg-slate-950 px-2 py-0.5 rounded border border-amber-500/30">
+                    <span className="font-mono text-xl font-extrabold text-amber-600 bg-white px-2 py-0.5 rounded border border-amber-200">
                       {item.plateNumber}
                     </span>
-                    <div className="text-sm font-semibold text-white mt-2 truncate">{item.makeModel}</div>
-                    {item.color && <div className="text-[11px] text-slate-400 mt-0.5">{item.color}</div>}
+                    <div className="text-sm font-semibold text-slate-900 mt-2 truncate">{item.makeModel}</div>
+                    {item.color && <div className="text-[11px] text-slate-500 mt-0.5">{item.color}</div>}
                   </div>
                   <span className={`badge ${
                     item.threatLevel === 'CRITICAL' ? 'badge-critical'
                     : item.threatLevel === 'HIGH' ? 'badge-warn' : 'badge-slate'
                   }`}>{item.threatLevel} THREAT</span>
                 </div>
-                <div className="text-xs text-red-400 font-bold mt-2 flex items-center gap-1.5">
+                <div className="text-xs text-red-600 font-bold mt-2 flex items-center gap-1.5">
                   <AlertOctagon size={14} /> {item.incidentType}
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300">
+            <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-200 text-xs text-slate-700">
               <div>
                 <span className="text-slate-500 block text-[11px]">Owner / Suspect</span>
-                <span className="font-medium text-slate-200">{item.ownerName || 'Unknown'}</span>
+                <span className="font-medium text-slate-900">{item.ownerName || 'Unknown'}</span>
               </div>
               <div>
                 <span className="text-slate-500 block text-[11px]">Wanted Since</span>
-                <span className="font-mono text-slate-300">{item.wantedSince}</span>
+                <span className="font-mono text-slate-700">{item.wantedSince}</span>
               </div>
               <div className="col-span-2">
                 <span className="text-slate-500 block text-[11px]">Last Seen Node</span>
-                <span className="font-medium text-cyan-400 flex items-center gap-1">
+                <span className="font-medium text-cyan-600 flex items-center gap-1">
                   <MapPin size={12} /> {item.lastSeenCamera}
                 </span>
               </div>
               {item.notes && (
-                <div className="col-span-2 bg-slate-950/60 p-2 rounded border border-slate-800 text-slate-400 text-[11px]">
+                <div className="col-span-2 bg-white/80 p-2 rounded border border-slate-200 text-slate-500 text-[11px]">
                   <strong>Notes:</strong> {item.notes}
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-800/80">
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-200">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">Status:</span>
+                <span className="text-xs text-slate-500">Status:</span>
                 <select value={item.status}
                   onChange={(e) => onUpdateStatus(item.vehicleId || item.id, e.target.value)}
-                  className="select-xs font-bold text-xs rounded bg-slate-800 border-slate-700 text-slate-200">
+                  className="select-xs font-bold text-xs rounded bg-slate-100 border-slate-200 text-slate-900">
                   <option value="WANTED">WANTED</option>
                   <option value="SEARCHING">SEARCHING</option>
                   <option value="INTERCEPTED">INTERCEPTED</option>
@@ -432,11 +432,11 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
                   </button>
                 )}
                 <button onClick={() => openEditModal(item)}
-                  className="btn bg-slate-800 hover:bg-cyan-950 text-cyan-400 hover:text-cyan-300 btn-sm text-xs flex items-center gap-1 border border-slate-700 hover:border-cyan-500/50">
+                  className="btn bg-slate-100 hover:bg-cyan-50 text-cyan-600 hover:text-cyan-600 btn-sm text-xs flex items-center gap-1 border border-slate-200 hover:border-cyan-200">
                   <Pencil size={14} /> Edit
                 </button>
                 <button onClick={() => { if (window.confirm(`Delete ${item.plateNumber} from hotlist?`)) onDeleteVehicle(item.vehicleId || item.id); }}
-                  className="btn bg-slate-800 hover:bg-red-950 text-red-400 hover:text-red-300 btn-sm text-xs flex items-center gap-1 border border-slate-700 hover:border-red-500/50">
+                  className="btn bg-slate-100 hover:bg-red-50 text-red-600 hover:text-red-600 btn-sm text-xs flex items-center gap-1 border border-slate-200 hover:border-red-200">
                   <Trash2 size={14} /> Delete
                 </button>
               </div>
@@ -446,7 +446,7 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
         {filteredList.length === 0 && (
           <div className="col-span-2 text-center py-12">
             <ShieldAlert size={40} className="mx-auto mb-3 text-slate-600" />
-            <p className="text-sm text-slate-400">No vehicles found</p>
+            <p className="text-sm text-slate-500">No vehicles found</p>
             <p className="text-xs text-slate-600 mt-1">Add vehicles to the hotlist using the register button above</p>
           </div>
         )}
@@ -457,7 +457,7 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                 <Car className="text-red-500" size={20} />
                 REGISTER WANTED VEHICLE TO HOTLIST
               </h3>
@@ -481,8 +481,8 @@ export default function HotlistManager({ hotlist, onAddHotlist, onUpdateStatus, 
         <div className="modal-backdrop">
           <div className="modal-card">
             <div className="modal-header">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <Pencil className="text-cyan-400" size={20} />
+              <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                <Pencil className="text-cyan-600" size={20} />
                 EDIT VEHICLE — {editingVehicle.plateNumber}
               </h3>
               <button onClick={() => { setShowEditModal(false); setEditingVehicle(null); setEditErrors({}); }} className="btn-icon">

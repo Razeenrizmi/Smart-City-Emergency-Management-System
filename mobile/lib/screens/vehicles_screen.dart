@@ -127,7 +127,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppPalette.surface,
-        title: const Text('Delete Wanted Vehicle', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete Wanted Vehicle', style: TextStyle(color: AppPalette.text)),
         content: Text(
           'Are you sure you want to remove ${item.plateNumber} (${item.makeModel}) from the wanted hotlist?',
           style: const TextStyle(color: AppPalette.text),
@@ -208,7 +208,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
               children: [
                 TextField(
                   controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: AppPalette.text, fontSize: 13),
                   onChanged: (v) => setState(() => _searchQuery = v),
                   decoration: InputDecoration(
                     hintText: 'Search plate, make, model, suspect or incident...',
@@ -239,7 +239,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _selectedThreat,
                         isExpanded: true,
-                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                        style: const TextStyle(color: AppPalette.text, fontSize: 11),
                         dropdownColor: AppPalette.surface,
                         decoration: InputDecoration(
                           labelText: 'Severity',
@@ -266,7 +266,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _selectedStatus,
                         isExpanded: true,
-                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                        style: const TextStyle(color: AppPalette.text, fontSize: 11),
                         dropdownColor: AppPalette.surface,
                         decoration: InputDecoration(
                           labelText: 'Status',
@@ -488,7 +488,7 @@ class _HotlistVehicleCard extends StatelessWidget {
                       Text(
                         item.makeModel,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppPalette.text,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -783,7 +783,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
                   Text(
                     isEdit ? 'EDIT WANTED VEHICLE' : 'REGISTER WANTED VEHICLE',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppPalette.text,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -801,7 +801,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
               // License Plate
               TextFormField(
                 controller: _plateController,
-                style: const TextStyle(color: Colors.white, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppPalette.text, fontFamily: 'monospace', fontWeight: FontWeight.bold),
                 decoration: const InputDecoration(
                   labelText: 'License Plate Number *',
                   hintText: 'e.g. WP CAD-7829',
@@ -821,7 +821,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
                 initialValue: _threatLevel,
                 decoration: const InputDecoration(labelText: 'Threat Severity Level *'),
                 dropdownColor: AppPalette.surface,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppPalette.text),
                 items: const [
                   DropdownMenuItem(value: 'CRITICAL', child: Text('CRITICAL (Armed / Violence)')),
                   DropdownMenuItem(value: 'HIGH', child: Text('HIGH (Stolen / Major Crime)')),
@@ -834,7 +834,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
               // Make & Model
               TextFormField(
                 controller: _makeModelController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppPalette.text),
                 decoration: const InputDecoration(
                   labelText: 'Vehicle Make & Model *',
                   hintText: 'e.g. Toyota Land Cruiser',
@@ -853,7 +853,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
                   Expanded(
                     child: TextFormField(
                       controller: _colorController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppPalette.text),
                       decoration: const InputDecoration(
                         labelText: 'Vehicle Color *',
                         hintText: 'e.g. Obsidian Black',
@@ -868,7 +868,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
                   Expanded(
                     child: TextFormField(
                       controller: _ownerController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppPalette.text),
                       decoration: const InputDecoration(
                         labelText: 'Owner / Suspect Name *',
                         hintText: 'e.g. Suspect Alias',
@@ -886,7 +886,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
               // Incident Type
               TextFormField(
                 controller: _incidentController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppPalette.text),
                 decoration: const InputDecoration(
                   labelText: 'Incident Type / Reason *',
                   hintText: 'e.g. Armed Robbery, Hit & Run',
@@ -901,7 +901,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
               // Last Seen Camera
               TextFormField(
                 controller: _lastSeenController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppPalette.text),
                 decoration: const InputDecoration(
                   labelText: 'Last Seen Node Location',
                   hintText: 'e.g. Main St & 5th Ave',
@@ -912,7 +912,7 @@ class _VehicleFormModalState extends State<_VehicleFormModal> {
               // Tactical Notes
               TextFormField(
                 controller: _notesController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppPalette.text),
                 maxLines: 2,
                 decoration: const InputDecoration(
                   labelText: 'Tactical Notes & Instructions',

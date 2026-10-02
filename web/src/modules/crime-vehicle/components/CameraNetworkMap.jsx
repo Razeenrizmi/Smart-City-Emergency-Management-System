@@ -113,25 +113,25 @@ export default function CameraNetworkMap() {
       {/* Header */}
       <div className="section-header flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Map className="text-cyan-400" size={24} />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Map className="text-cyan-600" size={24} />
             WEBCAM LOCATION MAP
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Real GPS location of your webcam device
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {location && (
-            <span className="badge bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 text-xs flex items-center gap-1">
+            <span className="badge bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs flex items-center gap-1">
               <MapPin size={12} />
               {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
             </span>
           )}
           <button
             onClick={handleRetry}
-            className="btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 border border-slate-700"
+            className="btn bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 border border-slate-200"
           >
             <LocateFixed size={14} />
             {loading ? 'Locating...' : 'Refresh Location'}
@@ -140,11 +140,11 @@ export default function CameraNetworkMap() {
       </div>
 
       {/* Map */}
-      <div className="card bg-slate-900 border-slate-800 overflow-hidden rounded-xl relative" style={{ height: '500px' }}>
+      <div className="card bg-white border-slate-200 overflow-hidden rounded-xl relative" style={{ height: '500px' }}>
         {loading && (
-          <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur">
-            <Loader2 size={36} className="text-cyan-400 animate-spin mb-3" />
-            <p className="text-sm text-slate-300 font-medium">Detecting webcam GPS location...</p>
+          <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-white/80 backdrop-blur">
+            <Loader2 size={36} className="text-cyan-600 animate-spin mb-3" />
+            <p className="text-sm text-slate-700 font-medium">Detecting webcam GPS location...</p>
             <p className="text-xs text-slate-500 mt-1">Please allow location access when prompted</p>
           </div>
         )}
@@ -216,24 +216,24 @@ export default function CameraNetworkMap() {
 
         {/* Status overlay */}
         {error && (
-          <div className="absolute bottom-3 left-3 z-[1000] bg-amber-950/95 backdrop-blur border border-amber-500/50 rounded-lg p-3 max-w-xs">
-            <div className="flex items-center gap-2 text-xs text-amber-300">
+          <div className="absolute bottom-3 left-3 z-[1000] bg-amber-50 backdrop-blur border border-amber-200 rounded-lg p-3 max-w-xs">
+            <div className="flex items-center gap-2 text-xs text-amber-600">
               <AlertTriangle size={14} />
               <span className="font-bold">Location access denied</span>
             </div>
-            <p className="text-[11px] text-amber-400/70 mt-1">
+            <p className="text-[11px] text-amber-600 mt-1">
               Using default location. Enable GPS in browser settings for accurate webcam location.
             </p>
           </div>
         )}
 
         {location && !loading && (
-          <div className="absolute bottom-3 left-3 z-[1000] bg-slate-900/95 backdrop-blur border border-slate-700 rounded-lg p-3">
+          <div className="absolute bottom-3 left-3 z-[1000] bg-white/80 backdrop-blur border border-slate-200 rounded-lg p-3">
             <div className="flex items-center gap-2 text-xs">
               <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-emerald-400 font-bold">WEBCAM LIVE</span>
+              <span className="text-emerald-600 font-bold">WEBCAM LIVE</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-1 font-mono">
+            <div className="text-[10px] text-slate-500 mt-1 font-mono">
               {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
             </div>
           </div>
@@ -242,40 +242,40 @@ export default function CameraNetworkMap() {
 
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl">
+        <div className="card bg-white border-slate-200 p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-emerald-950/60 text-emerald-400">
+            <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
               <Camera size={20} />
             </div>
             <div>
-              <div className="text-xs text-slate-400">Webcam Device</div>
-              <div className="text-sm font-bold text-white">ANPR Scanner</div>
+              <div className="text-xs text-slate-500">Webcam Device</div>
+              <div className="text-sm font-bold text-slate-900">ANPR Scanner</div>
             </div>
           </div>
         </div>
 
-        <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl">
+        <div className="card bg-white border-slate-200 p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-cyan-950/60 text-cyan-400">
+            <div className="p-2.5 rounded-lg bg-cyan-50 text-cyan-600">
               <MapPin size={20} />
             </div>
             <div>
-              <div className="text-xs text-slate-400">GPS Coordinates</div>
-              <div className="text-sm font-bold text-white font-mono">
+              <div className="text-xs text-slate-500">GPS Coordinates</div>
+              <div className="text-sm font-bold text-slate-900 font-mono">
                 {location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'Detecting...'}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl">
+        <div className="card bg-white border-slate-200 p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-amber-950/60 text-amber-400">
+            <div className="p-2.5 rounded-lg bg-amber-50 text-amber-600">
               <LocateFixed size={20} />
             </div>
             <div>
-              <div className="text-xs text-slate-400">Accuracy</div>
-              <div className="text-sm font-bold text-white">
+              <div className="text-xs text-slate-500">Accuracy</div>
+              <div className="text-sm font-bold text-slate-900">
                 {location ? `~${Math.round(location.accuracy)}m` : 'N/A'}
               </div>
             </div>

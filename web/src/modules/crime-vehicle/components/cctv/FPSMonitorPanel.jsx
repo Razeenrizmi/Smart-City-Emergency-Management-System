@@ -25,33 +25,33 @@ export default function FPSMonitorPanel({ frameLog = [], targetAiFps, frameInter
   const last = frameLog[0] || null;
 
   return (
-    <div className="card bg-slate-900 border-slate-800 p-4 rounded-xl mb-4">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-        <h3 className="font-bold text-white text-sm flex items-center gap-2">
-          <Gauge size={16} className="text-cyan-400" />
+    <div className="card bg-white border-slate-200 p-4 rounded-xl mb-4">
+      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+        <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <Gauge size={16} className="text-cyan-600" />
           AI FRAME RATE MONITOR
         </h3>
-        <span className="text-[10px] font-mono text-slate-400">
+        <span className="text-[10px] font-mono text-slate-500">
           TARGET {targetAiFps || 5} FPS / {frameIntervalMs || 200}ms — MEASURED VALUES ONLY
         </span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-[10px] font-mono">
-        <div className="bg-slate-950/70 border border-slate-800 rounded p-2 text-center">
+        <div className="bg-white/80 border border-slate-200 rounded p-2 text-center">
           <div className="text-slate-500">MEASURED AI FPS (last 30)</div>
-          <div className="text-emerald-300 font-bold text-sm">{measuredAiFps ?? '—'}</div>
+          <div className="text-emerald-600 font-bold text-sm">{measuredAiFps ?? '—'}</div>
         </div>
-        <div className="bg-slate-950/70 border border-slate-800 rounded p-2 text-center">
+        <div className="bg-white/80 border border-slate-200 rounded p-2 text-center">
           <div className="text-slate-500">AVG PROCESSING</div>
-          <div className="text-cyan-300 font-bold text-sm">{avgProc != null ? `${avgProc}ms` : '—'}</div>
+          <div className="text-cyan-600 font-bold text-sm">{avgProc != null ? `${avgProc}ms` : '—'}</div>
         </div>
-        <div className="bg-slate-950/70 border border-slate-800 rounded p-2 text-center">
+        <div className="bg-white/80 border border-slate-200 rounded p-2 text-center">
           <div className="text-slate-500">LAST AI FPS (server)</div>
-          <div className="text-amber-300 font-bold text-sm">{last?.aiFps != null ? last.aiFps : '—'}</div>
+          <div className="text-amber-600 font-bold text-sm">{last?.aiFps != null ? last.aiFps : '—'}</div>
         </div>
-        <div className="bg-slate-950/70 border border-slate-800 rounded p-2 text-center">
+        <div className="bg-white/80 border border-slate-200 rounded p-2 text-center">
           <div className="text-slate-500">FRAMES LOGGED</div>
-          <div className="text-slate-200 font-bold text-sm">{frameLog.length}</div>
+          <div className="text-slate-900 font-bold text-sm">{frameLog.length}</div>
         </div>
       </div>
 
@@ -61,9 +61,9 @@ export default function FPSMonitorPanel({ frameLog = [], targetAiFps, frameInter
           No frames processed yet — start CCTV monitoring to populate the frame log
         </div>
       ) : (
-        <div className="overflow-x-auto max-h-48 overflow-y-auto border border-slate-800 rounded">
+        <div className="overflow-x-auto max-h-48 overflow-y-auto border border-slate-200 rounded">
           <table className="w-full text-[10px] font-mono">
-            <thead className="bg-slate-950 text-slate-400 sticky top-0">
+            <thead className="bg-white text-slate-500 sticky top-0">
               <tr>
                 <th className="px-2 py-1.5 text-left">Node</th>
                 <th className="px-2 py-1.5 text-left">Timestamp</th>
@@ -77,15 +77,15 @@ export default function FPSMonitorPanel({ frameLog = [], targetAiFps, frameInter
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={`${r.nodeId}-${r.frameNumber}-${r.clientAt || i}`} className={`border-t border-slate-800/60 ${i === 0 ? 'bg-cyan-950/20' : ''}`}>
-                  <td className="px-2 py-1 text-cyan-300">N{String(r.nodeId ?? '--').padStart(2, '0')}</td>
-                  <td className="px-2 py-1 text-slate-400">{r.timestamp || '—'}</td>
-                  <td className="px-2 py-1 text-right text-slate-300">{r.frameNumber ?? '—'}</td>
-                  <td className="px-2 py-1 text-right text-slate-300">{r.processingMs != null ? r.processingMs : '—'}</td>
-                  <td className="px-2 py-1 text-right text-slate-300">{r.detectionCount ?? '—'}</td>
-                  <td className="px-2 py-1 text-right text-slate-300">{r.trackCount ?? '—'}</td>
-                  <td className="px-2 py-1 text-right text-emerald-300">{r.aiFps ?? '—'}</td>
-                  <td className="px-2 py-1 text-slate-400 truncate max-w-[120px]">{r.status || '—'}</td>
+                <tr key={`${r.nodeId}-${r.frameNumber}-${r.clientAt || i}`} className={`border-t border-slate-200 ${i === 0 ? 'bg-cyan-50' : ''}`}>
+                  <td className="px-2 py-1 text-cyan-600">N{String(r.nodeId ?? '--').padStart(2, '0')}</td>
+                  <td className="px-2 py-1 text-slate-500">{r.timestamp || '—'}</td>
+                  <td className="px-2 py-1 text-right text-slate-700">{r.frameNumber ?? '—'}</td>
+                  <td className="px-2 py-1 text-right text-slate-700">{r.processingMs != null ? r.processingMs : '—'}</td>
+                  <td className="px-2 py-1 text-right text-slate-700">{r.detectionCount ?? '—'}</td>
+                  <td className="px-2 py-1 text-right text-slate-700">{r.trackCount ?? '—'}</td>
+                  <td className="px-2 py-1 text-right text-emerald-600">{r.aiFps ?? '—'}</td>
+                  <td className="px-2 py-1 text-slate-500 truncate max-w-[120px]">{r.status || '—'}</td>
                 </tr>
               ))}
             </tbody>

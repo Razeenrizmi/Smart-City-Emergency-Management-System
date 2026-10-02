@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Activity, Lock, User as UserIcon, LogIn, AlertCircle } from 'lucide-react';
+import { Activity, ArrowLeft, Lock, User as UserIcon, LogIn, AlertCircle } from 'lucide-react';
 import apiClient from '../services/appClient';
 import { setSession } from '../services/auth';
 import { C, button, input } from '../theme';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = ({ onLogin, onBack }) => {
   const [username, setUsername] = useState('officer');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,6 +36,7 @@ const LoginPage = ({ onLogin }) => {
   return (
     <div
       style={{
+        position: 'relative',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -44,6 +45,34 @@ const LoginPage = ({ onLogin }) => {
         padding: '24px',
       }}
     >
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            position: 'absolute',
+            top: '24px',
+            left: '24px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 14px',
+            borderRadius: '999px',
+            border: `1px solid ${C.border}`,
+            background: 'rgba(15,23,42,0.03)',
+            color: C.textDim,
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = C.textStrong; e.currentTarget.style.borderColor = C.purple; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = C.textDim; e.currentTarget.style.borderColor = C.border; }}
+        >
+          <ArrowLeft size={14} /> Back to home
+        </button>
+      )}
+
       <form
         onSubmit={submit}
         style={{
@@ -53,7 +82,7 @@ const LoginPage = ({ onLogin }) => {
           border: `1px solid ${C.border}`,
           borderRadius: '20px',
           padding: '36px 32px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+          boxShadow: '0 24px 60px rgba(15,23,42,0.25)',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>

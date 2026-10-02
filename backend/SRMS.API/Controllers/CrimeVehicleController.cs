@@ -33,13 +33,15 @@ public class CrimeVehicleController : ControllerBase
 
     [HttpPost("scan")]
     [HttpPost("/api/detection/analyze")]
-    public async Task<ActionResult<ApiResponse<ScanResultResponse>>> ScanImage(
-        [FromForm] IFormFile image,
-        [FromForm] string? testPlate = null,
-        [FromForm] string? sessionId = null,
-        [FromForm] int? trackId = null,
-        [FromForm] int? nodeId = null)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<ScanResultResponse>>> ScanImage([FromForm] ScanImageRequest request)
     {
+        var image = request.Image;
+        var testPlate = request.TestPlate;
+        var sessionId = request.SessionId;
+        var trackId = request.TrackId;
+        var nodeId = request.NodeId;
+
         if (image == null || image.Length == 0)
             return BadRequest(ApiResponse<ScanResultResponse>.Fail("No image uploaded"));
 
@@ -914,4 +916,13 @@ public class AiVehicle
     public string Class { get; set; } = string.Empty;
     public double Confidence { get; set; }
     public List<double>? BoundingBox { get; set; }
+}
+
+public class ScanImageRequest
+{
+    public IFormFile? Image { get; set; }
+    public string? TestPlate { get; set; }
+    public string? SessionId { get; set; }
+    public int? TrackId { get; set; }
+    public int? NodeId { get; set; }
 }

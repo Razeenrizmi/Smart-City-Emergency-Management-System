@@ -37,9 +37,9 @@ export default function DispatchModal({ isOpen, onClose, detectionLog, patrolUni
 
         {dispatchedSuccess ? (
           <div className="dispatch-success-view">
-            <CheckCircle2 size={64} className="text-emerald-400 animate-bounce mb-3" />
-            <h3 className="text-xl font-bold text-emerald-400">PATROL UNIT DISPATCHED!</h3>
-            <p className="text-slate-300 text-sm mt-1">
+            <CheckCircle2 size={64} className="text-emerald-600 animate-bounce mb-3" />
+            <h3 className="text-xl font-bold text-emerald-600">PATROL UNIT DISPATCHED!</h3>
+            <p className="text-slate-700 text-sm mt-1">
               <strong>{selectedUnit?.callsign}</strong> is en-route to <strong>{detectionLog.cameraName}</strong>.
             </p>
             <div className="eta-badge mt-4">
@@ -49,24 +49,24 @@ export default function DispatchModal({ isOpen, onClose, detectionLog, patrolUni
         ) : (
           <div className="modal-body">
             {/* Alert Summary Box */}
-            <div className="alert-summary-box border-red-500/40 bg-red-950/20">
+            <div className="alert-summary-box border-red-200 bg-red-50">
               <div className="flex justify-between items-start">
                 <div>
                   <span className="badge badge-critical">TARGET DETECTED</span>
-                  <h4 className="text-lg font-bold text-white mt-1">{detectionLog.plateNumber}</h4>
-                  <p className="text-xs text-slate-300">{detectionLog.vehicleDetails}</p>
+                  <h4 className="text-lg font-bold text-slate-900 mt-1">{detectionLog.plateNumber}</h4>
+                  <p className="text-xs text-slate-700">{detectionLog.vehicleDetails}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-slate-400">Location</span>
-                  <div className="text-sm font-semibold text-red-400">{detectionLog.cameraName}</div>
-                  <div className="text-xs text-slate-400">{detectionLog.timestamp}</div>
+                  <span className="text-xs text-slate-500">Location</span>
+                  <div className="text-sm font-semibold text-red-600">{detectionLog.cameraName}</div>
+                  <div className="text-xs text-slate-500">{detectionLog.timestamp}</div>
                 </div>
               </div>
             </div>
 
             {/* Select Unit */}
             <div className="form-group mt-4">
-              <label className="form-label font-semibold text-slate-200">Select Intercept Patrol Unit</label>
+              <label className="form-label font-semibold text-slate-900">Select Intercept Patrol Unit</label>
               <div className="patrol-list-select grid gap-2 mt-2">
                 {patrolUnits.map(unit => (
                   <div
@@ -76,19 +76,19 @@ export default function DispatchModal({ isOpen, onClose, detectionLog, patrolUni
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${selectedUnitId === unit.id ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800 text-slate-400'}`}>
+                        <div className={`p-2 rounded-lg ${selectedUnitId === unit.id ? 'bg-cyan-500/20 text-cyan-600' : 'bg-slate-100 text-slate-500'}`}>
                           <Shield size={20} />
                         </div>
                         <div>
-                          <div className="font-bold text-white text-sm">{unit.callsign}</div>
-                          <div className="text-xs text-slate-400">{unit.leadOfficer} &bull; {unit.sector}</div>
+                          <div className="font-bold text-slate-900 text-sm">{unit.callsign}</div>
+                          <div className="text-xs text-slate-500">{unit.leadOfficer} &bull; {unit.sector}</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <span className={`badge ${unit.status === 'AVAILABLE' ? 'badge-active' : 'badge-warn'}`}>
                           {unit.status}
                         </span>
-                        <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                           <Navigation size={12} /> {unit.distanceToAlert} ({unit.eta})
                         </div>
                       </div>
@@ -99,8 +99,8 @@ export default function DispatchModal({ isOpen, onClose, detectionLog, patrolUni
             </div>
 
             {/* Dispatch Note */}
-            <div className="text-xs text-slate-400 bg-slate-800/60 p-3 rounded-lg border border-slate-700 flex items-center gap-2 mt-4">
-              <AlertTriangle size={16} className="text-amber-400 shrink-0" />
+            <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200 flex items-center gap-2 mt-4">
+              <AlertTriangle size={16} className="text-amber-600 shrink-0" />
               <span>High-speed pursuit mode & GPS track sync will be transmitted directly to unit dashboard.</span>
             </div>
 

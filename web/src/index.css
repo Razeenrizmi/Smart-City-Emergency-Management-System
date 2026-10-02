@@ -7,35 +7,35 @@
 }
 
 /*
- * Shared design tokens for the unified SRMS console.
+ * Shared design tokens for the unified SRMS console (light theme).
  * The hazard console reads the `C` palette from theme.js; the Emergency Green
  * Wave module styles itself with the `--*` CSS variables below; the Crime
  * Vehicle Detection module uses Tailwind (CDN) plus the `--font-*` aliases.
- * All three are aligned to the same dark surface so the modules look like one app.
+ * All three are aligned to the same light surface so the modules look like one app.
  */
 :root {
-  --text: #8B949E;
-  --text-h: #E2E8F0;
-  --bg: #161B22;
-  --border: #30363D;
-  --code-bg: #0D1117;
-  --accent: #667EEA;
-  --accent-bg: rgba(102, 126, 234, 0.12);
-  --accent-border: rgba(102, 126, 234, 0.5);
+  --text: #5B6875;
+  --text-h: #0B1220;
+  --bg: #FFFFFF;
+  --border: #DCE3EC;
+  --code-bg: #F1F5F9;
+  --accent: #6366F1;
+  --accent-bg: rgba(99, 102, 241, 0.10);
+  --accent-border: rgba(99, 102, 241, 0.45);
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   /* Aliases used by the Crime Vehicle Detection module. */
   --font-sans: var(--sans);
   --font-mono: var(--mono);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0D1117;
-  color: #E2E8F0;
+  background-color: #F6F8FB;
+  color: #1F2A37;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -51,8 +51,8 @@ body {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(102, 126, 234, 0.2);
-  border-left-color: #667EEA;
+  border: 4px solid rgba(99, 102, 241, 0.2);
+  border-left-color: #6366F1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -64,18 +64,19 @@ body {
 code {
   font-family: var(--mono);
   display: inline-flex;
-  background: #0f172a;
+  background: #F1F5F9;
   padding: 3px;
   border-radius: 8px;
-  border: 1px solid #1e293b;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
 }
 
 .tab-pill-group {
   display: inline-flex;
-  background: #0f172a;
+  background: #F1F5F9;
   padding: 3px;
   border-radius: 8px;
-  border: 1px solid #1e293b;
+  border: 1px solid #E2E8F0;
 }
 
 .tab-pill {
@@ -85,7 +86,7 @@ code {
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: #64748B;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -93,9 +94,9 @@ code {
   transition: all 0.15s ease;
 }
 .tab-pill.active {
-  background: #0284c7;
+  background: #6366F1;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
 }
 
 /* Buttons */
@@ -113,43 +114,43 @@ code {
 }
 
 .btn-primary {
-  background: #0284c7;
+  background: #2563EB;
   color: #ffffff;
-  border-color: #38bdf8;
+  border-color: #3B82F6;
 }
 .btn-primary:hover {
-  background: #0369a1;
-  box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
+  background: #1D4ED8;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
 }
 
 .btn-danger {
-  background: #dc2626;
+  background: #DC2626;
   color: #ffffff;
-  border-color: #ef4444;
+  border-color: #EF4444;
 }
 .btn-danger:hover {
-  background: #b91c1c;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  background: #B91C1C;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
 }
 
 .btn-danger-ghost {
-  background: rgba(220, 38, 38, 0.15);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(220, 38, 38, 0.08);
+  color: #B91C1C;
+  border-color: rgba(220, 38, 38, 0.35);
 }
 .btn-danger-ghost:hover {
-  background: rgba(220, 38, 38, 0.3);
-  color: #ffffff;
+  background: rgba(220, 38, 38, 0.16);
+  color: #991B1B;
 }
 
 .btn-secondary {
-  background: #1e293b;
-  color: #cbd5e1;
-  border-color: #334155;
+  background: #F1F5F9;
+  color: #334155;
+  border-color: #CBD5E1;
 }
 .btn-secondary:hover {
-  background: #334155;
-  color: #ffffff;
+  background: #E2E8F0;
+  color: #0F172A;
 }
 
 .btn-icon {
@@ -158,15 +159,15 @@ code {
   justify-content: center;
   padding: 6px;
   border-radius: 6px;
-  background: rgba(30, 41, 59, 0.5);
-  color: #94a3b8;
-  border: 1px solid #334155;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .btn-icon:hover {
-  background: #334155;
-  color: #38bdf8;
+  background: #E2E8F0;
+  color: #2563EB;
 }
 
 .btn-xs {
@@ -191,57 +192,57 @@ code {
 }
 
 .badge-critical {
-  background: rgba(220, 38, 38, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.5);
+  background: rgba(220, 38, 38, 0.10);
+  color: #B91C1C;
+  border: 1px solid rgba(220, 38, 38, 0.30);
 }
 
 .badge-warn {
-  background: rgba(217, 119, 6, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.5);
+  background: rgba(217, 119, 6, 0.12);
+  color: #B45309;
+  border: 1px solid rgba(217, 119, 6, 0.30);
 }
 
 .badge-emerald {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.5);
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.30);
 }
 
 .badge-cyan {
-  background: rgba(6, 182, 212, 0.2);
-  color: #22d3ee;
-  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: rgba(6, 182, 212, 0.12);
+  color: #0E7490;
+  border: 1px solid rgba(6, 182, 212, 0.30);
 }
 
 .badge-slate {
-  background: #1e293b;
-  color: #94a3b8;
-  border: 1px solid #334155;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
 }
 
 /* Form controls */
 .input, select.input {
   width: 100%;
   padding: 8px 12px;
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
   border-radius: 8px;
-  color: #f8fafc;
+  color: #0F172A;
   font-size: 13px;
   outline: none;
   transition: border-color 0.2s ease;
 }
 .input:focus, select.input:focus {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+  border-color: #6366F1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18);
 }
 
 .form-label {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #cbd5e1;
+  color: #334155;
   margin-bottom: 4px;
 }
 
@@ -254,21 +255,21 @@ code {
 }
 .table-dark th {
   padding: 12px 16px;
-  background: #0f172a;
-  color: #64748b;
+  background: #F1F5F9;
+  color: #64748B;
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid #E2E8F0;
 }
 .table-dark td {
   padding: 12px 16px;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid #E2E8F0;
   vertical-align: middle;
 }
 
-/* HUD & scanner beam effects */
+/* HUD & scanner beam effects (drawn over live camera feeds — kept dark) */
 .hud-overlay {
   position: absolute;
   inset: 0;
@@ -324,7 +325,7 @@ code {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.85);
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -333,18 +334,18 @@ code {
   padding: 16px;
 }
 .modal-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
   width: 100%;
   max-width: 540px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
   overflow: hidden;
 }
 .modal-header {
   padding: 16px 20px;
-  background: #090d16;
-  border-bottom: 1px solid #1e293b;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -363,17 +364,17 @@ code {
 .patrol-unit-card {
   padding: 12px;
   border-radius: 10px;
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .patrol-unit-card:hover {
-  border-color: #334155;
+  border-color: #CBD5E1;
 }
 .patrol-unit-card.active {
-  border-color: #0284c7;
-  background: rgba(2, 132, 199, 0.1);
+  border-color: #2563EB;
+  background: rgba(37, 99, 235, 0.06);
 }
 
 .dispatch-success-view {
@@ -386,8 +387,8 @@ code {
 }
 .eta-badge {
   display: inline-block;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
   font-family: var(--font-mono);
   font-weight: 700;
   padding: 6px 16px;
@@ -395,16 +396,16 @@ code {
   border: 1px solid rgba(52, 211, 153, 0.4);
 }
 
-/* ─── Leaflet map overrides (shared) ────────────────────────────────────── */
+/* ─── Leaflet map overrides (shared, light) ─────────────────────────────── */
 .leaflet-container {
-  background: #0D1117 !important;
+  background: #E5E7EB !important;
   font-family: var(--sans) !important;
 }
 
 .custom-leaflet-icon {
   background: transparent;
   border: none;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 4px 6px rgba(15, 23, 42, 0.25));
 }
 
 .camera-marker-icon {
@@ -413,18 +414,18 @@ code {
 }
 
 .leaflet-popup-content-wrapper {
-  background: #161B22 !important;
-  color: #fff !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
   border-radius: 12px !important;
-  border: 1px solid #30363D !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15) !important;
   padding: 4px !important;
 }
 
 .leaflet-popup-tip {
-  background: #161B22 !important;
-  border-top: 1px solid #30363D !important;
-  border-left: 1px solid #30363D !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E2E8F0 !important;
+  border-left: 1px solid #E2E8F0 !important;
 }
 
 .leaflet-popup-content {
@@ -432,42 +433,41 @@ code {
 }
 
 .leaflet-popup-close-button {
-  color: #718096 !important;
+  color: #64748B !important;
   padding: 8px !important;
 }
 
 .leaflet-popup-close-button:hover {
-  color: #fff !important;
+  color: #0F172A !important;
 }
 
 .leaflet-control-zoom a {
-  background: #161B22 !important;
-  color: #f8fafc !important;
-  border-color: #30363D !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background: #30363D !important;
+  background: #F1F5F9 !important;
 }
 
 .leaflet-control-attribution {
-  background: rgba(255, 255, 255, 0.8) !important;
-  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #64748B !important;
   font-size: 10px !important;
 }
 
-/* ─── Emergency Green Wave: dark-surface contrast fixes ─────────────────── */
+/* ─── Emergency Green Wave: light-surface contrast fixes ────────────────── */
 
-/* The module ships light-mode callouts; retune them for the dark console. */
 .green-wave-info {
-  background: rgba(236, 201, 75, 0.1);
-  border: 1px solid rgba(236, 201, 75, 0.35);
+  background: rgba(202, 138, 4, 0.10);
+  border: 1px solid rgba(202, 138, 4, 0.30);
 }
 
 .card-alert {
-  border-left: 3px solid #d97706;
-  background: rgba(217, 119, 6, 0.12);
-  color: #f6c177;
+  border-left: 3px solid #D97706;
+  background: rgba(217, 119, 6, 0.08);
+  color: #92400E;
 }
 
 .emergency-details .details-section,

@@ -51,7 +51,7 @@ const HazardCard = ({ hazard, onAction, busy }) => (
         type="button"
         disabled={busy}
         onClick={() => onAction(hazard.hazardId, 'approve')}
-        style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: '#0D1117', border: 'none' }}
+        style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: C.textStrong, border: 'none' }}
       >
         <Check size={14} /> Approve
       </button>
@@ -89,7 +89,7 @@ const OrderCard = ({ order, onAction, busy }) => (
         type="button"
         disabled={busy}
         onClick={() => onAction(order.workOrderId, 'approve')}
-        style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: '#0D1117', border: 'none' }}
+        style={{ ...button(C.green, busy), flex: 1, background: busy ? `${C.green}22` : C.green, color: C.textStrong, border: 'none' }}
       >
         <Check size={14} /> Approve Dispatch
       </button>

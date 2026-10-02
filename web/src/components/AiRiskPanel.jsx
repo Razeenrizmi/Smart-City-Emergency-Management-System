@@ -12,7 +12,7 @@ const RdiGauge = ({ value }) => {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <div style={{ flex: 1, height: '8px', background: '#21262D', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ flex: 1, height: '8px', background: '#EEF2F7', borderRadius: '4px', overflow: 'hidden' }}>
         <div
           style={{
             width: `${clamped}%`,
@@ -72,7 +72,7 @@ const AiRiskPanel = () => {
     <div
       id="ai-risk-panel"
       style={{
-        background: 'linear-gradient(135deg, rgba(22,27,34,0.98) 0%, rgba(13,17,23,0.98) 100%)',
+        background: 'linear-gradient(135deg, #FFFFFF 0%, #F6F8FB 100%)',
         borderBottom: `2px solid ${rdiColor}40`,
         padding: '14px 32px',
         display: 'flex',
@@ -102,7 +102,7 @@ const AiRiskPanel = () => {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '11px', color: '#8B949E', fontWeight: 600, letterSpacing: '0.8px' }}>
+            <span style={{ fontSize: '11px', color: '#5B6875', fontWeight: 600, letterSpacing: '0.8px' }}>
               CITY ROAD DANGER INDEX
             </span>
             <span style={{
@@ -114,7 +114,7 @@ const AiRiskPanel = () => {
             </span>
           </div>
           {loading ? (
-            <div style={{ color: '#4A5568', fontSize: '13px' }}>Calculating…</div>
+            <div style={{ color: '#8A97A6', fontSize: '13px' }}>Calculating…</div>
           ) : (
             <RdiGauge value={rdi} />
           )}
@@ -148,12 +148,12 @@ const AiRiskPanel = () => {
       {/* Dispatch advisory */}
       {insights?.dispatchAdvisories?.[0] && (
         <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid #30363D',
+          background: 'rgba(15,23,42,0.03)',
+          border: '1px solid #DCE3EC',
           borderRadius: '8px',
           padding: '6px 12px',
           fontSize: '12px',
-          color: '#CBD5E0',
+          color: '#1F2A37',
           maxWidth: '320px',
           flex: 1,
         }}>
@@ -168,18 +168,18 @@ const AiRiskPanel = () => {
           onClick={fetchInsights}
           style={{
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: '#4A5568', display: 'flex', alignItems: 'center', gap: '4px',
+            color: '#8A97A6', display: 'flex', alignItems: 'center', gap: '4px',
             fontSize: '11px', padding: '4px 8px', borderRadius: '6px',
             transition: 'color 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#A0AEC0'}
-          onMouseLeave={e => e.currentTarget.style.color = '#4A5568'}
+          onMouseEnter={e => e.currentTarget.style.color = '#5B6875'}
+          onMouseLeave={e => e.currentTarget.style.color = '#8A97A6'}
         >
           <RefreshCw size={12} />
           Refresh
         </button>
         {lastUpdated && (
-          <span style={{ fontSize: '10px', color: '#4A5568' }}>
+          <span style={{ fontSize: '10px', color: '#8A97A6' }}>
             Updated {lastUpdated.toLocaleTimeString()}
           </span>
         )}
@@ -200,7 +200,7 @@ const StatPill = ({ icon, label, value, color }) => (
     fontWeight: 600,
   }}>
     {icon}
-    <span style={{ color: '#8B949E', fontWeight: 400 }}>{label}:</span>
+    <span style={{ color: '#5B6875', fontWeight: 400 }}>{label}:</span>
     <span>{value}</span>
   </div>
 );

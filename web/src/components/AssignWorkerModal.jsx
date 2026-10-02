@@ -65,7 +65,7 @@ const AssignWorkerModal = ({ hazard, onClose, onCreated }) => {
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 2000,
-        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)',
+        background: 'rgba(15,23,42,0.35)', backdropFilter: 'blur(3px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
       }}
     >
@@ -75,7 +75,7 @@ const AssignWorkerModal = ({ hazard, onClose, onCreated }) => {
         style={{
           width: '100%', maxWidth: '480px', background: C.surface,
           border: `1px solid ${C.border}`, borderRadius: '18px', padding: '24px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 24px 60px rgba(15,23,42,0.25)', maxHeight: '90vh', overflowY: 'auto',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -137,7 +137,7 @@ const AssignWorkerModal = ({ hazard, onClose, onCreated }) => {
                   cursor: 'pointer',
                   padding: '6px 12px',
                   background: active ? meta.color : `${meta.color}1A`,
-                  color: active ? '#0D1117' : meta.color,
+                  color: active ? C.textStrong : meta.color,
                   border: `1px solid ${meta.color}`,
                 }}
               >

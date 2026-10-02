@@ -11,6 +11,7 @@ import '../models/hazard_report_model.dart';
 import '../services/hazard_api_service.dart';
 import '../services/location_service.dart';
 import '../services/ai_api_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/interactive_navigation_map.dart';
 
 enum DetectionStatus { idle, monitoring, spikeDetected, reporting, reported, error }
@@ -259,7 +260,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   void _showImagePickerDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF161B22),
+      backgroundColor: AppPalette.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -270,9 +271,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: const Color(0xFF4A5568), borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppPalette.border, borderRadius: BorderRadius.circular(2)),
             ),
-            Text('Attach Hazard Photo', style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+            Text('Attach Hazard Photo', style: GoogleFonts.outfit(color: AppPalette.text, fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             _sheetOption(Icons.camera_alt_rounded, 'Take Photo', () { Navigator.pop(ctx); _pickImage(ImageSource.camera); }),
             _sheetOption(Icons.photo_library_rounded, 'Choose from Gallery', () { Navigator.pop(ctx); _pickImage(ImageSource.gallery); }),
@@ -280,7 +281,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
               _sheetOption(Icons.delete_outline_rounded, 'Remove Photo', () {
                 Navigator.pop(ctx);
                 setState(() { _selectedImage = null; _aiResult = null; });
-              }, color: const Color(0xFFE53E3E)),
+              }, color: AppPalette.danger),
             const SizedBox(height: 12),
           ],
         ),
@@ -296,7 +297,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
         decoration: BoxDecoration(color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: c, size: 20),
       ),
-      title: Text(label, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500)),
+      title: Text(label, style: GoogleFonts.outfit(color: AppPalette.text, fontWeight: FontWeight.w500)),
       onTap: onTap,
     );
   }
@@ -335,7 +336,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: GoogleFonts.outfit()),
-        backgroundColor: isError ? const Color(0xFFE53E3E) : const Color(0xFF38A169),
+        backgroundColor: isError ? AppPalette.danger : AppPalette.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -345,12 +346,12 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   // ─── UI helpers ─────────────────────────────────────────────────────
   Color get _statusColor {
     return switch (_status) {
-      DetectionStatus.idle => const Color(0xFF718096),
-      DetectionStatus.monitoring => const Color(0xFF4299E1),
-      DetectionStatus.spikeDetected => const Color(0xFFED8936),
-      DetectionStatus.reporting => const Color(0xFFECC94B),
-      DetectionStatus.reported => const Color(0xFF38A169),
-      DetectionStatus.error => const Color(0xFFE53E3E),
+      DetectionStatus.idle => AppPalette.textMuted,
+      DetectionStatus.monitoring => AppPalette.info,
+      DetectionStatus.spikeDetected => AppPalette.warning,
+      DetectionStatus.reporting => AppPalette.warning,
+      DetectionStatus.reported => AppPalette.success,
+      DetectionStatus.error => AppPalette.danger,
     };
   }
 
@@ -375,7 +376,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1117),
+      backgroundColor: AppPalette.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -435,9 +436,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF30363D)),
+        border: Border.all(color: AppPalette.border),
       ),
       child: Row(
         children: [
@@ -459,13 +460,13 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                     Icon(
                       Icons.navigation_rounded,
                       size: 16,
-                      color: _selectedViewTab == 0 ? Colors.white : const Color(0xFF718096),
+                      color: _selectedViewTab == 0 ? Colors.white : AppPalette.textMuted,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Drive & Navigate',
                       style: GoogleFonts.outfit(
-                        color: _selectedViewTab == 0 ? Colors.white : const Color(0xFF718096),
+                        color: _selectedViewTab == 0 ? Colors.white : AppPalette.textMuted,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -493,13 +494,13 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                     Icon(
                       Icons.tune_rounded,
                       size: 16,
-                      color: _selectedViewTab == 1 ? Colors.white : const Color(0xFF718096),
+                      color: _selectedViewTab == 1 ? Colors.white : AppPalette.textMuted,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Sensor & AI HUD',
                       style: GoogleFonts.outfit(
-                        color: _selectedViewTab == 1 ? Colors.white : const Color(0xFF718096),
+                        color: _selectedViewTab == 1 ? Colors.white : AppPalette.textMuted,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -534,7 +535,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             Text(
               'Road Hazard Detector',
               style: GoogleFonts.outfit(
-                color: Colors.white,
+                color: AppPalette.text,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
@@ -542,7 +543,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             Text(
               'SRMS — Smart City',
               style: GoogleFonts.outfit(
-                color: const Color(0xFF718096),
+                color: AppPalette.textMuted,
                 fontSize: 13,
               ),
             ),
@@ -557,7 +558,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
       duration: const Duration(milliseconds: 400),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _statusColor.withValues(alpha: 0.4), width: 1.5),
         boxShadow: [
@@ -602,7 +603,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                 Text(
                   _statusMessage,
                   style: GoogleFonts.outfit(
-                    color: const Color(0xFFE2E8F0),
+                    color: AppPalette.text,
                     fontSize: 14,
                   ),
                 ),
@@ -618,17 +619,17 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     final clampedZ = _currentZValue.clamp(0.0, 25.0);
     final fillRatio = clampedZ / 25.0;
     final Color gaugeColor = _currentZValue > _spikeThreshold
-        ? const Color(0xFFE53E3E)
+        ? AppPalette.danger
         : _currentZValue > 9
-            ? const Color(0xFFED8936)
-            : const Color(0xFF4299E1);
+            ? AppPalette.warning
+            : AppPalette.info;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF30363D)),
+        border: Border.all(color: AppPalette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,7 +640,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
               Text(
                 'Accelerometer Z-Axis',
                 style: GoogleFonts.outfit(
-                  color: const Color(0xFF8B949E),
+                  color: AppPalette.textMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
@@ -670,7 +671,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
               Text(
                 _currentZValue.toStringAsFixed(2),
                 style: GoogleFonts.outfit(
-                  color: Colors.white,
+                  color: AppPalette.text,
                   fontSize: 40,
                   fontWeight: FontWeight.w800,
                   height: 1.0,
@@ -682,7 +683,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                 child: Text(
                   'm/s²',
                   style: GoogleFonts.outfit(
-                    color: const Color(0xFF718096),
+                    color: AppPalette.textMuted,
                     fontSize: 16,
                   ),
                 ),
@@ -696,7 +697,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             child: LinearProgressIndicator(
               value: fillRatio,
               minHeight: 10,
-              backgroundColor: const Color(0xFF21262D),
+              backgroundColor: AppPalette.surface2,
               valueColor: AlwaysStoppedAnimation<Color>(gaugeColor),
             ),
           ),
@@ -715,7 +716,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             Text(
               'Peak this session: ${_peakZSpike.toStringAsFixed(2)} m/s²',
               style: GoogleFonts.outfit(
-                color: const Color(0xFF718096),
+                color: AppPalette.textMuted,
                 fontSize: 12,
               ),
             ),
@@ -728,7 +729,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   Widget _thresholdLabel(String label, double position) {
     return Text(
       '⚑ $label',
-      style: GoogleFonts.outfit(color: const Color(0xFF718096), fontSize: 11),
+      style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
     );
   }
 
@@ -737,15 +738,15 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF30363D)),
+        border: Border.all(color: AppPalette.border),
       ),
       child: Row(
         children: [
           Icon(
             Icons.location_on_rounded,
-            color: hasPosition ? const Color(0xFF38A169) : const Color(0xFF718096),
+            color: hasPosition ? AppPalette.success : AppPalette.textMuted,
             size: 28,
           ),
           const SizedBox(width: 14),
@@ -755,7 +756,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
               Text(
                 'GPS Position',
                 style: GoogleFonts.outfit(
-                  color: const Color(0xFF8B949E),
+                  color: AppPalette.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -766,7 +767,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                     ? '${_lastPosition!.latitude.toStringAsFixed(5)}, ${_lastPosition!.longitude.toStringAsFixed(5)}'
                     : 'Not acquired yet',
                 style: GoogleFonts.outfit(
-                  color: hasPosition ? Colors.white : const Color(0xFF718096),
+                  color: hasPosition ? AppPalette.text : AppPalette.textMuted,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -775,7 +776,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                 Text(
                   'Accuracy: ±${_lastPosition!.accuracy.toStringAsFixed(0)}m',
                   style: GoogleFonts.outfit(
-                    color: const Color(0xFF718096),
+                    color: AppPalette.textMuted,
                     fontSize: 11,
                   ),
                 ),
@@ -791,14 +792,14 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: _aiResult != null
               ? (_aiResult!.isAutoVerified
                   ? const Color(0xFF764BA2).withValues(alpha: 0.6)
                   : const Color(0xFF667EEA).withValues(alpha: 0.4))
-              : const Color(0xFF30363D),
+              : AppPalette.border,
         ),
       ),
       child: Column(
@@ -812,7 +813,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
               Text(
                 'Hazard Photo',
                 style: GoogleFonts.outfit(
-                  color: const Color(0xFF8B949E),
+                  color: AppPalette.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
@@ -850,13 +851,13 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                 gradient: LinearGradient(
                   colors: _aiResult!.isAutoVerified
                       ? [const Color(0xFF667EEA).withValues(alpha: 0.2), const Color(0xFF764BA2).withValues(alpha: 0.15)]
-                      : [const Color(0xFF2D3748), const Color(0xFF1A202C)],
+                      : [AppPalette.surface2, AppPalette.surface2],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _aiResult!.isAutoVerified
                       ? const Color(0xFF764BA2).withValues(alpha: 0.5)
-                      : const Color(0xFF4A5568),
+                      : AppPalette.border,
                 ),
               ),
               child: Row(
@@ -872,19 +873,19 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                           style: GoogleFonts.outfit(
                             color: _aiResult!.isAutoVerified
                                 ? const Color(0xFFA78BFA)
-                                : const Color(0xFF8B949E),
+                                : AppPalette.textMuted,
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
                           '${_aiResult!.detectedCategory} — ${(_aiResult!.confidenceScore * 100).toStringAsFixed(0)}% confidence',
-                          style: GoogleFonts.outfit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.outfit(color: AppPalette.text, fontSize: 13, fontWeight: FontWeight.w600),
                         ),
                         if (_aiResult!.analysisSummary.isNotEmpty)
                           Text(
                             _aiResult!.analysisSummary,
-                            style: GoogleFonts.outfit(color: const Color(0xFF8B949E), fontSize: 11),
+                            style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -924,7 +925,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
             Center(
               child: Text(
                 'Photo will be AI-classified when you submit a report',
-                style: GoogleFonts.outfit(color: const Color(0xFF4A5568), fontSize: 11),
+                style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 11),
               ),
             ),
           ],
@@ -961,9 +962,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
+        color: AppPalette.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF30363D)),
+        border: Border.all(color: AppPalette.border),
       ),
       child: Column(
         children: [
@@ -972,14 +973,14 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
           Text(
             value,
             style: GoogleFonts.outfit(
-              color: Colors.white,
+              color: AppPalette.text,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           Text(
             label,
-            style: GoogleFonts.outfit(color: const Color(0xFF718096), fontSize: 10),
+            style: GoogleFonts.outfit(color: AppPalette.textMuted, fontSize: 10),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1000,8 +1001,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
                 icon: const Icon(Icons.stop_circle_outlined),
                 label: Text('Stop Monitoring', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D3748),
-                  foregroundColor: const Color(0xFFFC8181),
+                  backgroundColor: AppPalette.surface2,
+                  foregroundColor: AppPalette.danger,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
@@ -1041,8 +1042,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFED8936),
-          side: const BorderSide(color: Color(0xFFED8936), width: 1.5),
+          foregroundColor: AppPalette.warning,
+          side: const BorderSide(color: AppPalette.warning, width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
