@@ -45,6 +45,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
 
   // --- Subscriptions & timers ---
   StreamSubscription<AccelerometerEvent>? _accelSub;
+  StreamSubscription<Position>? _gpsSub;
   Timer? _cooldownTimer;
 
   // --- Animation controllers ---
@@ -80,6 +81,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   @override
   void dispose() {
     _accelSub?.cancel();
+    _gpsSub?.cancel();
     _cooldownTimer?.cancel();
     _pulseController.dispose();
     _alertController.dispose();
@@ -89,6 +91,7 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   // ─── Start monitoring ───────────────────────────────────────────────
   Future<void> _startMonitoring() async {
     try {
+      // Get an initial position fix before starting
       final position = await LocationService.getCurrentPosition();
       setState(() {
         _lastPosition = position;
@@ -97,6 +100,18 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
         _peakZSpike = 0.0;
         _statusMessage = 'Monitoring... Drive over bumps to detect hazards';
       });
+
+      // Start continuous GPS stream so _lastPosition is always fresh.
+      // This is the key fix: instead of fetching GPS on-demand (which can
+      // be slow or return stale data), we keep a live stream running.
+      _gpsSub = LocationService.positionStream().listen(
+        (pos) {
+          if (mounted) setState(() => _lastPosition = pos);
+        },
+        onError: (e) {
+          debugPrint('GPS stream error: $e');
+        },
+      );
 
       _accelSub = accelerometerEventStream(
         samplingPeriod: SensorInterval.normalInterval,
@@ -127,6 +142,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   void _stopMonitoring() {
     _accelSub?.cancel();
     _accelSub = null;
+    _gpsSub?.cancel();
+    _gpsSub = null;
     _cooldownTimer?.cancel();
     setState(() {
       _status = DetectionStatus.idle;
@@ -149,11 +166,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
 
     _alertController.forward(from: 0.0);
 
-    // Refresh GPS position
-    try {
-      final pos = await LocationService.getCurrentPosition();
-      setState(() => _lastPosition = pos);
-    } catch (_) {}
+    // No need to refresh GPS here — the continuous position stream
+    // (_gpsSub) keeps _lastPosition updated in real-time, so we
+    // already have the freshest coordinates available.
 
     await _sendReport(zSpike);
 

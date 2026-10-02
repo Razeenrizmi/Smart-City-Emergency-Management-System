@@ -45,6 +45,7 @@ public class HazardsController : ControllerBase
     public async Task<IActionResult> GetAllHazards()
     {
         var hazards = await _context.RoadHazardReports
+            .Where(h => h.ApprovalStatus != "RESOLVED")
             .OrderByDescending(h => h.CreatedAt)
             .ToListAsync();
 

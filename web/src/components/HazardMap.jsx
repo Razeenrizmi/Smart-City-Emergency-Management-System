@@ -17,12 +17,11 @@ const defaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
-// Sri Lanka Island Geographic Boundaries
+// Default view centred on Sri Lanka. The map is intentionally not clamped to an
+// island-only bounding box: mobile hazard reports can carry coordinates outside
+// it (e.g. an emulator's default location), and a hard clamp would make those
+// reports permanently invisible.
 const SRI_LANKA_CENTER = [7.8731, 80.7718]; // Geographical Center of Sri Lanka
-const SRI_LANKA_BOUNDS = [
-  [5.8, 79.5],  // Southwest corner (South of Galle / Matara)
-  [9.9, 82.0]   // Northeast corner (North of Jaffna / Trincomalee)
-];
 
 // Colombo Commuter Route Coordinates (Dematagoda -> Dehiwala)
 const DEMATAGODA_DEHIWALA_ROUTE = [
@@ -77,7 +76,7 @@ const BoundsAdjuster = ({ hazards, triggerFit }) => {
 
   useEffect(() => {
     if (!hasAdjustedRef.current && hazards && hazards.length > 0) {
-      const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0));
+      const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0) && h.approvalStatus !== 'RESOLVED');
       if (validHazards.length > 0) {
         hasAdjustedRef.current = true;
         const bounds = L.latLngBounds(validHazards.map((h) => [h.latitude, h.longitude]));
@@ -89,7 +88,7 @@ const BoundsAdjuster = ({ hazards, triggerFit }) => {
   useEffect(() => {
     if (triggerFit) {
       if (hazards && hazards.length > 0) {
-        const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0));
+        const validHazards = hazards.filter(h => h.latitude && h.longitude && (h.latitude !== 0 || h.longitude !== 0) && h.approvalStatus !== 'RESOLVED');
         if (validHazards.length > 0) {
           const bounds = L.latLngBounds(validHazards.map((h) => [h.latitude, h.longitude]));
           map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
@@ -244,10 +243,8 @@ const HazardMap = ({ hazards = [], onAssign }) => {
       <MapContainer
         center={SRI_LANKA_CENTER}
         zoom={8}
-        minZoom={7}
+        minZoom={2}
         maxZoom={19}
-        maxBounds={SRI_LANKA_BOUNDS}
-        maxBoundsViscosity={0.8}
         style={{ height: '100%', width: '100%', minHeight: '500px' }}
         zoomControl={true}
       >
@@ -310,7 +307,7 @@ const HazardMap = ({ hazards = [], onAssign }) => {
         )}
 
         {/* Hazard Markers across Sri Lanka */}
-        {hazards.filter(h => h && h.latitude && h.longitude).map((hazard) => (
+        {hazards.filter(h => h && h.latitude && h.longitude && h.approvalStatus !== 'RESOLVED').map((hazard) => (
           <Marker
             key={hazard.hazardId || hazard.id || `${hazard.latitude}-${hazard.longitude}`}
             position={[hazard.latitude, hazard.longitude]}

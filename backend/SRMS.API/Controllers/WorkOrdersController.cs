@@ -17,6 +17,10 @@ public class WorkOrdersController : ControllerBase
 
     private static readonly string[] Priorities = { "LOW", "MEDIUM", "HIGH", "CRITICAL" };
 
+    // Reports within this distance are treated as the same physical defect, so a
+    // single completed repair retires them all.
+    private const double SameSpotRadiusMeters = 5.0;
+
     private readonly AppDbContext _db;
 
     public WorkOrdersController(AppDbContext db)
@@ -59,8 +63,10 @@ public class WorkOrdersController : ControllerBase
         if (workerId == null)
             return Ok(new { success = true, data = Array.Empty<WorkOrderDto>() });
 
+        // Dispatches awaiting sign-off are shown too, so the worker sees work that
+        // has been assigned to them; they simply cannot start it until approved.
         var orders = await Query()
-            .Where(o => o.WorkerId == workerId && o.Status != "PENDING_APPROVAL" && o.Status != "CANCELLED")
+            .Where(o => o.WorkerId == workerId && o.Status != "CANCELLED")
             .OrderBy(o => o.Status == "COMPLETED" ? 1 : 0)
             .ThenByDescending(o => o.CreatedAt)
             .ToListAsync();
@@ -181,7 +187,10 @@ public class WorkOrdersController : ControllerBase
         if (target == "COMPLETED")
         {
             order.CompletedAt = DateTime.UtcNow;
-            await ReleaseWorkerAsync(order);
+
+            // The repair is done: retire every report at this spot and cancel any
+            // duplicate dispatches, so the markers leave the live map together.
+            await ResolveSpotAsync(order);
         }
 
         await _db.SaveChangesAsync();
@@ -199,18 +208,97 @@ public class WorkOrdersController : ControllerBase
             .FirstOrDefaultAsync();
     }
 
-    private async Task ReleaseWorkerAsync(RepairWorkOrder order)
+    // Retires the repaired hazard plus every other report within SameSpotRadiusMeters,
+    // and cancels duplicate dispatches so nobody is sent to re-fix the same defect.
+    private async Task ResolveSpotAsync(RepairWorkOrder order)
     {
-        if (order.Worker == null)
+        var origin = order.Hazard;
+        if (origin == null)
             return;
 
-        var stillHasWork = await _db.WorkOrders.AnyAsync(o =>
-            o.WorkerId == order.WorkerId &&
-            o.WorkOrderId != order.WorkOrderId &&
-            (o.Status == "PENDING_APPROVAL" || o.Status == "ASSIGNED" || o.Status == "IN_PROGRESS"));
+        var lat = (double)origin.Latitude;
+        var lng = (double)origin.Longitude;
+        var latDelta = (decimal)(SameSpotRadiusMeters / 111_320.0);
+        var lngDelta = (decimal)(SameSpotRadiusMeters / (111_320.0 * Math.Cos(lat * Math.PI / 180.0)));
 
-        if (!stillHasWork && order.Worker.Status == "BUSY")
-            order.Worker.Status = "AVAILABLE";
+        // Cheap bounding-box filter in SQL, then an exact distance check in memory.
+        var candidates = await _db.RoadHazardReports
+            .Where(h => h.ApprovalStatus != "RESOLVED"
+                && h.Latitude >= origin.Latitude - latDelta && h.Latitude <= origin.Latitude + latDelta
+                && h.Longitude >= origin.Longitude - lngDelta && h.Longitude <= origin.Longitude + lngDelta)
+            .ToListAsync();
+
+        var spotHazards = candidates
+            .Where(h => DistanceMeters(lat, lng, (double)h.Latitude, (double)h.Longitude) <= SameSpotRadiusMeters)
+            .ToList();
+
+        if (origin.ApprovalStatus != "RESOLVED")
+            origin.ApprovalStatus = "RESOLVED";
+
+        foreach (var hazard in spotHazards)
+            hazard.ApprovalStatus = "RESOLVED";
+
+        var spotHazardIds = spotHazards.Select(h => h.HazardId).ToList();
+        if (!spotHazardIds.Contains(origin.HazardId))
+            spotHazardIds.Add(origin.HazardId);
+
+        var duplicates = await _db.WorkOrders
+            .Include(o => o.Worker)
+            .Where(o => o.WorkOrderId != order.WorkOrderId
+                && o.Status != "CANCELLED" && o.Status != "COMPLETED"
+                && spotHazardIds.Contains(o.HazardId))
+            .ToListAsync();
+
+        foreach (var duplicate in duplicates)
+            duplicate.Status = "CANCELLED";
+
+        await ReleaseWorkersAsync(order, duplicates);
+    }
+
+    // Sets BUSY workers back to AVAILABLE when they have no remaining active job,
+    // counting the dispatches cancelled in this same unit of work as already closed.
+    private async Task ReleaseWorkersAsync(RepairWorkOrder completed, IReadOnlyCollection<RepairWorkOrder> cancelled)
+    {
+        var workers = new Dictionary<Guid, MunicipalWorker>();
+        if (completed.Worker != null)
+            workers[completed.Worker.WorkerId] = completed.Worker;
+        foreach (var order in cancelled)
+            if (order.Worker != null)
+                workers[order.Worker.WorkerId] = order.Worker;
+
+        if (workers.Count == 0)
+            return;
+
+        var closedIds = new HashSet<Guid> { completed.WorkOrderId };
+        foreach (var order in cancelled)
+            closedIds.Add(order.WorkOrderId);
+
+        var workerIds = workers.Keys.ToList();
+        var openAssignments = await _db.WorkOrders
+            .Where(o => workerIds.Contains(o.WorkerId)
+                && o.Status != "CANCELLED" && o.Status != "COMPLETED")
+            .Select(o => new { o.WorkOrderId, o.WorkerId })
+            .ToListAsync();
+
+        var stillBusy = openAssignments
+            .Where(o => !closedIds.Contains(o.WorkOrderId))
+            .Select(o => o.WorkerId)
+            .ToHashSet();
+
+        foreach (var worker in workers.Values)
+            if (!stillBusy.Contains(worker.WorkerId) && worker.Status == "BUSY")
+                worker.Status = "AVAILABLE";
+    }
+
+    private static double DistanceMeters(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double EarthRadiusMeters = 6_371_000.0;
+        var dLat = (lat2 - lat1) * Math.PI / 180.0;
+        var dLon = (lon2 - lon1) * Math.PI / 180.0;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+              + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return 2 * EarthRadiusMeters * Math.Asin(Math.Min(1.0, Math.Sqrt(a)));
     }
 
     private async Task<RepairWorkOrder?> Tracked(Guid id) =>

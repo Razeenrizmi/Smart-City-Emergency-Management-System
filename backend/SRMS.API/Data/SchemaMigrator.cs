@@ -74,6 +74,31 @@ public static class SchemaMigrator
             // --- Mobile map: backfill coordinates AFTER seed inserts (map markers need them) ---
             @"UPDATE ""CctvNodes"" SET ""Lat"" = 6.9271, ""Lng"" = 79.8612 WHERE ""NodeId"" = 1 AND ""Lat"" IS NULL;",
             @"UPDATE ""CctvNodes"" SET ""Lat"" = 6.9175, ""Lng"" = 79.8830 WHERE ""NodeId"" = 2 AND ""Lat"" IS NULL;",
+
+            // --- Same-spot cleanup: a completed repair retires every report within ~5m
+            //     (0.000045 deg), not just the one that was dispatched. ---
+            @"UPDATE ""RoadHazardReports"" h SET ""ApprovalStatus"" = 'RESOLVED'
+              WHERE h.""ApprovalStatus"" <> 'RESOLVED'
+                AND EXISTS (
+                    SELECT 1
+                    FROM ""WorkOrders"" w
+                    JOIN ""RoadHazardReports"" rh ON rh.""HazardId"" = w.""HazardId""
+                    WHERE w.""Status"" = 'COMPLETED'
+                      AND h.""Latitude""  BETWEEN rh.""Latitude""  - 0.000045 AND rh.""Latitude""  + 0.000045
+                      AND h.""Longitude"" BETWEEN rh.""Longitude"" - 0.000045 AND rh.""Longitude"" + 0.000045
+                );",
+
+            // --- Duplicate dispatches for an already-repaired spot are pointless ---
+            @"UPDATE ""WorkOrders"" SET ""Status"" = 'CANCELLED'
+              WHERE ""Status"" IN ('PENDING_APPROVAL', 'ASSIGNED', 'IN_PROGRESS')
+                AND ""HazardId"" IN (SELECT ""HazardId"" FROM ""RoadHazardReports"" WHERE ""ApprovalStatus"" = 'RESOLVED');",
+
+            // --- Free any worker left without an active job ---
+            @"UPDATE ""Workers"" SET ""Status"" = 'AVAILABLE'
+              WHERE ""Status"" = 'BUSY'
+                AND ""WorkerId"" NOT IN (
+                    SELECT ""WorkerId"" FROM ""WorkOrders""
+                    WHERE ""Status"" IN ('PENDING_APPROVAL', 'ASSIGNED', 'IN_PROGRESS'));",
         };
 
         foreach (var sql in statements)

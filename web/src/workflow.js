@@ -4,6 +4,7 @@ export const STATUS_META = {
   PENDING: { label: 'Pending', color: C.yellow },
   APPROVED: { label: 'Approved', color: C.green },
   REJECTED: { label: 'Rejected', color: C.red },
+  RESOLVED: { label: 'Resolved', color: C.textDim },
   PENDING_APPROVAL: { label: 'Pending Approval', color: C.yellow },
   ASSIGNED: { label: 'Assigned', color: C.blue },
   IN_PROGRESS: { label: 'In Progress', color: C.orange },

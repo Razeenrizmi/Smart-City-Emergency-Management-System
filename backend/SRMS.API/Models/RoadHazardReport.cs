@@ -15,7 +15,7 @@ public class RoadHazardReport
     public string HazardType { get; set; } = "POTHOLE";
     public bool IsVerified { get; set; } = false;
 
-    /// <summary>Officer review state: PENDING | APPROVED | REJECTED. Only APPROVED hazards can be assigned.</summary>
+    /// <summary>Officer review state: PENDING | APPROVED | REJECTED | RESOLVED. Only APPROVED hazards can be assigned; RESOLVED hazards are hidden from the live map.</summary>
     public string ApprovalStatus { get; set; } = "PENDING";
 
     public double AiConfidenceScore { get; set; } = 0.0;
