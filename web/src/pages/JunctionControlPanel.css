@@ -1,0 +1,242 @@
+.junction-panel {
+  text-align: left;
+  padding: 32px;
+  flex: 1;
+}
+
+.junction-panel__header h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.junction-panel__header p {
+  color: var(--text);
+  margin: 0 0 24px;
+}
+
+.junction-panel__status {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.junction-panel__error {
+  color: #ef4444;
+  font-size: 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.junction-panel__section-hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.junction-panel__telemetry {
+  margin-bottom: 28px;
+}
+
+.junction-panel__telemetry h2 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+
+.junction-panel__telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.junction-panel__proposals h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.proposal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proposal-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.proposal-list__detail {
+  color: var(--text);
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.proposal-list__plan {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.proposal-list__plan th,
+.proposal-list__plan td {
+  text-align: left;
+  padding: 3px 12px 3px 0;
+  color: var(--text);
+}
+
+.proposal-list__plan th {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.proposal-list__safety {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.proposal-list__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.proposal-list__approve,
+.proposal-list__reject {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.proposal-list__approve {
+  border: 1px solid #22c55e;
+  background: transparent;
+  color: #22c55e;
+}
+
+.proposal-list__reject {
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+}
+
+.proposal-list__approve:disabled,
+.proposal-list__reject:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.agent-steps {
+  margin-top: 8px;
+}
+
+.agent-steps__toggle {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.agent-steps__panel {
+  margin-top: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--code-bg);
+}
+
+.agent-steps__status {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.agent-steps__status--error {
+  color: #ef4444;
+}
+
+.agent-steps__list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-steps__item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agent-steps__agent-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.agent-steps__validation {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: #64748b;
+}
+
+.agent-steps__validation--passed {
+  background: #22c55e;
+}
+
+.agent-steps__validation--adjusted {
+  background: #eab308;
+}
+
+.agent-steps__validation--rejected,
+.agent-steps__validation--unparseable {
+  background: #ef4444;
+}
+
+.agent-steps__duration {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.agent-steps__io summary {
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.agent-steps__io pre {
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  margin: 6px 0 0;
+}
+
+@media (max-width: 640px) {
+  .junction-panel {
+    padding: 20px;
+  }
+}

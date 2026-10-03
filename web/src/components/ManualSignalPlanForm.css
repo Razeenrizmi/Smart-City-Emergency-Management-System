@@ -1,0 +1,123 @@
+.manual-plan {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: var(--code-bg);
+  margin-bottom: 28px;
+}
+
+.manual-plan h2 {
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.manual-plan__hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.manual-plan__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-plan__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.manual-plan__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.manual-plan__field--grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.manual-plan__field select,
+.manual-plan__field input {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.manual-plan__roads {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.manual-plan__road {
+  display: flex;
+  gap: 8px;
+}
+
+.manual-plan__road-name {
+  flex: 2;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.manual-plan__road-count {
+  flex: 1;
+  min-width: 80px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.manual-plan__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.manual-plan__submit {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.manual-plan__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.manual-plan__status {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.manual-plan__status--success {
+  color: #22c55e;
+}
+
+.manual-plan__status--error {
+  color: #ef4444;
+}
