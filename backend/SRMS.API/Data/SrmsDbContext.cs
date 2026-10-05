@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Models;
@@ -32,6 +32,8 @@ public partial class SrmsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("congestion");
+
         modelBuilder.Entity<AgentWorkflowRun>(entity =>
         {
             entity.HasIndex(e => e.IntersectionId, "IX_AgentWorkflowRuns_IntersectionId");
