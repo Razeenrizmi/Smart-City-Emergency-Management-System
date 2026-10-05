@@ -16,6 +16,9 @@ const string WebDevCorsPolicy = "WebDevCorsPolicy";
 // Add services to the container.
 builder.Services.AddControllers();
 
+// Register Health Check service
+builder.Services.AddHealthChecks();
+
 // ─── AI Signal Action integration (Emergency Green Wave domain) ──────────────
 builder.Services.Configure<AiServiceOptions>(
     builder.Configuration.GetSection(AiServiceOptions.SectionName));
@@ -168,6 +171,14 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// ─── Health Check & Root Route Mapping ────────────────────────────────────────
+// Standard health check route for monitoring tools & project documentation
+app.MapHealthChecks("/health");
+
+// Redirect root GET / directly to /health so visiting the base URL works
+app.MapGet("/", () => Results.Redirect("/health"));
+
 app.MapControllers();
 
 app.Run();
