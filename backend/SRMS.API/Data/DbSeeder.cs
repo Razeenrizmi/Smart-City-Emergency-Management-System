@@ -24,6 +24,76 @@ public static class DbSeeder
         var srmsDb = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
         await srmsDb.Database.MigrateAsync();
 
+        if (!await srmsDb.Users.AnyAsync())
+        {
+            srmsDb.Users.AddRange(
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "traffic.control@srms.local",
+                    FullName = "Traffic Control Staff",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                    Role = "TrafficControlStaff",
+                    CreatedAt = DateTime.UtcNow
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "field.officer@srms.local",
+                    FullName = "Field Officer",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("officer123"),
+                    Role = "FieldOfficer",
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
+            await srmsDb.SaveChangesAsync();
+            app.Logger.LogInformation("Seeded default SrmsDb staff and field officer.");
+        }
+
+        if (!await srmsDb.Intersections.AnyAsync())
+        {
+            var now = DateTime.UtcNow;
+            var junctionNames = new[]
+            {
+                ("Town Hall Junction", 6.9147, 79.8654),
+                ("Kollupitiya Junction", 6.9100, 79.8517),
+                ("Borella Junction", 6.9142, 79.8778),
+                ("Bambalapitiya Junction", 6.8967, 79.8569)
+            };
+
+            foreach (var (name, lat, lng) in junctionNames)
+            {
+                var intersectionId = Guid.NewGuid();
+                var intersection = new Intersection
+                {
+                    Id = intersectionId,
+                    Name = name,
+                    Latitude = lat,
+                    Longitude = lng,
+                    LaneCount = 4,
+                    CreatedAt = now,
+                    UpdatedAt = now
+                };
+
+                srmsDb.Intersections.Add(intersection);
+
+                var lanes = new[] { "Northbound", "Southbound", "Eastbound", "Westbound" };
+                foreach (var lane in lanes)
+                {
+                    srmsDb.CameraSensors.Add(new CameraSensor
+                    {
+                        Id = Guid.NewGuid(),
+                        IntersectionId = intersectionId,
+                        LaneLabel = lane,
+                        Status = "ONLINE",
+                        InstalledAt = now
+                    });
+                }
+            }
+            await srmsDb.SaveChangesAsync();
+            app.Logger.LogInformation("Seeded sample intersections and camera sensors.");
+        }
+
         if (!await db.Users.AnyAsync(u => u.Username == "officer"))
         {
             db.Users.Add(new AppUser

@@ -156,13 +156,6 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await SchemaMigrator.RunAsync(db);
-
-    // The junction / signal-timing domain lives in its own database
-    // (congestion_control). This context ships no migrations, so provision the
-    // database and its tables on first run — EnsureCreated is a no-op once the
-    // schema is present.
-    var junctionDb = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
-    await junctionDb.Database.EnsureCreatedAsync();
 }
 
 // Configure the HTTP request pipeline
