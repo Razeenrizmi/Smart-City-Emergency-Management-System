@@ -11,14 +11,18 @@ public static class DbSeeder
     public static async Task SeedAsync(WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        // 1. Migrate AppDbContext
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
 
-        // The Emergency Green Wave domain lives in its own context; make sure its
-        // schema (routes, junctions, sessions, signal logs) is applied as well.
+        // 2. Migrate ApplicationDbContext (Emergency Green Wave)
         var greenWaveDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await greenWaveDb.Database.MigrateAsync();
+
+        // 3. Migrate SrmsDbContext (Intersections, CameraSensors, Telemetry, etc.)
+        var srmsDb = scope.ServiceProvider.GetRequiredService<SrmsDbContext>();
+        await srmsDb.Database.MigrateAsync();
 
         if (!await db.Users.AnyAsync(u => u.Username == "officer"))
         {
