@@ -252,7 +252,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('create emergency returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('create emergency returns 201', () => pm.response.to.have.status(201));",
                   "const body = pm.response.json();",
                   "pm.test('session is ACTIVE', () => pm.expect(body.status).to.eql('ACTIVE'));",
                   "pm.collectionVariables.set('emergencyId', body.sessionId);"
