@@ -20,9 +20,9 @@ class HazardApiService {
   }
 
   static Future<Map<String, dynamic>> postHazardReport(
-    HazardReportModel report, {
+    HazardReportModel report, [
     http.Client? client,
-  ) async {
+  ]) async {
     final urlsToTry = _workingBaseUrl != null
         ? [_workingBaseUrl!, ..._candidateBaseUrls.where((u) => u != _workingBaseUrl)]
         : _candidateBaseUrls;
