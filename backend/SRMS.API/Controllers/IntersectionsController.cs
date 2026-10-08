@@ -135,6 +135,10 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         {
             return BadRequest(ApiResponse<IntersectionSummaryDto>.Fail("At least one scanned road is required."));
         }
+        if (ValidateRoads(request.Roads) is { } roadsError)
+        {
+            return BadRequest(ApiResponse<IntersectionSummaryDto>.Fail(roadsError));
+        }
 
         var now = DateTime.UtcNow;
         var intersection = new Intersection
@@ -214,6 +218,10 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         if (request.Roads is null || request.Roads.Count == 0)
         {
             return BadRequest(ApiResponse<IntersectionSummaryDto>.Fail("At least one scanned road is required."));
+        }
+        if (ValidateRoads(request.Roads) is { } roadsError)
+        {
+            return BadRequest(ApiResponse<IntersectionSummaryDto>.Fail(roadsError));
         }
 
         var now = DateTime.UtcNow;
@@ -308,5 +316,24 @@ public class IntersectionsController(SrmsDbContext db, SignalTimingAgentWorkflow
         return Ok(ApiResponse<object>.Ok(
             new { run.Id, run.Status, run.ErrorMessage, steps },
             succeeded ? "Agent workflow completed — a proposal is awaiting approval." : "Agent workflow finished without producing a proposal."));
+    }
+
+    // Rejects input the database or the AI baseline can't handle: a
+    // negative count would skew the proportional green-time split, and two
+    // roads with the same name (after trimming, ignoring case) would break
+    // the (IntersectionId, LaneLabel) unique index and crash with a 500.
+    private static string? ValidateRoads(List<SimulationRoadDto> roads)
+    {
+        if (roads.Any(r => r.VehicleCount < 0))
+        {
+            return "Vehicle counts cannot be negative.";
+        }
+
+        var duplicate = roads
+            .Select(r => string.IsNullOrWhiteSpace(r.Name) ? "Unnamed road" : r.Name.Trim())
+            .GroupBy(label => label, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault(g => g.Count() > 1);
+
+        return duplicate is null ? null : $"Road names must be unique — \"{duplicate.Key}\" appears more than once.";
     }
 }
