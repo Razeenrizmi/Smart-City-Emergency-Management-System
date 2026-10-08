@@ -92,7 +92,7 @@ void main() {
 
       final result = await HazardApiService.postHazardReport(
         HazardReportModel(latitude: 6.9, longitude: 79.8, accelerometerZSpike: 12.5),
-        client: client,
+        client,
       );
 
       expect(result['success'], isTrue);
@@ -105,7 +105,7 @@ void main() {
 
       final result = await HazardApiService.postHazardReport(
         HazardReportModel(latitude: 6.9, longitude: 79.8, accelerometerZSpike: 12.5),
-        client: client,
+        client,
       );
 
       expect(result['success'], isFalse);
@@ -118,7 +118,7 @@ void main() {
 
       final result = await HazardApiService.postHazardReport(
         HazardReportModel(latitude: 6.9, longitude: 79.8, accelerometerZSpike: 12.5),
-        client: client,
+        client,
       );
 
       expect(result['success'], isFalse);

@@ -20,8 +20,9 @@ class HazardApiService {
   }
 
   static Future<Map<String, dynamic>> postHazardReport(
-    HazardReportModel report,
-  ) async {
+    HazardReportModel report, [
+    http.Client? client,
+  ]) async {
     final urlsToTry = _workingBaseUrl != null
         ? [_workingBaseUrl!, ..._candidateBaseUrls.where((u) => u != _workingBaseUrl)]
         : _candidateBaseUrls;
@@ -30,19 +31,24 @@ class HazardApiService {
 
     for (final base in urlsToTry) {
       try {
-        final response = await http
-            .post(
-              Uri.parse('$base/api/hazards/report'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode(report.toJson()),
-            )
+        final uri = Uri.parse('$base/api/hazards/report');
+        final resolvedResponse = await (client?.post(
+                  uri,
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode(report.toJson()),
+                ) ??
+                http.post(
+                  uri,
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode(report.toJson()),
+                ))
             .timeout(const Duration(seconds: 5));
 
-        if (response.statusCode == 200) {
+        if (resolvedResponse.statusCode == 200) {
           _workingBaseUrl = base; // Cache the responsive endpoint
-          return {'success': true, 'data': jsonDecode(response.body)};
+          return {'success': true, 'data': jsonDecode(resolvedResponse.body)};
         } else {
-          lastError = 'Server responded with status ${response.statusCode}';
+          lastError = 'Server responded with status ${resolvedResponse.statusCode}';
         }
       } catch (e) {
         lastError = e.toString();
