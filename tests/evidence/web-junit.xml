@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="12" failures="0" errors="0" time="0.539120999">
+    <testsuite name="src/modules/emergency-green-wave/AiWorkflowPanel.test.jsx" timestamp="2026-10-05T14:06:02.309Z" hostname="Mohameds-Air-2.lan" tests="3" failures="0" errors="0" skipped="0" time="0.186367708">
+        <testcase classname="src/modules/emergency-green-wave/AiWorkflowPanel.test.jsx" name="AiWorkflowPanel &gt; shows approval controls for a valid pending proposal" time="0.127726667">
+        </testcase>
+        <testcase classname="src/modules/emergency-green-wave/AiWorkflowPanel.test.jsx" name="AiWorkflowPanel &gt; approves a proposal and then enables activation" time="0.037910292">
+        </testcase>
+        <testcase classname="src/modules/emergency-green-wave/AiWorkflowPanel.test.jsx" name="AiWorkflowPanel &gt; enables completion for an active green wave and reports service errors" time="0.0196135">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/modules/emergency-green-wave/EmergencyDetails.test.jsx" timestamp="2026-10-05T14:06:02.310Z" hostname="Mohameds-Air-2.lan" tests="4" failures="0" errors="0" skipped="0" time="0.15098175">
+        <testcase classname="src/modules/emergency-green-wave/EmergencyDetails.test.jsx" name="EmergencyDetails lifecycle controls &gt; shows cancellation for ACTIVE and shows no-restoration outcome after cancellation" time="0.129284375">
+        </testcase>
+        <testcase classname="src/modules/emergency-green-wave/EmergencyDetails.test.jsx" name="EmergencyDetails lifecycle controls &gt; does not show cancellation for COMPLETED sessions" time="0.005567542">
+        </testcase>
+        <testcase classname="src/modules/emergency-green-wave/EmergencyDetails.test.jsx" name="EmergencyDetails lifecycle controls &gt; does not show cancellation for CANCELLED sessions" time="0.005391459">
+        </testcase>
+        <testcase classname="src/modules/emergency-green-wave/EmergencyDetails.test.jsx" name="EmergencyDetails lifecycle controls &gt; polls active session details once and cleans up the timer on unmount" time="0.009635167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/HazardMap.test.jsx" timestamp="2026-10-05T14:06:02.311Z" hostname="Mohameds-Air-2.lan" tests="5" failures="0" errors="0" skipped="0" time="0.201771541">
+        <testcase classname="src/test/HazardMap.test.jsx" name="HazardMap &gt; renders one Leaflet marker per renderable hazard" time="0.088649166">
+        </testcase>
+        <testcase classname="src/test/HazardMap.test.jsx" name="HazardMap &gt; formats popup coordinates, severity and status" time="0.022711042">
+        </testcase>
+        <testcase classname="src/test/HazardMap.test.jsx" name="HazardMap &gt; renders a clean map for an empty hazard list" time="0.008238541">
+        </testcase>
+        <testcase classname="src/test/HazardMap.test.jsx" name="HazardMap &gt; filters out RESOLVED hazards and hazards without coordinates" time="0.012341542">
+        </testcase>
+        <testcase classname="src/test/HazardMap.test.jsx" name="App hazard map — API error state &gt; shows the connection error screen when the hazards API fails" time="0.06864025">
+        </testcase>
+    </testsuite>
+</testsuites>

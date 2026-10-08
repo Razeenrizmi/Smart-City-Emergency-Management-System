@@ -17,7 +17,25 @@ import '../widgets/interactive_navigation_map.dart';
 enum DetectionStatus { idle, monitoring, spikeDetected, reporting, reported, error }
 
 class HazardDetectionScreen extends StatefulWidget {
-  const HazardDetectionScreen({super.key});
+  const HazardDetectionScreen({
+    super.key,
+    this.reportSender,
+    this.positionProvider,
+    this.positionStreamProvider,
+    this.accelerometerStreamFactory,
+  });
+
+  /// Sends a hazard report. Defaults to [HazardApiService.postHazardReport].
+  final Future<Map<String, dynamic>> Function(HazardReportModel report)? reportSender;
+
+  /// One-shot GPS fix. Defaults to [LocationService.getCurrentPosition].
+  final Future<Position> Function()? positionProvider;
+
+  /// Continuous GPS stream. Defaults to [LocationService.positionStream].
+  final Stream<Position> Function()? positionStreamProvider;
+
+  /// Raw accelerometer stream. Defaults to the sensors_plus stream.
+  final Stream<AccelerometerEvent> Function()? accelerometerStreamFactory;
 
   @override
   State<HazardDetectionScreen> createState() => _HazardDetectionScreenState();
@@ -93,7 +111,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   Future<void> _startMonitoring() async {
     try {
       // Get an initial position fix before starting
-      final position = await LocationService.getCurrentPosition();
+      final position =
+          await (widget.positionProvider?.call() ?? LocationService.getCurrentPosition());
       setState(() {
         _lastPosition = position;
         _status = DetectionStatus.monitoring;
@@ -105,7 +124,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
       // Start continuous GPS stream so _lastPosition is always fresh.
       // This is the key fix: instead of fetching GPS on-demand (which can
       // be slow or return stale data), we keep a live stream running.
-      _gpsSub = LocationService.positionStream().listen(
+      _gpsSub = (widget.positionStreamProvider?.call() ?? LocationService.positionStream())
+          .listen(
         (pos) {
           if (mounted) setState(() => _lastPosition = pos);
         },
@@ -114,9 +134,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
         },
       );
 
-      _accelSub = accelerometerEventStream(
-        samplingPeriod: SensorInterval.normalInterval,
-      ).listen((event) {
+      _accelSub = (widget.accelerometerStreamFactory?.call() ??
+              accelerometerEventStream(samplingPeriod: SensorInterval.normalInterval))
+          .listen((event) {
         final absX = event.x.abs();
         final absY = event.y.abs();
         final absZ = event.z.abs();
@@ -189,7 +209,8 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
   Future<void> _manualReport() async {
     if (_lastPosition == null) {
       try {
-        final pos = await LocationService.getCurrentPosition();
+        final pos =
+            await (widget.positionProvider?.call() ?? LocationService.getCurrentPosition());
         setState(() => _lastPosition = pos);
       } catch (e) {
         _showSnack('Could not get location: $e', isError: true);
@@ -212,7 +233,9 @@ class _HazardDetectionScreenState extends State<HazardDetectionScreen>
       accelerometerZSpike: zSpike,
     );
 
-    final result = await HazardApiService.postHazardReport(report);
+    final result = widget.reportSender != null
+        ? await widget.reportSender!(report)
+        : await HazardApiService.postHazardReport(report);
 
     if (result['success'] == true) {
       final data = result['data']['data'] ?? result['data'];

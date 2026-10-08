@@ -7,7 +7,11 @@ public class RoadHazardReport
     [Key]
     public Guid HazardId { get; set; } = Guid.NewGuid();
     public Guid? ReportedByUserId { get; set; }
+
+    [Range(typeof(decimal), "-90", "90", ErrorMessage = "Latitude must be between -90 and 90.")]
     public decimal Latitude { get; set; }
+
+    [Range(typeof(decimal), "-180", "180", ErrorMessage = "Longitude must be between -180 and 180.")]
     public decimal Longitude { get; set; }
     public decimal AccelerometerZSpike { get; set; }
     public string? ImageUrl { get; set; }

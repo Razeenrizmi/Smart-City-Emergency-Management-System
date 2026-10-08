@@ -1,0 +1,302 @@
+{
+  "info": {
+    "name": "SRMS — Full Hazard E2E (with AI triage)",
+    "description": "Complete cross-platform hazard workflow: simulated mobile report -> officer pending queue -> AI image triage -> officer approval -> public dashboard map, plus authorization and SQL-injection security checks. Extends hazards-workflow.postman_collection.json with the AI /classify-image step.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "hazardId", "value": "" },
+    { "key": "workerToken", "value": "" },
+    { "key": "aiCategory", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Hazard Workflow",
+      "item": [
+        {
+          "name": "1. Login as officer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login returns 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('login returns a token', () => pm.expect(body.data.token).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{officerUsername}}\",\n  \"password\": \"{{officerPassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "2. Report hazard (simulated mobile detection)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('report returns 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('report returns an id', () => pm.expect(body.id).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('hazardId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 6.9271,\n  \"longitude\": 79.8850,\n  \"accelerometerZSpike\": 12.5,\n  \"hazardType\": \"POTHOLE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "report"]
+            }
+          }
+        },
+        {
+          "name": "3. Officer pending queue contains the hazard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pending returns 200', () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().data.map(h => h.hazardId);",
+                  "pm.test('pending contains the new hazard', () => pm.expect(ids).to.include(pm.collectionVariables.get('hazardId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "pending"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Triage",
+      "item": [
+        {
+          "name": "4. AI classifies the hazard image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('classify returns 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('classify succeeded', () => pm.expect(body.success).to.eql(true));",
+                  "const d = body.data;",
+                  "pm.test('AI triage returns a classification', () => {",
+                  "  pm.expect(d.detectedCategory).to.be.a('string').and.not.empty;",
+                  "  pm.expect(d.confidenceScore).to.be.within(0.72, 0.99);",
+                  "});",
+                  "pm.test('auto-verify flag is a boolean', () => pm.expect(d.isAutoVerified).to.be.a('boolean'));",
+                  "pm.collectionVariables.set('aiCategory', d.detectedCategory);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageBase64\": \"cG90aG9sZQ==\",\n  \"hazardReportId\": \"{{hazardId}}\",\n  \"accelerometerSpike\": 12.5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/classify-image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "classify-image"]
+            }
+          }
+        },
+        {
+          "name": "5. Officer approves the hazard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 200 when still PENDING; 400 'only pending' when the AI auto-approved it.",
+                  "pm.test('approve returns 200 or is already-approved 400', () => pm.expect([200, 400]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/{{hazardId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "{{hazardId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "6. Public map reflects the hazard and its AI data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('all returns 200', () => pm.response.to.have.status(200));",
+                  "const hazard = pm.response.json().data.find(h => h.hazardId === pm.collectionVariables.get('hazardId'));",
+                  "pm.test('hazard is visible to the public map', () => pm.expect(hazard, 'hazard in /all').to.be.an('object'));",
+                  "pm.test('hazard is pending or approved', () => pm.expect(['PENDING', 'APPROVED']).to.include(hazard.approvalStatus));",
+                  "pm.test('AI category was persisted on the report', () => pm.expect(hazard.aiDetectedCategory).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "item": [
+        {
+          "name": "Unauthenticated approve is rejected (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('approve without a token is rejected', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/{{hazardId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "{{hazardId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Non-officer (worker role) approve is forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mint a validly-signed JWT that carries the MUNICIPAL_WORKER role.",
+                  "const cryptojs = require('crypto-js');",
+                  "const b64url = (wordArray) => cryptojs.enc.Base64.stringify(wordArray)",
+                  "  .replace(/=+$/, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+                  "const header = b64url(cryptojs.enc.Utf8.parse(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));",
+                  "const payload = b64url(cryptojs.enc.Utf8.parse(JSON.stringify({",
+                  "  sub: '00000000-0000-0000-0000-0000000000ff',",
+                  "  name: 'Test Worker',",
+                  "  role: 'MUNICIPAL_WORKER',",
+                  "  iss: pm.environment.get('jwtIssuer'),",
+                  "  aud: pm.environment.get('jwtAudience'),",
+                  "  exp: Math.floor(Date.now() / 1000) + 3600",
+                  "})));",
+                  "const sig = b64url(cryptojs.HmacSHA256(header + '.' + payload, pm.environment.get('jwtSigningKey')));",
+                  "pm.collectionVariables.set('workerToken', header + '.' + payload + '.' + sig);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('non-officer cannot approve', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}", "type": "text" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/{{hazardId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "{{hazardId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "SQL injection in hazardType does not error (non-5xx)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SQLi payload does not cause a server error', () => pm.expect(pm.response.code).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 6.9271,\n  \"longitude\": 79.8850,\n  \"accelerometerZSpike\": 12.5,\n  \"hazardType\": \"' OR '1'='1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/hazards/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hazards", "report"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

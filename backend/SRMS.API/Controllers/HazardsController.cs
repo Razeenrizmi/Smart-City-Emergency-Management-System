@@ -23,6 +23,13 @@ public class HazardsController : ControllerBase
     [HttpPost("report")]
     public async Task<IActionResult> CreateReport([FromBody] RoadHazardReport report)
     {
+        // (0,0) means the client never attached a GPS fix — reject it rather than
+        // storing a junk "Gulf of Guinea" hazard (the mobile payload always sends
+        // a real fix). Out-of-range coordinates are rejected earlier by the
+        // [Range] attributes on RoadHazardReport.
+        if (report.Latitude == 0m && report.Longitude == 0m)
+            return BadRequest(new { success = false, error = "Latitude and longitude are required." });
+
         // Severity calculation based on accelerometer spike
         if (report.AccelerometerZSpike >= 18.0m) report.SeverityScore = 5;
         else if (report.AccelerometerZSpike >= 14.0m) report.SeverityScore = 4;
