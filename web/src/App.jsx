@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage';
 import AssignWorkerModal from './components/AssignWorkerModal';
 import LandingPage from './pages/LandingPage';
 import PendingApprovalsView from './pages/PendingApprovalsView';
+import ResolvedHazardsView from './pages/ResolvedHazardsView';
 import MunicipalWorkersView from './pages/MunicipalWorkersView';
 import MyWorkView from './pages/MyWorkView';
 import JunctionControlPanel from './pages/JunctionControlPanel';
@@ -158,6 +159,7 @@ function App() {
           <>
             {view === 'map' && <HazardMap hazards={hazards} onAssign={setAssignHazard} />}
             {view === 'approvals' && <PendingApprovalsView onChanged={refreshHazards} />}
+            {view === 'resolved' && <ResolvedHazardsView hazards={hazards} onRefresh={refreshHazards} />}
             {view === 'workers' && <MunicipalWorkersView />}
             {view === 'greenwave' && <GreenWaveDashboard />}
             {view === 'crimevehicle' && <CrimeVehiclePage />}

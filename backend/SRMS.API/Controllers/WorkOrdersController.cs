@@ -233,10 +233,16 @@ public class WorkOrdersController : ControllerBase
             .ToList();
 
         if (origin.ApprovalStatus != "RESOLVED")
+        {
             origin.ApprovalStatus = "RESOLVED";
+            origin.ResolvedAt = DateTime.UtcNow;
+        }
 
         foreach (var hazard in spotHazards)
+        {
             hazard.ApprovalStatus = "RESOLVED";
+            hazard.ResolvedAt ??= DateTime.UtcNow;
+        }
 
         var spotHazardIds = spotHazards.Select(h => h.HazardId).ToList();
         if (!spotHazardIds.Contains(origin.HazardId))

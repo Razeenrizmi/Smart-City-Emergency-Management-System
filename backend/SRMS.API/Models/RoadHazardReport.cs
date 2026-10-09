@@ -22,6 +22,9 @@ public class RoadHazardReport
     /// <summary>Officer review state: PENDING | APPROVED | REJECTED | RESOLVED. Only APPROVED hazards can be assigned; RESOLVED hazards are hidden from the live map.</summary>
     public string ApprovalStatus { get; set; } = "PENDING";
 
+    /// <summary>UTC time the hazard was retired (set when ApprovalStatus becomes RESOLVED).</summary>
+    public DateTime? ResolvedAt { get; set; }
+
     public double AiConfidenceScore { get; set; } = 0.0;
     public string? AiDetectedCategory { get; set; }
     public string? AiAnalysisSummary { get; set; }

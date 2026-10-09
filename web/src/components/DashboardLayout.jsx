@@ -23,6 +23,7 @@ import { titleCase } from '../workflow';
 const OFFICER_NAV = [
   { id: 'map', label: 'Live Hazard Map', icon: MapIcon },
   { id: 'approvals', label: 'Pending Approvals', icon: AlertTriangle },
+  { id: 'resolved', label: 'Resolved Hazards', icon: CheckCircle },
   { id: 'greenwave', label: 'Emergency Green Wave', icon: Zap },
   { id: 'crimevehicle', label: 'Crime Vehicle Detection', icon: ShieldAlert },
   { id: 'junctions', label: 'Junction Control', icon: TrafficCone },
@@ -38,6 +39,7 @@ const WORKER_NAV = [
 const VIEW_TITLES = {
   map: 'Live Hazard Map',
   approvals: 'Pending Approvals',
+  resolved: 'Resolved Hazards',
   greenwave: 'Emergency Green Wave',
   crimevehicle: 'Crime Vehicle Detection',
   junctions: 'Junction Control Panel',
@@ -103,9 +105,13 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
   const showHazardChrome =
     !isWorker && !['greenwave', 'crimevehicle', 'junctions', 'signaltest', 'reports'].includes(activeView);
 
-  const totalReports = hazards.length;
-  const severeReports = hazards.filter((h) => h.severityScore >= 4).length;
-  const verifiedReports = hazards.filter((h) => h.isVerified).length;
+  // "Active" excludes retired hazards so the totals read as live workload;
+  // resolved reports are surfaced separately.
+  const activeHazards = hazards.filter((h) => h.approvalStatus !== 'RESOLVED');
+  const totalReports = activeHazards.length;
+  const resolvedReports = hazards.length - activeHazards.length;
+  const severeReports = activeHazards.filter((h) => h.severityScore >= 4).length;
+  const verifiedReports = activeHazards.filter((h) => h.isVerified).length;
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: C.bg, color: C.text }}>
@@ -244,8 +250,9 @@ const DashboardLayout = ({ children, hazards = [], user, activeView, onNavigate,
         {/* Dashboard Area */}
         <div style={{ padding: '32px', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
           {showHazardChrome && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-              <StatCard title="Total Reports" value={totalReports} icon={Activity} color="#4299E1" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+              <StatCard title="Active Reports" value={totalReports} icon={Activity} color="#4299E1" />
+              <StatCard title="Resolved" value={resolvedReports} icon={CheckCircle} color="#16A34A" />
               <StatCard title="Severe Hazards" value={severeReports} icon={AlertTriangle} color="#E53E3E" />
               <StatCard title="AI Verified" value={verifiedReports} icon={CheckCircle} color="#48BB78" />
             </div>

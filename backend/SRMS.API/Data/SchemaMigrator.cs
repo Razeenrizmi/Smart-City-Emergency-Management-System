@@ -75,6 +75,9 @@ public static class SchemaMigrator
             @"UPDATE ""CctvNodes"" SET ""Lat"" = 6.9271, ""Lng"" = 79.8612 WHERE ""NodeId"" = 1 AND ""Lat"" IS NULL;",
             @"UPDATE ""CctvNodes"" SET ""Lat"" = 6.9175, ""Lng"" = 79.8830 WHERE ""NodeId"" = 2 AND ""Lat"" IS NULL;",
 
+            // --- Hazards: record when a report was retired so the officer history can date it ---
+            @"ALTER TABLE ""RoadHazardReports"" ADD COLUMN IF NOT EXISTS ""ResolvedAt"" timestamp with time zone NULL;",
+
             // --- Same-spot cleanup: a completed repair retires every report within ~5m
             //     (0.000045 deg), not just the one that was dispatched. ---
             @"UPDATE ""RoadHazardReports"" h SET ""ApprovalStatus"" = 'RESOLVED'
