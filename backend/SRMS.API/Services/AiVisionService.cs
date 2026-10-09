@@ -4,10 +4,11 @@ using SRMS.API.Models;
 namespace SRMS.API.Services;
 
 /// <summary>
-/// Simulates a Computer Vision classifier that analyses road hazard images.
-/// In a production system this would call a Python ML micro-service or Azure CV endpoint.
-/// The current implementation uses deterministic heuristics on the base64 payload
-/// so the rest of the system can be fully functional without an external ML dependency.
+/// Hazard image classifier. When Google Gemini is configured it classifies the
+/// submitted photo with the Gemini vision model; otherwise (or if the call fails)
+/// it falls back to a deterministic heuristic on the base64 payload so the rest of
+/// the system stays fully functional offline/in CI. The <see cref="AiVisionResult.Source"/>
+/// field records which engine produced the result.
 /// </summary>
 public class AiVisionService
 {
@@ -15,14 +16,16 @@ public class AiVisionService
 
     private readonly AppDbContext _db;
     private readonly ILogger<AiVisionService> _logger;
+    private readonly IGeminiClient? _gemini;
 
     // Confidence threshold above which a report is auto-verified
     private const double AutoVerifyThreshold = 0.75;
 
-    public AiVisionService(AppDbContext db, ILogger<AiVisionService> logger)
+    public AiVisionService(AppDbContext db, ILogger<AiVisionService> logger, IGeminiClient? gemini = null)
     {
         _db = db;
         _logger = logger;
+        _gemini = gemini;
     }
 
     /// <summary>
@@ -36,24 +39,32 @@ public class AiVisionService
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        // ── Simulate CV inference ─────────────────────────────────────────────
-        // We derive a pseudo-random but deterministic confidence score from the
-        // image hash so repeated calls with the same image return the same result.
-        var hash = imageBase64.Length > 0 ? Math.Abs(imageBase64.GetHashCode()) : new Random().Next();
-        var rng = new Random(hash);
+        string category;
+        double confidence;
+        string summary;
+        string source;
 
-        var categoryIndex = rng.Next(Categories.Length);
-        var category = Categories[categoryIndex];
+        // Prefer Gemini vision when configured; accept only supported categories.
+        var ai = _gemini?.IsConfigured == true
+            ? await _gemini.ClassifyHazardImageAsync(imageBase64, "image/jpeg", accelerometerSpike)
+            : null;
 
-        // Higher accelerometer spike → higher confidence (sensor corroboration)
-        double baseConf = 0.72 + rng.NextDouble() * 0.26;         // 0.72 – 0.98
-        if (accelerometerSpike >= 18.0) baseConf = Math.Min(baseConf + 0.08, 0.99);
-        else if (accelerometerSpike >= 14.0) baseConf = Math.Min(baseConf + 0.04, 0.99);
-        double confidence = Math.Round(baseConf, 2);
+        if (ai is not null && Categories.Contains(ai.DetectedCategory))
+        {
+            category = ai.DetectedCategory;
+            confidence = Math.Round(Math.Clamp(ai.ConfidenceScore, 0.0, 1.0), 2);
+            summary = string.IsNullOrWhiteSpace(ai.AnalysisSummary)
+                ? BuildSummary(category, confidence, accelerometerSpike, confidence >= AutoVerifyThreshold)
+                : ai.AnalysisSummary;
+            source = "GEMINI";
+        }
+        else
+        {
+            (category, confidence, summary) = ClassifyHeuristically(imageBase64, accelerometerSpike);
+            source = "HEURISTIC";
+        }
 
         bool autoVerified = confidence >= AutoVerifyThreshold;
-
-        var summary = BuildSummary(category, confidence, accelerometerSpike, autoVerified);
 
         sw.Stop();
 
@@ -64,7 +75,7 @@ public class AiVisionService
             WorkflowType = "VISION_CLASSIFY",
             DomainObjective = "Road hazard image classification",
             InputPayload = $"[base64 image, length={imageBase64.Length}]",
-            OutputPayload = System.Text.Json.JsonSerializer.Serialize(new { category, confidence, autoVerified }),
+            OutputPayload = System.Text.Json.JsonSerializer.Serialize(new { category, confidence, autoVerified, source }),
             ConfidenceScore = confidence,
             DetectedCategory = category,
             WasAutoVerified = autoVerified,
@@ -74,8 +85,8 @@ public class AiVisionService
         _db.AiWorkflowExecutions.Add(execution);
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("[AiVision] Category={Category} Confidence={Confidence} Verified={Verified} in {Ms}ms",
-            category, confidence, autoVerified, sw.ElapsedMilliseconds);
+        _logger.LogInformation("[AiVision] Source={Source} Category={Category} Confidence={Confidence} Verified={Verified} in {Ms}ms",
+            source, category, confidence, autoVerified, sw.ElapsedMilliseconds);
 
         return new AiVisionResult
         {
@@ -84,7 +95,34 @@ public class AiVisionService
             IsAutoVerified = autoVerified,
             AnalysisSummary = summary,
             ProcessingMs = sw.ElapsedMilliseconds,
+            Source = source,
         };
+    }
+
+    /// <summary>
+    /// Deterministic fallback classifier: derives a stable category and confidence
+    /// from the image payload hash (+ accelerometer corroboration). Used when Gemini
+    /// is not configured or unavailable.
+    /// </summary>
+    private static (string Category, double Confidence, string Summary) ClassifyHeuristically(
+        string imageBase64,
+        double accelerometerSpike)
+    {
+        var hash = imageBase64.Length > 0 ? Math.Abs(imageBase64.GetHashCode()) : new Random().Next();
+        var rng = new Random(hash);
+
+        var category = Categories[rng.Next(Categories.Length)];
+
+        // Higher accelerometer spike → higher confidence (sensor corroboration)
+        double baseConf = 0.72 + rng.NextDouble() * 0.26;         // 0.72 – 0.98
+        if (accelerometerSpike >= 18.0) baseConf = Math.Min(baseConf + 0.08, 0.99);
+        else if (accelerometerSpike >= 14.0) baseConf = Math.Min(baseConf + 0.04, 0.99);
+        double confidence = Math.Round(baseConf, 2);
+
+        bool autoVerified = confidence >= AutoVerifyThreshold;
+        var summary = BuildSummary(category, confidence, accelerometerSpike, autoVerified);
+
+        return (category, confidence, summary);
     }
 
     private static string BuildSummary(string category, double confidence, double spike, bool verified)
@@ -110,4 +148,7 @@ public class AiVisionResult
     public bool IsAutoVerified { get; set; }
     public string AnalysisSummary { get; set; } = string.Empty;
     public long ProcessingMs { get; set; }
+
+    /// <summary>Which engine produced the result: "GEMINI" or "HEURISTIC".</summary>
+    public string Source { get; set; } = "HEURISTIC";
 }

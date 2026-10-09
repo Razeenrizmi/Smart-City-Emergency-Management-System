@@ -81,6 +81,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<AiVisionService>();
 builder.Services.AddScoped<AiAnalystService>();
 
+// ─── Google Gemini integration (hazard vision + copilot) ─────────────────────
+// The API key is supplied out of source control (user secrets "Gemini:ApiKey"
+// or the env var "Gemini__ApiKey"). Absent a key, the hazard AI services fall
+// back to their deterministic implementations.
+builder.Services.Configure<GeminiOptions>(
+    builder.Configuration.GetSection(GeminiOptions.SectionName));
+
+builder.Services.AddHttpClient<IGeminiClient, GeminiClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<GeminiOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds > 0 ? options.TimeoutSeconds : 30);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+});
+
 // Register authentication/token services
 builder.Services.AddScoped<TokenService>();
 
@@ -128,7 +143,7 @@ builder.Services.AddHttpClient("AIService", client =>
 });
 
 builder.Services.AddDbContext<SrmsDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SrmsDb")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SrmsDb") ?? builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddCors(options =>
 {

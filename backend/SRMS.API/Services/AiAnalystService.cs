@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using SRMS.API.Data;
 using SRMS.API.Models;
@@ -5,19 +7,39 @@ using SRMS.API.Models;
 namespace SRMS.API.Services;
 
 /// <summary>
-/// AI Analyst Engine — spatial clustering, Road Danger Index (RDI), and natural-language chat.
+/// AI Analyst Engine — spatial clustering, Road Danger Index (RDI), and the
+/// natural-language copilot. The copilot uses Google Gemini (grounded in the live
+/// hazard dataset) when configured, and falls back to deterministic keyword routing
+/// otherwise/on failure; <see cref="AiChatResponse.Source"/> records which engine answered.
 /// </summary>
 public class AiAnalystService
 {
     private const double ClusterRadiusMeters = 500.0;
+    private const int MaxPromptChars = 1_000;
+
     private readonly AppDbContext _db;
     private readonly ILogger<AiAnalystService> _logger;
+    private readonly IGeminiClient? _gemini;
 
-    public AiAnalystService(AppDbContext db, ILogger<AiAnalystService> logger)
+    public AiAnalystService(AppDbContext db, ILogger<AiAnalystService> logger, IGeminiClient? gemini = null)
     {
         _db = db;
         _logger = logger;
+        _gemini = gemini;
     }
+
+    // Prompt-injection neutralisers — the copilot only answers hazard questions, but we
+    // still return a normal (fallback) answer rather than erroring.
+    private static readonly string[] InjectionMarkers =
+    [
+        "ignore previous", "ignore all previous", "disregard", "system prompt",
+        "you are now", "jailbreak", "developer mode", "reveal your",
+    ];
+
+    private static readonly HashSet<string> AllowedIntents = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "GENERAL", "URGENT_HAZARDS", "SUMMARY", "REPAIR_ORDER", "FLOODING", "ALL_CLEAR",
+    };
 
     // ─────────────────────────────────────────────────────────────────────────
     // Public API
@@ -75,14 +97,14 @@ public class AiAnalystService
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var hazards = await _db.RoadHazardReports.AsNoTracking().ToListAsync();
 
-        var response = GenerateChatResponse(userPrompt, hazards);
+        var response = await BuildChatResponseAsync(userPrompt, hazards);
 
         sw.Stop();
 
         var log = new HazardAiWorkflowExecution
         {
             WorkflowType = "CHAT_QUERY",
-            DomainObjective = "Admin copilot chat",
+            DomainObjective = $"Admin copilot chat ({response.Source})",
             InputPayload = userPrompt.Length > 500 ? userPrompt[..500] : userPrompt,
             OutputPayload = response.Message.Length > 500 ? response.Message[..500] : response.Message,
             ProcessingMs = sw.ElapsedMilliseconds,
@@ -92,6 +114,90 @@ public class AiAnalystService
         await _db.SaveChangesAsync();
 
         return response;
+    }
+
+    /// <summary>
+    /// Builds a copilot answer for a question given a hazard snapshot. Uses Gemini
+    /// grounded in the snapshot when configured, otherwise falls back to keyword
+    /// routing. Public so it can be unit-tested without a database.
+    /// </summary>
+    public async Task<AiChatResponse> BuildChatResponseAsync(string userPrompt, List<RoadHazardReport> hazards)
+    {
+        var safePrompt = SanitizePrompt(userPrompt);
+
+        if (_gemini?.IsConfigured == true)
+        {
+            var context = BuildHazardContext(hazards);
+            var ai = await _gemini.AnswerCopilotAsync(safePrompt, context);
+
+            if (ai is not null && !string.IsNullOrWhiteSpace(ai.Message))
+            {
+                var validIds = hazards.Select(h => h.HazardId).ToHashSet();
+                return new AiChatResponse
+                {
+                    Message = ai.Message,
+                    Intent = AllowedIntents.Contains(ai.Intent) ? ai.Intent.ToUpperInvariant() : "GENERAL",
+                    RelatedHazardIds = ai.RelatedHazardIds
+                        .Where(validIds.Contains)
+                        .Distinct()
+                        .ToList(),
+                    Timestamp = DateTime.UtcNow,
+                    Source = "GEMINI",
+                };
+            }
+        }
+
+        return GenerateChatResponse(safePrompt, hazards);
+    }
+
+    /// <summary>Caps prompt length and neutralises common prompt-injection phrases (never rejects).</summary>
+    private static string SanitizePrompt(string prompt)
+    {
+        var trimmed = string.IsNullOrWhiteSpace(prompt) ? string.Empty : prompt.Trim();
+        if (trimmed.Length > MaxPromptChars)
+        {
+            trimmed = trimmed[..MaxPromptChars];
+        }
+
+        foreach (var marker in InjectionMarkers)
+        {
+            trimmed = Regex.Replace(trimmed, Regex.Escape(marker), "[filtered]", RegexOptions.IgnoreCase);
+        }
+
+        return trimmed;
+    }
+
+    /// <summary>Compact, bounded JSON grounding context handed to the copilot.</summary>
+    private static string BuildHazardContext(List<RoadHazardReport> hazards)
+    {
+        var top = hazards
+            .OrderByDescending(h => h.SeverityScore)
+            .ThenByDescending(h => h.CreatedAt)
+            .Take(20)
+            .Select(h => new
+            {
+                hazardId = h.HazardId,
+                hazardType = h.HazardType,
+                severityScore = h.SeverityScore,
+                isVerified = h.IsVerified,
+                approvalStatus = h.ApprovalStatus,
+                latitude = (double)h.Latitude,
+                longitude = (double)h.Longitude,
+                aiDetectedCategory = h.AiDetectedCategory,
+                createdAt = h.CreatedAt,
+            });
+
+        var payload = new
+        {
+            totalHazards = hazards.Count,
+            verifiedHazards = hazards.Count(h => h.IsVerified),
+            severeHazards = hazards.Count(h => h.SeverityScore >= 4),
+            floodingHazards = hazards.Count(h => h.HazardType.Contains("FLOOD")),
+            cityRoadDangerIndex = ComputeRdi(hazards),
+            topHazards = top,
+        };
+
+        return JsonSerializer.Serialize(payload);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -320,4 +426,7 @@ public class AiChatResponse
     public string Intent { get; set; } = string.Empty;
     public List<Guid> RelatedHazardIds { get; set; } = [];
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Which engine produced the answer: "GEMINI" or "HEURISTIC".</summary>
+    public string Source { get; set; } = "HEURISTIC";
 }

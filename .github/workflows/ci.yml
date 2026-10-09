@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Hazard API base URL for the optional OWASP ZAP baseline scan"
+        required: false
+        default: "http://localhost:5017"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -153,3 +158,219 @@ jobs:
 
       - name: Test
         run: python -m pytest -q
+
+  # ── E2E: integrated system + security via Postman/Newman ──────────────────
+  e2e:
+    name: E2E (Postman/Newman) — integrated system
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: srms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      ConnectionStrings__SrmsDb: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      Jwt__Key: "dev-only-srms-signing-key-change-me-0123456789"
+      Jwt__Issuer: "SRMS.API"
+      Jwt__Audience: "SRMS.Client"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build API
+        run: dotnet build backend/SRMS.API/SRMS.API.csproj --configuration Release
+
+      - name: Boot API, wait for readiness, run Newman
+        run: |
+          dotnet run --project backend/SRMS.API --configuration Release --no-build \
+            --no-launch-profile --urls http://localhost:5017 > api.log 2>&1 &
+          API_PID=$!
+
+          echo "Waiting for the API to come up..."
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:5017/api/hazards/all > /dev/null; then
+              echo "API is up after $((i * 2))s"
+              break
+            fi
+            sleep 2
+          done
+
+          npx --yes newman@6 run tests/e2e/srms-integrated.postman_collection.json \
+            -e tests/e2e/local.postman_environment.json
+          STATUS=$?
+
+          kill "$API_PID" || true
+          echo "--- api.log (tail) ---"
+          tail -40 api.log || true
+          exit $STATUS
+
+  # ── Non-functional: concurrent hazard reporting load test (k6) ────────────
+  load:
+    name: Load (k6) — concurrent hazard reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: srms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      ConnectionStrings__SrmsDb: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      Jwt__Key: "dev-only-srms-signing-key-change-me-0123456789"
+      Jwt__Issuer: "SRMS.API"
+      Jwt__Audience: "SRMS.Client"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Build API
+        run: dotnet build backend/SRMS.API/SRMS.API.csproj --configuration Release
+
+      - name: Boot API, wait for readiness, run k6
+        env:
+          BASE_URL: http://localhost:5017
+        run: |
+          dotnet run --project backend/SRMS.API --configuration Release --no-build \
+            --no-launch-profile --urls http://localhost:5017 > api.log 2>&1 &
+          API_PID=$!
+
+          echo "Waiting for the API to come up..."
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:5017/api/hazards/all > /dev/null; then
+              echo "API is up after $((i * 2))s"
+              break
+            fi
+            sleep 2
+          done
+
+          k6 run tests/k6/hazard-report-load.js
+          HAZARD_STATUS=$?
+          k6 run tests/k6/integrated-load.js
+          MIXED_STATUS=$?
+          if [ "$HAZARD_STATUS" -ne 0 ]; then STATUS=$HAZARD_STATUS; else STATUS=$MIXED_STATUS; fi
+
+          kill "$API_PID" || true
+          echo "--- api.log (tail) ---"
+          tail -40 api.log || true
+          exit $STATUS
+
+  # ── Optional: OWASP ZAP baseline scan (manual trigger) ────────────────────
+  security-zap:
+    name: Security (OWASP ZAP baseline)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: srms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      ConnectionStrings__SrmsDb: "Host=localhost;Port=5432;Database=srms_test;Username=postgres;Password=postgres"
+      Jwt__Key: "dev-only-srms-signing-key-change-me-0123456789"
+      Jwt__Issuer: "SRMS.API"
+      Jwt__Audience: "SRMS.Client"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build API
+        run: dotnet build backend/SRMS.API/SRMS.API.csproj --configuration Release
+
+      - name: Boot API and run ZAP baseline
+        run: |
+          dotnet run --project backend/SRMS.API --configuration Release --no-build \
+            --no-launch-profile --urls http://localhost:5017 > api.log 2>&1 &
+          API_PID=$!
+
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:5017/api/hazards/all > /dev/null; then break; fi
+            sleep 2
+          done
+
+          mkdir -p zap-report
+          docker run --rm --network host -v "$PWD/zap-report:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "${{ github.event.inputs.target_url || 'http://localhost:5017' }}" \
+            -r zap-report.html -I || true
+
+          kill "$API_PID" || true
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-report/

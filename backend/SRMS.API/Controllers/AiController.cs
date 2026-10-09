@@ -65,6 +65,7 @@ public class AiController : ControllerBase
                 isAutoVerified = result.IsAutoVerified,
                 analysisSummary = result.AnalysisSummary,
                 processingMs = result.ProcessingMs,
+                source = result.Source,
             }
         });
     }

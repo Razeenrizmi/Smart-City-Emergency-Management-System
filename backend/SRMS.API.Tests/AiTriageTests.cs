@@ -92,4 +92,52 @@ public sealed class AiTriageTests
 
         Assert.Contains(audit, e => e.WorkflowType == "VISION_CLASSIFY");
     }
+
+    // ── Gemini-backed vision (fake client, no network) ───────────────────────
+
+    [Fact]
+    public async Task Uses_gemini_classification_when_configured()
+    {
+        var (context, _, _) = MockDbContextFactory.CreateWithAi();
+        var gemini = new FakeGeminiClient
+        {
+            VisionResult = new GeminiHazardClassification("FLOODING", 0.88, "Flooded junction."),
+        };
+        var service = new AiVisionService(context.Object, NullLogger<AiVisionService>.Instance, gemini);
+
+        var result = await service.ClassifyImageAsync("img", null, 12.5);
+
+        Assert.Equal("GEMINI", result.Source);
+        Assert.Equal("FLOODING", result.DetectedCategory);
+        Assert.True(result.IsAutoVerified); // 0.88 ≥ 0.75
+        Assert.Equal("Flooded junction.", result.AnalysisSummary);
+    }
+
+    [Fact]
+    public async Task Falls_back_to_heuristic_when_gemini_not_configured()
+    {
+        var (context, _, _) = MockDbContextFactory.CreateWithAi();
+        var gemini = new FakeGeminiClient { Configured = false };
+        var service = new AiVisionService(context.Object, NullLogger<AiVisionService>.Instance, gemini);
+
+        var result = await service.ClassifyImageAsync("img", null, 12.5);
+
+        Assert.Equal("HEURISTIC", result.Source);
+        Assert.Contains(result.DetectedCategory, Categories);
+    }
+
+    [Fact]
+    public async Task Rejects_off_schema_gemini_category_and_falls_back()
+    {
+        var (context, _, _) = MockDbContextFactory.CreateWithAi();
+        var gemini = new FakeGeminiClient
+        {
+            VisionResult = new GeminiHazardClassification("ALIEN_SPACESHIP", 0.9, "n/a"),
+        };
+        var service = new AiVisionService(context.Object, NullLogger<AiVisionService>.Instance, gemini);
+
+        var result = await service.ClassifyImageAsync("img", null, 12.5);
+
+        Assert.Equal("HEURISTIC", result.Source);
+    }
 }
