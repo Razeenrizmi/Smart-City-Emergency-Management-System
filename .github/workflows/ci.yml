@@ -294,10 +294,10 @@ jobs:
             sleep 2
           done
 
-          k6 run tests/k6/hazard-report-load.js
-          HAZARD_STATUS=$?
           k6 run tests/k6/integrated-load.js
           MIXED_STATUS=$?
+          k6 run tests/k6/hazard-report-load.js
+          HAZARD_STATUS=$?
           if [ "$HAZARD_STATUS" -ne 0 ]; then STATUS=$HAZARD_STATUS; else STATUS=$MIXED_STATUS; fi
 
           kill "$API_PID" || true
