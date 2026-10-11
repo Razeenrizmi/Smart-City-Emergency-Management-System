@@ -66,9 +66,15 @@ public class CrimeVehicleController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[AI] Detection service unavailable: {ex.Message}");
+            var reason = ex switch
+            {
+                TaskCanceledException => "timed out",
+                HttpRequestException hre => $"HTTP {hre.StatusCode?.ToString() ?? "connection failed"}",
+                _ => ex.GetType().Name
+            };
+            Console.WriteLine($"[AI] Detection service unavailable ({reason}): {ex.Message}");
             return Ok(ApiResponse<ScanResultResponse>.Ok(
-                BuildErrorResponse("AI detection service unavailable. Ensure the Python AI service is running.", "AI_SERVICE_UNAVAILABLE", resolvedNodeId, sessionLabel),
+                BuildErrorResponse($"AI detection service unavailable ({reason}). Ensure the Python AI service is running.", "AI_SERVICE_UNAVAILABLE", resolvedNodeId, sessionLabel),
                 "AI detection service unavailable"));
         }
 

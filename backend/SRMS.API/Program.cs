@@ -165,6 +165,14 @@ builder.Services.AddHostedService<CameraTelemetrySimulatorService>();
 
 var app = builder.Build();
 
+// Surface the resolved AI endpoints at startup so a bad env var is obvious in the logs.
+// AIService:Url      -> named "AIService" client (dashboard GET /stats, crime detection POST /detect).
+// AiService:BaseUrl  -> SignalActionAgentClient (Emergency Green Wave).
+app.Logger.LogInformation(
+    "Resolved AIService:Url = {Url}", builder.Configuration["AIService:Url"] ?? "(not set)");
+app.Logger.LogInformation(
+    "Resolved AiService:BaseUrl = {Url}", builder.Configuration["AiService:BaseUrl"] ?? "(not set)");
+
 // Apply EF migrations and seed baseline data for every domain.
 await DbSeeder.SeedAsync(app);
 
