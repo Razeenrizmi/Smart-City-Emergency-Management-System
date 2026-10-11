@@ -24,6 +24,13 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Set, Tuple, List
 from collections import defaultdict, deque
 
+# Ultralytics reads these at import time. On hosts with an ephemeral, read-only
+# home directory the default config path is not writable and a missing optional
+# dependency triggers a runtime `pip install` that can kill the worker mid-request.
+# Point the config at a writable dir and fail fast instead of auto-installing.
+os.environ.setdefault("YOLO_CONFIG_DIR", "/tmp/Ultralytics")
+os.environ.setdefault("YOLO_AUTOINSTALL", "false")
+
 import cv2
 import easyocr
 import numpy as np
