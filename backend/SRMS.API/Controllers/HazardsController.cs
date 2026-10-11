@@ -105,3 +105,6 @@ public class HazardsController : ControllerBase
         return Ok(new { success = true, message = "Hazard rejected.", data = hazard });
     }
 }
+
+
+// add an comment to check the ci/cd workflow
