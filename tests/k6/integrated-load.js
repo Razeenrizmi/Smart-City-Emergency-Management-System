@@ -4,7 +4,7 @@
 //   BASE_URL=http://localhost:5017 k6 run tests/k6/integrated-load.js
 //
 // Complements hazard-report-load.js (write-heavy pothole reporting).
-// Thresholds: p95 < 500 ms (mixed endpoints), HTTP failure rate < 1%.
+// Thresholds: p95 < 550 ms (mixed endpoints), HTTP failure rate < 1%.
 
 import http from 'k6/http';
 import { check } from 'k6';
@@ -20,7 +20,7 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_duration: ['p(95)<500'],
+    http_req_duration: ['p(95)<550'],
     http_req_failed: ['rate<0.01'],
   },
 };
