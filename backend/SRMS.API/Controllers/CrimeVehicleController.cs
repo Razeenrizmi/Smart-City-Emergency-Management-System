@@ -36,6 +36,9 @@ public class CrimeVehicleController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ApiResponse<ScanResultResponse>>> ScanImage([FromForm] ScanImageRequest request)
     {
+        if (request is null)
+            return BadRequest(ApiResponse<ScanResultResponse>.Fail("No image uploaded"));
+
         var image = request.Image;
         var testPlate = request.TestPlate;
         var sessionId = request.SessionId;
